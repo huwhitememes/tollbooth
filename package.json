@@ -1,0 +1,34 @@
+{
+  "name": "tollbooth",
+  "version": "0.12.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "test": "tsx --test test/**/*.test.ts",
+    "check": "npm test && tsc --noEmit",
+    "verify:live": "node scripts/verify-live.mjs",
+    "settle:polymarket": "node scripts/settle-polymarket-http.mjs",
+    "types": "wrangler types env.d.ts --include-runtime false"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.29.0",
+    "@x402/core": "^2.18.0",
+    "@x402/evm": "^2.18.0",
+    "@x402/extensions": "^2.18.0",
+    "@x402/fetch": "^2.18.0",
+    "@x402/hono": "^2.18.0",
+    "agents": "latest",
+    "hono": "^4.12.29",
+    "viem": "^2.53.1",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260629.1",
+    "@types/node": "^26.1.0",
+    "tsx": "^4.23.0",
+    "typescript": "^5.5.0",
+    "wrangler": "^4.107.0"
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "tollbooth",
+  "compatibility_date": "2026-06-11",
+  "compatibility_flags": ["nodejs_compat"],
+  "main": "src/index.ts",
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS"
+  },
+  "workers_dev": true,
+  "routes": [
+    { "pattern": "agenttoll.dev", "custom_domain": true },
+    { "pattern": "www.agenttoll.dev", "custom_domain": true },
+  ],
+  "kv_namespaces": [
+    {
+      "binding": "tollbooth_cache",
+      "id": "dcac8fe8b6d0403bb480dc9033ccaab1",
+      "preview_id": "c91dddb17a934714889765b77946fddd"
+    }
+  ],
+  "triggers": {
+    "crons": ["*/15 * * * *"]
+  },
+  "durable_objects": {
+    "bindings": [
+      {
+        "class_name": "TollboothMCP",
+        "name": "TOLLBOOTH_MCP"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "new_sqlite_classes": ["TollboothMCP"],
+      "tag": "v1"
+    }
+  ]
+}
