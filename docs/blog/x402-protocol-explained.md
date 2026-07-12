@@ -217,7 +217,7 @@ The `/.well-known/x402` endpoint (and its `.json` variant) provides the protocol
 
 Individual tool pages at `/tools/{tool-name}` with SEO-optimized descriptions are what agents find through web search. Each page describes the tool, its price, its inputs, and includes an example request. This is the discovery layer that drives traffic.
 
-The CDP Bazaar, Coinbase's x402 marketplace, has an additional requirement that caught me off guard. You do not get listed just by serving the right manifests. The Bazaar requires at least one real paid settlement through Coinbase's facilitator before it indexes your resources. The buyer wallet I was using for self-testing was frozen for 72 hours after funding, which blocked the settlement test. The workaround was to wait, then complete a single $0.01 call through the CDP facilitator. After that, the Bazaar crawler picked up all 100 routes automatically.
+The CDP Bazaar, Coinbase's x402 marketplace, has an additional requirement that caught me off guard. You do not get listed just by serving the right manifests. The Bazaar requires at least one real paid settlement through Coinbase's facilitator before it indexes your resources. The buyer wallet I was using for self-testing was frozen for 72 hours after funding, which blocked the settlement test. This is a cold-start catch-22 worth knowing about: you need a real transaction to get listed, but getting that first transaction through requires a funded wallet and patience.
 
 ## What goes wrong when you build x402 endpoints at scale?
 
@@ -225,7 +225,7 @@ Building one x402 endpoint is straightforward. Building 100 reveals failure mode
 
 **The missing middleware pitfall.** When you add a new paid route, the route handler is not enough. You also need the payment middleware configuration entry. Without it, the route returns 200 with free data. This happened twice in production. The fix is to verify every new route with a bare curl that checks for 402 before deploying. I now treat this curl check as a mandatory step, not optional.
 
-**Three different tool counts.** Tollbooth has three numbers that all mean "how many tools do we have," and they never match. The TOOLS catalog array (the source of truth for the public manifest) has 100 entries. The `paidTool()` MCP registrations count 47, because not every HTTP tool has an MCP registration. The HTTP 402 route count is 76. When someone asks how many tools are live, the answer depends on which surface they are asking about. I track all three with grep commands now.
+**Three different tool counts.** Tollbooth has three numbers that all mean "how many tools do we have," and they never match. The TOOLS catalog array (the source of truth for the public manifest) has 100 entries. The `paidTool()` MCP registrations count 94, because nearly every HTTP tool has an MCP registration. The HTTP 402 route count is 92. When someone asks how many tools are live, the answer depends on which surface they are asking about. I track all three with grep commands now.
 
 **CDN caching of agent.json.** Cloudflare's CDN caches the `/.well-known/agent.json` manifest aggressively. After deploying 12 new tools, the first verification call returned the old count because the CDN served a cached response. The deploy was correct, but it looked broken. The fix is to always cache-bust when verifying:
 
@@ -273,44 +273,8 @@ This creates a dependency. If the facilitator goes down, paid calls stop working
 
 If you want to try x402, start with one tool. Pick a free public API, wrap it in a Cloudflare Worker, add the payment middleware, and deploy. The whole thing should take under an hour. Test it with the `x402-fetch` client using a funded wallet on Base Sepolia (testnet, free money). Once you have one paid call working end to end, scaling to 10 or 100 is a matter of repeating the five-layer pattern.
 
-You can find the Tollbooth codebase at [github.com/huwhitememes/tollbooth](https://github.com/huwhitememes/tollbooth). It is private right now, but I am working on open-sourcing the payment wiring layer. The five-layer checklist and the facilitator configuration are the parts worth studying. Everything else is just data fetching.
+You can find the full codebase at [github.com/huwhitememes/tollbooth](https://github.com/huwhitememes/tollbooth) — it is open source. The five-layer checklist and the facilitator configuration are the parts worth studying. Everything else is just data fetching.
 
 ---
 
 *Hu White is a generative-AI veteran who builds agenttoll.dev, a paid MCP tool marketplace with 100 tools running on the x402 protocol. Find his work at [github.com/huwhitememes/tollbooth](https://github.com/huwhitememes/tollbooth) and [LinkedIn](https://www.linkedin.com/in/huwhitememes/).*
-
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "TechArticle",
-  "headline": "How AI Agents Pay for API Calls: The x402 Protocol Explained",
-  "description": "A builder's guide to the x402 payment protocol for AI agents, with real code from a 100-tool production marketplace running on Base USDC micropayments.",
-  "author": {
-    "@type": "Person",
-    "name": "Hu White",
-    "alternateName": "Hu White",
-    "url": "https://agenttoll.dev",
-    "sameAs": [
-      "https://github.com/huwhitememes/tollbooth"
-    ]
-  },
-  "publisher": {
-    "@type": "Organization",
-    "name": "AgentToll",
-    "url": "https://agenttoll.dev",
-    "logo": {
-      "@type": "ImageObject",
-      "url": "https://agenttoll.dev/logo.png"
-    }
-  },
-  "datePublished": "2026-07-12T10:00:00Z",
-  "dateModified": "2026-07-12T10:00:00Z",
-  "keywords": "x402 protocol, AI agents pay for API calls, paid MCP tools, micropayments for AI agents, HTTP 402, Base USDC, autonomous agents, crypto payments",
-  "proficiencyLevel": "Expert",
-  "dependencies": "x402, @modelcontextprotocol/sdk, viem, Cloudflare Workers, Base blockchain",
-  "mainEntityOfPage": {
-    "@type": "WebPage",
-    "@id": "https://agenttoll.dev/blog/x402-protocol-explained"
-  }
-}
-</script>
