@@ -207,7 +207,7 @@ What surprised me when I first tested this was the speed. On Base, the payment v
 
 Discovery is where most builders, including me initially, get the architecture wrong. You build the tools, you register them in directories, and then you wait for agents to find them. But agents do not browse directories. They web search.
 
-This was the biggest insight from running Tollbooth for two months. The x402 ecosystem has directory services like x402scan and the CDP Bazaar. Getting listed there is necessary but not sufficient. When an autonomous agent needs earthquake data, it does not query x402scan. It does a web search for "live earthquake data API" or "paid USGS earthquake tool." If your tool page does not rank for that search, the agent never finds you.
+This was the biggest insight from building Tollbooth. The x402 ecosystem has directory services like x402scan and the CDP Bazaar. Getting listed there is necessary but not sufficient. When an autonomous agent needs earthquake data, it does not query x402scan. It does a web search for "live earthquake data API" or "paid USGS earthquake tool." If your tool page does not rank for that search, the agent never finds you.
 
 Three discovery surfaces matter:
 
