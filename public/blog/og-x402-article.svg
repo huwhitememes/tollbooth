@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0a1018"/>
+      <stop offset="60%" stop-color="#06080c"/>
+      <stop offset="100%" stop-color="#040608"/>
+    </linearGradient>
+    <radialGradient id="glow1" cx="30%" cy="40%" r="50%">
+      <stop offset="0%" stop-color="#2dd4bf" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#2dd4bf" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glow2" cx="75%" cy="60%" r="40%">
+      <stop offset="0%" stop-color="#0ea5e9" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#0ea5e9" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="chrome" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#8b9bb4"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect width="1200" height="630" fill="url(#glow1)"/>
+  <rect width="1200" height="630" fill="url(#glow2)"/>
+  
+  <!-- Badge -->
+  <rect x="100" y="80" width="180" height="36" rx="18" fill="rgba(45,212,191,0.12)" stroke="rgba(45,212,191,0.25)" stroke-width="1"/>
+  <circle cx="118" cy="98" r="4" fill="#2dd4bf"/>
+  <text x="132" y="103" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="500" fill="#2dd4bf">agenttoll.dev · Blog</text>
+  
+  <!-- Headline line 1 -->
+  <text x="96" y="220" font-family="Inter, system-ui, sans-serif" font-size="50" font-weight="800" fill="url(#chrome)" letter-spacing="-1.5">
+    How AI Agents Pay
+  </text>
+  <text x="96" y="285" font-family="Inter, system-ui, sans-serif" font-size="50" font-weight="800" fill="url(#chrome)" letter-spacing="-1.5">
+    for API Calls:
+  </text>
+  
+  <!-- Teal accent line -->
+  <text x="96" y="360" font-family="Inter, system-ui, sans-serif" font-size="50" font-weight="800" fill="#2dd4bf" letter-spacing="-1.5">
+    The x402 Protocol
+  </text>
+  
+  <!-- Code snippet box -->
+  <rect x="96" y="400" width="700" height="48" rx="10" fill="rgba(6,8,12,0.8)" stroke="rgba(56,78,112,0.25)" stroke-width="1"/>
+  <text x="116" y="430" font-family="'JetBrains Mono', monospace" font-size="16" fill="#5a6b85">
+    <tspan fill="#2dd4bf">HTTP 402</tspan> Payment Required → <tspan fill="#4ade80">USDC</tspan> on Base → <tspan fill="#e8eef6">200 OK</tspan>
+  </text>
+  
+  <!-- Feature line -->
+  <text x="100" y="495" font-family="Inter, system-ui, sans-serif" font-size="18" fill="#8b9bb4">
+    A builder's guide with real code from a 100-tool production marketplace
+  </text>
+  
+  <!-- Domain -->
+  <text x="100" y="550" font-family="'JetBrains Mono', monospace" font-size="20" font-weight="600" fill="#e8eef6">
+    agent<tspan fill="#2dd4bf">toll</tspan>.dev
+  </text>
+  
+  <!-- Bottom bar -->
+  <rect x="0" y="600" width="1200" height="30" fill="rgba(45,212,191,0.06)"/>
+  <text x="100" y="620" font-family="'JetBrains Mono', monospace" font-size="13" fill="#5a6b85">
+    $0.01–$0.10 per call · No API keys · No accounts · By Hu White
+  </text>
+</svg>
