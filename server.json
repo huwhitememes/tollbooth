@@ -1,0 +1,32 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.huwhitememes/agenttoll-dev",
+  "description": "100 paid x402 MCP tools for prediction markets, OSINT, web intel, legal, academic, health, environmental, government, finance, and security data on Base USDC.",
+  "version": "0.14.0",
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://agenttoll.dev/mcp"
+    }
+  ],
+  "homepageUrl": "https://agenttoll.dev",
+  "license": "MIT",
+  "categories": [
+    "data",
+    "finance",
+    "security",
+    "developer-tools"
+  ],
+  "tags": [
+    "x402",
+    "usdc",
+    "base",
+    "osint",
+    "prediction-markets",
+    "polymarket",
+    "kalshi",
+    "agent-security",
+    "web-scraping",
+    "lead-generation"
+  ]
+}
