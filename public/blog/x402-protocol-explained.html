@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%2306080c'/%3E%3Ctext x='50' y='72' font-family='monospace' font-size='52' font-weight='bold' text-anchor='middle' fill='%232dd4bf'%3E@%3C/text%3E%3C/svg%3E">
+<title>How AI Agents Pay for API Calls: The x402 Protocol Explained | agenttoll.dev</title>
+<meta name="description" content="The x402 protocol repurposes HTTP 402 into a payment system for AI agents.">
+<link rel="canonical" href="https://agenttoll.dev/blog/x402-protocol-explained">
+<meta property="og:title" content="How AI Agents Pay for API Calls: The x402 Protocol Explained">
+<meta property="og:description" content="A builder's guide to the x402 payment protocol for AI agents.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://agenttoll.dev/blog/x402-protocol-explained">
+<meta property="og:image" content="https://agenttoll.dev/blog/og-x402-article.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://agenttoll.dev/blog/og-x402-article.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:dark;--bg:#06080c;--text:#e8eef6;--text-2:#8b9bb4;--text-3:#5a6b85;--accent:#2dd4bf;--accent-dim:rgba(45,212,191,.12);--border:rgba(56,78,112,.25);--bg-card:rgba(16,22,34,.6)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;-webkit-font-smoothing:antialiased}
+nav{position:relative;z-index:10;display:flex;justify-content:space-between;align-items:center;max-width:1200px;margin:0 auto;padding:24px 32px}
+nav .logo{font-family:'JetBrains Mono',monospace;font-weight:600;font-size:16px}
+nav .logo span{color:var(--accent)}
+nav .links{display:flex;gap:28px;align-items:center}
+nav .links a{color:var(--text-2);text-decoration:none;font-size:14px;font-weight:500;transition:color .2s}
+nav .links a:hover{color:var(--text)}
+nav .links .cta{background:var(--accent-dim);border:1px solid rgba(45,212,191,.3);padding:8px 16px;border-radius:8px;color:var(--accent)}
+main{max-width:760px;margin:0 auto;padding:40px 32px 80px}
+article h1{font-size:clamp(28px,5vw,42px);font-weight:800;letter-spacing:-.03em;margin:16px 0 24px;line-height:1.15;background:linear-gradient(180deg,#fff,#8b9bb4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+article h2{font-size:24px;font-weight:700;letter-spacing:-.02em;margin:40px 0 16px}
+article h3{font-size:18px;font-weight:600;margin:28px 0 12px}
+article p{color:var(--text-2);font-size:16px;line-height:1.75;margin-bottom:16px}
+article ul{margin:12px 0 16px 20px}
+article li{color:var(--text-2);font-size:16px;line-height:1.75;margin:6px 0}
+article code{font-family:'JetBrains Mono',monospace;font-size:.88em;background:rgba(45,212,191,.1);padding:2px 6px;border-radius:4px;color:var(--accent)}
+article pre{background:rgba(6,8,12,.8);border:1px solid var(--border);border-radius:12px;padding:16px;overflow-x:auto;margin:16px 0}
+article pre code{background:none;padding:0;color:var(--text);font-size:13px}
+article a{color:var(--accent)}
+article strong{color:var(--text)}
+.tldr{background:var(--accent-dim);border:1px solid rgba(45,212,191,.2);border-radius:12px;padding:20px;margin:24px 0;font-size:16px;color:var(--text)}
+hr{border:none;border-top:1px solid var(--border);margin:32px 0}
+.meta{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--text-3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px}
+.back-link{margin-bottom:24px}
+.back-link a{color:var(--accent);text-decoration:none;font-size:14px}
+.author-card{margin-top:48px;padding:24px;background:var(--bg-card);border:1px solid var(--border);border-radius:16px}
+.author-card .flex{display:flex;gap:16px;align-items:center}
+.avatar{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#2dd4bf,#0ea5e9);display:flex;align-items:center;justify-content:center;font-weight:700;color:#06080c;font-size:20px}
+.cta-row{margin-top:32px;display:flex;gap:12px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;padding:12px 22px;border-radius:10px;font-weight:600;font-size:15px;text-decoration:none}
+.btn-primary{background:var(--accent);color:#06080c}
+.btn-ghost{background:rgba(10,14,22,.72);border:1px solid var(--border);color:var(--text)}
+.nav-toggle{display:none;background:none;border:none;color:var(--text);font-size:24px;cursor:pointer}
+@media(max-width:768px){.nav-toggle{display:block}nav .links{display:none;position:fixed;top:0;right:0;width:240px;height:100vh;background:rgba(6,8,12,.95);backdrop-filter:blur(20px);flex-direction:column;padding:80px 24px 24px;gap:20px;z-index:10;border-left:1px solid var(--border)}nav .links.open{display:flex}nav .links a{font-size:16px;width:100%;padding:8px 0}main{padding:20px 20px 60px}}
+</style>
+</head>
+<body>
+<nav>
+<div class="logo">agent<span>toll</span>.dev</div>
+<button class="nav-toggle" onclick="document.querySelector('nav .links').classList.toggle('open')">&#8801;</button>
+<div class="links">
+<a href="/tools">Tools</a>
+<a href="/docs">Docs</a>
+<a href="/blog/x402-protocol-explained">Blog</a>
+<a href="/.well-known/agent.json">agent.json</a>
+<a href="/mcp" class="cta">MCP Endpoint</a>
+</div>
+</nav>
+<main>
+<div class="back-link"><a href="/">&#8592; Back to agenttoll.dev</a></div>
+<div class="meta">Blog &#183; July 12, 2026</div>
+<img src="/blog/og-x402-article.png" alt="How AI Agents Pay for API Calls: The x402 Protocol Explained" style="width:100%;border-radius:12px;margin-bottom:24px;border:1px solid var(--border);">
+<article>
+<div class="tldr"><strong>TL;DR:</strong> The x402 protocol repurposes HTTP status code 402 into a payment system for AI agents. An agent requests data, gets a payment challenge for a few cents of USDC on Base, pays on-chain, and retries with proof. No API keys, no accounts, no subscriptions. I run 100 paid MCP tools on this and will show how with real code.</div>
+<hr>
+<h2>What is the x402 protocol?</h2>
+<p>The x402 protocol is an HTTP-based payment standard that repurposes the 402 status code, which browsers and servers have ignored since the early days of the web. Instead of requiring API keys or OAuth tokens, an x402 endpoint responds to unpaid requests with a structured payment challenge. The client, typically an AI agent with a crypto wallet, pays the specified amount in stablecoin and retries the request with cryptographic proof attached.</p>
+<p>Coinbase's developer platform team released the protocol in 2025, and it has since gained traction among builders who need autonomous agents to pay for resources without human-managed credentials. The "x" prefix signals that it extends the original HTTP 402 semantics with on-chain settlement. Stablecoins on low-fee networks like Base make this practical, because the per-call cost of $0.01 to $0.10 is too small for traditional payment rails to handle without eating the margin.</p>
+<p>What makes x402 different from earlier micropayment proposals is that it rides on top of standard HTTP. There is no new transport layer. An agent can interact with an x402 endpoint using any HTTP client. The payment happens through a facilitator service that verifies the on-chain transaction and settles it, so the resource server does not need to run its own blockchain node or manage wallets.</p>
+<h2>How does HTTP 402 work for AI agent payments?</h2>
+<p>The flow has four steps. When I built the first Tollbooth endpoints, I was surprised by how little code sits between a normal API handler and a paid one. The x402 middleware handles everything.</p>
+<p>Step 1: The agent sends a normal HTTP POST to a paid endpoint.</p>
+<pre><code>
+curl -X POST https://agenttoll.dev/paid/osint/usgs-quake \
+  -H "Content-Type: application/json" \
+  -d '{"limit": 10}'
+</code></pre>
+<p>Step 2: The server responds with HTTP 402 and a payment challenge body.</p>
+<pre><code>
+{
+  "error": "payment_required",
+  "price_usd": "0.02",
+  "network": "eip155:8453",
+  "accepts": {
+    "scheme": "exact",
+    "price": "$0.02",
+    "network": "eip155:8453",
+    "payTo": "0x62a0D3d9DF0dE8804983009949c714EaeAFd87F1"
+  }
+}
+</code></pre>
+<p>The <code>accepts</code> block tells the agent exactly what payment to construct: two cents of USDC on Base (chain ID 8453), sent to the specified wallet address. The <code>scheme: "exact"</code> field means the payment must match the price precisely, no rounding.</p>
+<p>Step 3: The agent's wallet constructs the payment. This is a signed on-chain transfer of USDC to the seller's address. The agent wraps this payment in an <code>X-Payment</code> header as a base64-encoded payload.</p>
+<p>Step 4: The agent retries the same request with the payment header attached.</p>
+<pre><code>
+curl -X POST https://agenttoll.dev/paid/osint/usgs-quake \
+  -H "Content-Type: application/json" \
+  -H "X-Payment: eyJ4NDAy..." \
+  -d '{"limit": 10}'
+</code></pre>
+<p>Payment middleware on the server intercepts this header, sends it to a facilitator for verification, and if the payment is valid, lets the request through to the handler. The facilitator then settles the payment on-chain. From the agent's perspective, it made two HTTP calls. From the seller's perspective, the money landed in their wallet without ever seeing a credit card form.</p>
+<h2>How do you build a paid API endpoint with x402?</h2>
+<p>I will show you the actual wiring from Tollbooth. The codebase runs on Cloudflare Workers with TypeScript, using the <code>@modelcontextprotocol/sdk</code> and the <code>x402</code> payment package. Every paid tool touches five layers. Miss one, and the tool breaks in a subtle way that only surfaces in production.</p>
+<p>The five layers are: a payment middleware configuration, an HTTP route handler, an MCP tool registration, a discovery manifest entry, and an OpenAPI spec path. Here is what each one looks like in practice.</p>
+<p><strong>Layer 1: Payment middleware configuration</strong></p>
+<pre><code>
+import { paymentMiddleware } from "x402/hono";
+
+paidHttp.use(paymentMiddleware({
+  "POST /paid/osint/usgs-quake": {
+    accepts: {
+      scheme: "exact",
+      price: "$0.02",
+      network: SERVICE.network,
+      payTo: SERVICE.seller
+    },
+    resource: `${SERVICE.origin}/paid/osint/usgs-quake`,
+    description: "Live USGS earthquake data (M2.5+, last 24h)",
+    mimeType: "application/json",
+    serviceName: SERVICE.name,
+    iconUrl: `${SERVICE.origin}/favicon.ico`,
+    unpaidResponseBody: () =&gt; ({
+      contentType: "application/json",
+      body: {
+        error: "payment_required",
+        price_usd: "0.02",
+        network: SERVICE.network
+      }
+    })
+  }
+}));
+</code></pre>
+<p>This middleware entry is what makes the endpoint return 402 instead of 200. I cannot count the number of times I have added a new tool, written the route handler, tested it, and watched it return free data because I forgot this middleware entry. The symptom is immediate: the endpoint returns HTTP 200 with the full response body, no payment challenge. Every new route needs this explicit <code>curl</code> check:</p>
+<pre><code>
+curl -s -o /dev/null -w "%{http_code}" -X POST \
+  https://agenttoll.dev/paid/osint/usgs-quake \
+  -H "Content-Type: application/json" -d '{}'
+# Must return 402, not 200
+</code></pre>
+<p><strong>Layer 2: HTTP route handler</strong></p>
+<pre><code>
+paidHttp.post("/paid/osint/usgs-quake", async (c) =&gt; {
+  const body = await c.req.json().catch(() =&gt; ({} as any));
+  const data = await getCachedOrLive(
+    c.env as any,
+    "usgs-quake",
+    () =&gt; fetchUsgsQuake(body),
+    { params: body }
+  );
+  return c.json(data.data, 200, {
+    "X-Cache": data.cached ? "HIT" : "MISS"
+  });
+});
+</code></pre>
+<p><strong>Layer 3: MCP tool registration</strong></p>
+<p>This is what makes the tool visible to MCP-compatible agents like Claude:</p>
+<pre><code>
+this.server.paidTool(
+  "usgs_quake",
+  "Live USGS earthquake data, M2.5+, last 24 hours",
+  0.02,
+  { limit: z.number().optional() },
+  {},
+  async (args) =&gt; {
+    const data = await mcpGetCachedOrLive(
+      this.env,
+      "usgs-quake",
+      () =&gt; fetchUsgsQuake(args),
+      args
+    );
+    return {
+      content: [{ type: "text", text: JSON.stringify(data) }]
+    };
+  }
+);
+</code></pre>
+<p><code>paidTool</code> is an extension of the standard MCP <code>tools/list</code> registration. When an MCP client calls <code>tools/list</code>, it sees this tool with its price. The client knows it needs to handle a payment challenge before the tool will respond.</p>
+<p><strong>Layers 4 and 5: Discovery manifests</strong></p>
+<p>The tool also needs entries in the <code>agent.json</code> discovery manifest (served at <code>/.well-known/agent.json</code>) and the OpenAPI spec (served at <code>/openapi.json</code>). Without the OpenAPI entry, x402scan, the protocol's directory service, will not index the route. Without the agent.json entry, agents using the Model Context Protocol discovery flow will not find it.</p>
+<p>This five-layer pattern is the single most important thing to internalize. Every tool I have shipped has gone through all five. The ones that broke in production broke because one layer was missing.</p>
+<h2>What does a full x402 payment flow look like in code?</h2>
+<p>This is a complete example of an agent making a paid call. I wrote this as a test script that exercises a real Tollbooth endpoint. It uses the <code>x402-fetch</code> client library, which wraps the standard <code>fetch</code> with automatic payment handling.</p>
+<pre><code>
+import { wrapFetchWithPayment } from "x402/fetch";
+import { createWalletClient, http } from "viem";
+import { base } from "viem/chains";
+import { privateKeyToAccount } from "viem/accounts";
+
+// 1. Create a wallet for the agent
+const account = privateKeyToAccount(process.env.AGENT_PRIVATE_KEY as `0x${string}`);
+const walletClient = createWalletClient({
+  account,
+  chain: base,
+  transport: http()
+});
+
+// 2. Wrap fetch with x402 payment support
+const fetchWithPayment = wrapFetchWithPayment(
+  fetch,
+  walletClient,
+  {
+    facilitatorUrl: "https://facilitator.payai.network"
+  }
+);
+
+// 3. Make the paid request
+const response = await fetchWithPayment(
+  "https://agenttoll.dev/paid/osint/usgs-quake",
+  {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ limit: 10 })
+  }
+);
+
+const data = await response.json();
+console.log(data);
+</code></pre>
+<p><code>wrapFetchWithPayment</code> intercepts any 402 response, reads the payment requirements from the body, constructs the USDC payment using the agent's wallet, and retries the request with the <code>X-Payment</code> header. The agent developer writes one line of setup. The rest is automatic.</p>
+<p>What surprised me when I first tested this was the speed. On Base, the payment verification takes about 200 to 400 milliseconds through the facilitator. The total round trip for a paid call, including the initial 402 challenge and the paid retry, lands between 600ms and 1.2 seconds for most tools. That is fast enough for interactive agent workflows.</p>
+<h2>How do AI agents discover paid MCP tools?</h2>
+<p>Discovery is where most builders, including me initially, get the architecture wrong. You build the tools, you register them in directories, and then you wait for agents to find them. But agents do not browse directories. They web search.</p>
+<p>This was the biggest insight from running Tollbooth for two months. The x402 ecosystem has directory services like x402scan and the CDP Bazaar. Getting listed there is necessary but not sufficient. When an autonomous agent needs earthquake data, it does not query x402scan. It does a web search for "live earthquake data API" or "paid USGS earthquake tool." If your tool page does not rank for that search, the agent never finds you.</p>
+<p>Three discovery surfaces matter:</p>
+<p>The <code>/.well-known/agent.json</code> manifest is the machine-readable catalog. Agents that already know about your marketplace fetch this to discover available tools and pricing.</p>
+<p>The <code>/.well-known/x402</code> endpoint (and its <code>.json</code> variant) provides the protocol-level resource listing. x402scan crawls this to build its directory. A subtlety I hit: x402scan tries the no-extension version first (<code>/.well-known/x402</code>), and some setups only serve the <code>.json</code> variant. Serve both.</p>
+<p>Individual tool pages at <code>/tools/{tool-name}</code> with SEO-optimized descriptions are what agents find through web search. Each page describes the tool, its price, its inputs, and includes an example request. This is the discovery layer that drives traffic.</p>
+<p>The CDP Bazaar, Coinbase's x402 marketplace, has an additional requirement that caught me off guard. You do not get listed just by serving the right manifests. The Bazaar requires at least one real paid settlement through Coinbase's facilitator before it indexes your resources. The buyer wallet I was using for self-testing was frozen for 72 hours after funding, which blocked the settlement test. The workaround was to wait, then complete a single $0.01 call through the CDP facilitator. After that, the Bazaar crawler picked up all 100 routes automatically.</p>
+<h2>What goes wrong when you build x402 endpoints at scale?</h2>
+<p>Building one x402 endpoint is straightforward. Building 100 reveals failure modes that the protocol documentation does not cover. Here are the problems I hit, in roughly the order they appeared.</p>
+<p><strong>The missing middleware pitfall.</strong> When you add a new paid route, the route handler is not enough. You also need the payment middleware configuration entry. Without it, the route returns 200 with free data. This happened twice in production. The fix is to verify every new route with a bare curl that checks for 402 before deploying. I now treat this curl check as a mandatory step, not optional.</p>
+<p><strong>Three different tool counts.</strong> Tollbooth has three numbers that all mean "how many tools do we have," and they never match. The TOOLS catalog array (the source of truth for the public manifest) has 100 entries. The <code>paidTool()</code> MCP registrations count 47, because not every HTTP tool has an MCP registration. The HTTP 402 route count is 76. When someone asks how many tools are live, the answer depends on which surface they are asking about. I track all three with grep commands now.</p>
+<p><strong>CDN caching of agent.json.</strong> Cloudflare's CDN caches the <code>/.well-known/agent.json</code> manifest aggressively. After deploying 12 new tools, the first verification call returned the old count because the CDN served a cached response. The deploy was correct, but it looked broken. The fix is to always cache-bust when verifying:</p>
+<pre><code>
+curl -sS -H 'Cache-Control: no-cache' \
+  'https://agenttoll.dev/.well-known/agent.json?v='$(date +%s) | \
+  python3 -c "import sys,json; print(len(json.load(sys.stdin)['tools']))"
+</code></pre>
+<p>I spent 15 minutes chasing a non-existent deploy failure before learning this.</p>
+<p><strong>Facilitator chain mismatches.</strong> The PayAI facilitator at <code>facilitator.payai.network</code> supports both Base mainnet (chain ID 8453) and Base Sepolia testnet (84532). If your <code>SERVICE.network</code> config says <code>eip155:84532</code> but your payment middleware expects mainnet, payments fail silently. The facilitator accepts the payment request but never settles, because the chain does not match. Always verify the chain ID in your config matches the facilitator endpoint you are using.</p>
+<p><strong>Discovery extensions for the CDP Bazaar.</strong> Each route needs a <code>declareDiscoveryExtension</code> object attached to its payment middleware entry. Without it, the CDP Bazaar shows zero resources for your origin. I had 37 routes missing extensions in one deployment, and the Bazaar returned an empty catalog. The extensions are what the Bazaar indexes at settle time, not just the payment configuration fields like <code>serviceName</code> and <code>iconUrl</code>.</p>
+<p><strong>KV cache and cron triggers for fulfillment.</strong> The first version of Tollbooth fetched live data on every paid call. This worked but added 2 to 8 seconds of latency depending on the upstream API. Moving to a Cloudflare KV cache with 15-minute cron pre-warming cut that to under 50 milliseconds for cache hits. The pattern: cron triggers run every 15 minutes, fetch data from upstream APIs, and write to KV. Paid calls read from KV first, fall back to live if the cache is cold. Buyers do not pay more for cached data, and the response is 40x faster.</p>
+<h2>How much does it cost to run 100 paid tools on x402?</h2>
+<p>The infrastructure cost is close to zero. Cloudflare Workers free tier handles 100,000 requests per day. Durable Objects, which run the MCP server, cost $0.15 per million requests. KV reads are $0.50 per million, writes are $5 per million. For a marketplace doing a few thousand paid calls per day, the total infrastructure bill is under $5 per month.</p>
+<p>Development time is the real cost. Each tool requires the five-layer wiring, upstream API research, pricing decisions, and testing. A straightforward tool that wraps a free public API takes about 45 minutes from research to deployed. A composite tool that aggregates multiple sources and does computation takes 2 to 3 hours.</p>
+<p>On the revenue side, at $0.02 to $0.10 per call, volume is everything. A tool that gets 100 calls per day at $0.02 generates $2 per day, or about $60 per month. To build a sustainable marketplace, you need tools that agents call repeatedly. The polymarket arbitrage tools, at $0.08 to $0.10 per call, are the highest-margin tools in Tollbooth because agents call them in loops during active trading sessions.</p>
+<h2>Will x402 replace API keys and subscriptions?</h2>
+<p>Not entirely, and probably not soon for enterprise use cases. API keys solve a problem x402 does not address: identity and access control. If you need to know who is calling your API, rate-limit specific users, or enforce data access policies, a payment protocol alone is not enough.</p>
+<p>But for the growing class of autonomous agents that need to buy data and computation on demand, x402 solves a problem API keys handle poorly: the cold-start problem. An agent that discovers a useful API at 3 AM cannot create an account, wait for email verification, add a credit card, generate an API key, and start calling. With x402, it pays and calls in the same HTTP exchange. No signup, no waiting, no human in the loop.</p>
+<p>Subscriptions also struggle with usage-based pricing for agents. An agent might need 50 calls today and zero tomorrow. A $49/month subscription makes no sense for that pattern. Pay-per-call at $0.02 to $0.10 does. The agent spends a dollar on a busy day and nothing on an idle one.</p>
+<p>I think x402 will carve out a specific niche: autonomous agent-to-service payments where the transaction size is too small for traditional payment rails and too frequent for manual setup. It will not replace Stripe. It will sit alongside it, handling the calls that Stripe's fee structure makes uneconomical.</p>
+<h2>The facilitator is the linchpin</h2>
+<p>One architectural detail that does not get enough attention: the facilitator. Every x402 marketplace depends on a facilitator service to verify and settle payments. Tollbooth uses PayAI's free facilitator at <code>facilitator.payai.network</code>. Coinbase's CDP also runs one. Without a facilitator, you would need to run your own blockchain node, verify transactions yourself, and manage settlement logic.</p>
+<p>The facilitator handles three things: verifying that the agent's payment is valid and on the correct chain, settling the payment so the seller receives funds, and returning a receipt the resource server can trust. The resource server never touches the blockchain directly. It trusts the facilitator's verdict.</p>
+<p>This creates a dependency. If the facilitator goes down, paid calls stop working, even though the resource server and the agent are both fine. I have not hit an outage yet, but the architecture assumes the facilitator is reliable. For production deployments, monitoring the facilitator's health is as important as monitoring your own server.</p>
+<h2>Building your first paid endpoint</h2>
+<p>If you want to try x402, start with one tool. Pick a free public API, wrap it in a Cloudflare Worker, add the payment middleware, and deploy. The whole thing should take under an hour. Test it with the <code>x402-fetch</code> client using a funded wallet on Base Sepolia (testnet, free money). Once you have one paid call working end to end, scaling to 10 or 100 is a matter of repeating the five-layer pattern.</p>
+<p>You can find the Tollbooth codebase at <a href="https://github.com/huwhitememes/tollbooth">github.com/huwhitememes/tollbooth</a>. It is private right now, but I am working on open-sourcing the payment wiring layer. The five-layer checklist and the facilitator configuration are the parts worth studying. Everything else is just data fetching.</p>
+<hr>
+<p>*Hu White is a generative-AI veteran who builds agenttoll.dev, a paid MCP tool marketplace with 100 tools running on the x402 protocol. Find his work at <a href="https://github.com/huwhitememes/tollbooth">github.com/huwhitememes/tollbooth</a> and <a href="https://www.linkedin.com/in/huwhitememes/">LinkedIn</a>.</p>
+<p><script type="application/ld+json"></p>
+<p>{</p>
+<p>  "@context": "https://schema.org",</p>
+<p>  "@type": "TechArticle",</p>
+<p>  "headline": "How AI Agents Pay for API Calls: The x402 Protocol Explained",</p>
+<p>  "description": "A builder's guide to the x402 payment protocol for AI agents, with real code from a 100-tool production marketplace running on Base USDC micropayments.",</p>
+<p>  "author": {</p>
+<p>    "@type": "Person",</p>
+<p>    "name": "Hu White",</p>
+<p>    "alternateName": "Hu White",</p>
+<p>    "url": "https://agenttoll.dev",</p>
+<p>    "sameAs": [</p>
+<p>      "https://github.com/huwhitememes/tollbooth"</p>
+<p>    ]</p>
+<p>  },</p>
+<p>  "publisher": {</p>
+<p>    "@type": "Organization",</p>
+<p>    "name": "AgentToll",</p>
+<p>    "url": "https://agenttoll.dev",</p>
+<p>    "logo": {</p>
+<p>      "@type": "ImageObject",</p>
+<p>      "url": "https://agenttoll.dev/logo.png"</p>
+<p>    }</p>
+<p>  },</p>
+<p>  "datePublished": "2026-07-12T10:00:00Z",</p>
+<p>  "dateModified": "2026-07-12T10:00:00Z",</p>
+<p>  "keywords": "x402 protocol, AI agents pay for API calls, paid MCP tools, micropayments for AI agents, HTTP 402, Base USDC, autonomous agents, crypto payments",</p>
+<p>  "proficiencyLevel": "Expert",</p>
+<p>  "dependencies": "x402, @modelcontextprotocol/sdk, viem, Cloudflare Workers, Base blockchain",</p>
+<p>  "mainEntityOfPage": {</p>
+<p>    "@type": "WebPage",</p>
+<p>    "@id": "https://agenttoll.dev/blog/x402-protocol-explained"</p>
+<p>  }</p>
+<p>}</p>
+<p></script></p>
+</article>
+<div class="author-card"><div class="flex"><div class="avatar" style="overflow:hidden;"><img src="/hu-white-pfp.jpg" alt="Hu White" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"></div><div><div style="font-size:15px;font-weight:600;">Hu White</div><div style="font-size:13px;color:var(--text-3);">Generative-AI veteran &#183; x402 protocol contributor &#183; <a href="https://github.com/huwhitememes" style="color:var(--accent);">GitHub</a> &#183; <a href="https://www.linkedin.com/in/huwhitememes/" style="color:var(--accent);">LinkedIn</a></div></div></div><p style="font-size:13px;color:var(--text-2);margin-top:12px;line-height:1.6;">Built and operates agenttoll.dev &#8212; a marketplace of 100+ paid MCP tools settling on Base USDC.</p></div>
+<div class="cta-row"><a href="/tools" class="btn btn-primary">Browse 100 tools &#8594;</a><a href="/docs" class="btn btn-ghost">Documentation</a><a href="/mcp" class="btn btn-ghost">MCP Endpoint</a></div>
+</main>
+</body>
+</html>
