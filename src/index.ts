@@ -3272,6 +3272,7 @@ main {
   letter-spacing: -0.05em;
   margin-bottom: 24px;
   padding-bottom: 0.08em;
+  padding-right: 0.1em;
   max-width: 900px;
   background: linear-gradient(180deg, #ffffff 0%, #8b9bb4 100%);
   -webkit-background-clip: text;
@@ -4001,8 +4002,13 @@ ${SHARED_CSS}
     <div class="cat-grid">
       <a href="/tools" class="cat-card">
         <h3><span class="icon">📊</span> Prediction Markets</h3>
-        <p>Polymarket arbitrage, Kalshi cross-platform, trending markets, odds feed, volume analytics.</p>
-        <span class="cat-count">9 tools</span>
+        <p>Polymarket arbitrage, Kalshi cross-platform, trending markets, odds feed, smart money tracking.</p>
+        <span class="cat-count">12 tools</span>
+      </a>
+      <a href="/tools" class="cat-card">
+        <h3><span class="icon">🌍</span> OSINT & Intelligence</h3>
+        <p>Geo tension signals, flight intel, research packs, SEC 8-K velocity, treasury data, HN, GitHub, Reddit.</p>
+        <span class="cat-count">16 tools</span>
       </a>
       <a href="/tools" class="cat-card">
         <h3><span class="icon">🔍</span> Web Intel</h3>
@@ -4010,44 +4016,49 @@ ${SHARED_CSS}
         <span class="cat-count">8 tools</span>
       </a>
       <a href="/tools" class="cat-card">
-        <h3><span class="icon">🌍</span> OSINT & Intelligence</h3>
-        <p>Geo tension signals, flight intel, research packs, weather bias, supply chain stress, SEC 8-K velocity.</p>
-        <span class="cat-count">14 tools</span>
-      </a>
-      <a href="/tools" class="cat-card">
         <h3><span class="icon">⚖️</span> Legal & Regulatory</h3>
-        <p>Court opinions, dockets, federal register, patents, regulations.</p>
-        <span class="cat-count">5 tools</span>
-      </a>
-      <a href="/tools" class="cat-card">
-        <h3><span class="icon">🔬</span> Academic & Science</h3>
-        <p>Papers, arXiv, PubMed, clinical trials, OpenAlex.</p>
-        <span class="cat-count">5 tools</span>
-      </a>
-      <a href="/tools" class="cat-card">
-        <h3><span class="icon">💊</span> Health & Safety</h3>
-        <p>Drug recalls, adverse events, product recalls, vehicle recalls, drug labels.</p>
-        <span class="cat-count">5 tools</span>
-      </a>
-      <a href="/tools" class="cat-card">
-        <h3><span class="icon">🔥</span> Environmental</h3>
-        <p>Wildfires, weather alerts, tides, space weather, water levels, earthquakes, air quality.</p>
+        <p>Court opinions, dockets, federal register, patents, trademarks, judges, regulations.</p>
         <span class="cat-count">7 tools</span>
       </a>
       <a href="/tools" class="cat-card">
-        <h3><span class="icon">🏛️</span> Government</h3>
-        <p>Federal spending, grants, contracts, lobbying, nonprofits, economic data.</p>
-        <span class="cat-count">6 tools</span>
+        <h3><span class="icon">🔬</span> Academic & Science</h3>
+        <p>Papers, arXiv, PubMed, clinical trials, OpenAlex, citation graphs.</p>
+        <span class="cat-count">7 tools</span>
       </a>
       <a href="/tools" class="cat-card">
-        <h3><span class="icon">💰</span> Finance</h3>
-        <p>SEC EDGAR filings, insider trades, FRED economic data.</p>
-        <span class="cat-count">5 tools</span>
+        <h3><span class="icon">💊</span> Health & Safety</h3>
+        <p>Drug recalls, adverse events, product recalls, vehicle recalls, disease outbreaks, food safety.</p>
+        <span class="cat-count">8 tools</span>
+      </a>
+      <a href="/tools" class="cat-card">
+        <h3><span class="icon">🔥</span> Environmental</h3>
+        <p>Wildfires, weather alerts, tides, space weather, earthquakes, marine conditions, air quality.</p>
+        <span class="cat-count">13 tools</span>
+      </a>
+      <a href="/tools" class="cat-card">
+        <h3><span class="icon">🏛️</span> Government</h3>
+        <p>Federal spending, grants, contracts, lobbying, nonprofits, economic data, national debt.</p>
+        <span class="cat-count">7 tools</span>
+      </a>
+      <a href="/tools" class="cat-card">
+        <h3><span class="icon">💰</span> Finance & Crypto</h3>
+        <p>SEC EDGAR, insider trades, FRED economic data, currency rates, crypto prices, Bitcoin mempool.</p>
+        <span class="cat-count">8 tools</span>
       </a>
       <a href="/tools" class="cat-card">
         <h3><span class="icon">🔒</span> Security</h3>
-        <p>Threat intel, MCP supply-chain IOCs, trifecta score, agent policies, CVE search.</p>
-        <span class="cat-count">5 tools</span>
+        <p>Threat intel, MCP supply-chain IOCs, trifecta score, agent policies, CVE search, company registry.</p>
+        <span class="cat-count">6 tools</span>
+      </a>
+      <a href="/tools" class="cat-card">
+        <h3><span class="icon">🎬</span> Gen-Video Intel</h3>
+        <p>Generative video model intelligence, recommended settings, community workflow data.</p>
+        <span class="cat-count">2 tools</span>
+      </a>
+      <a href="/tools" class="cat-card">
+        <h3><span class="icon">🔧</span> Utility</h3>
+        <p>DNS lookup, IP geolocation, timezone, airport status, postal codes, ISBN book search.</p>
+        <span class="cat-count">6 tools</span>
       </a>
     </div>
   </section>
@@ -4161,19 +4172,40 @@ ${content}
 </html>`;
 }
 
+// ── Category definitions (single source of truth) ──────────────────
+const TOOL_CATEGORIES = [
+  { name: "Prediction Markets", icon: "\u{1F4CA}", tools: ["polymarket_event_scan","polymarket_market_scan","cross_platform_arb_scan","rebalance_arb_scan","trending_markets","odds_feed","volume_analytics","resolution_history","kalshi_markets","combinatorial_arb","orderbook_imbalance","smart_money"] },
+  { name: "OSINT & Intelligence", icon: "\u{1F30D}", tools: ["geo_intervention_pulse","flight_intel","osint_research_pack","scenario_verdict","weather_bias_score","supply_chain_stress","regulatory_pulse","attention_momentum","sec_8k_velocity","fred_surprises","treasury_dts","openrouter_models","github_trending","github_repo_intel","hn_frontpage","reddit_search"] },
+  { name: "Web Intel", icon: "\u{1F50D}", tools: ["scrape","detect_stack","extract_contacts","score_lead","enrich_lead","check_agent_policy","find_agent_resource","validate_local-tooling_manifest"] },
+  { name: "Legal & Regulatory", icon: "\u{2696}\u{FE0F}", tools: ["court_opinions","court_docket","federal_register","patents_search","regulations_search","judges_search","trademarks_search"] },
+  { name: "Academic & Science", icon: "\u{1F52C}", tools: ["search_papers","search_arxiv","search_pubmed","clinical_trials","search_openalex","paper_details","citation_graph"] },
+  { name: "Health & Safety", icon: "\u{1F48A}", tools: ["drug_recalls","adverse_events","product_recalls","vehicle_recalls","drug_labels","disease_outbreaks","food_safety","food_recall_check"] },
+  { name: "Environmental", icon: "\u{1F525}", tools: ["wildfires","weather_alerts","tide_data","space_weather","water_levels","usgs_quake","openaq_air","space_weather_kp","weather_forecast_grid","weather_current_global","aurora_forecast","marine_conditions","air_quality_index"] },
+  { name: "Government", icon: "\u{1F3DB}\u{FE0F}", tools: ["federal_spending","national_debt","federal_grants","nonprofit_filings","economic_indicators","lobbying_records","federal_contracts"] },
+  { name: "Finance & Crypto", icon: "\u{1F4B0}", tools: ["edgar_filings","insider_trades","fred_series","currency_rates","business_days","crypto_price_simple","btc_address_balance","btc_mempool_fees"] },
+  { name: "Security", icon: "\u{1F512}", tools: ["agent_threat_intel","mcp_supply_chain_iocs","agent_trifecta_score","agent_security_policies","cve_search","company_registry"] },
+  { name: "Gen-Video Intel", icon: "\u{1F3AC}", tools: ["gen_video_intel","model_settings_lookup"] },
+  { name: "Utility", icon: "\u{1F527}", tools: ["postal_code_lookup","ip_geolocation","timezone_current","airport_status","dns_records_lookup","isbn_book_lookup"] },
+];
+
+function categoryForTool(name: string): string {
+  for (const cat of TOOL_CATEGORIES) {
+    if (cat.tools.includes(name)) return cat.name;
+  }
+  return "Other";
+}
+
+function relatedTools(name: string): string[] {
+  for (const cat of TOOL_CATEGORIES) {
+    if (cat.tools.includes(name)) {
+      return cat.tools.filter((t: string) => t !== name).slice(0, 4);
+    }
+  }
+  return [];
+}
+
 function toolsDirectoryPage() {
-  const categories = [
-    { name: "Prediction Markets", icon: "\u{1F4CA}", tools: ["polymarket_event_scan","polymarket_market_scan","cross_platform_arb_scan","rebalance_arb_scan","trending_markets","odds_feed","volume_analytics","resolution_history","kalshi_markets","combinatorial_arb","orderbook_imbalance","smart_money"] },
-    { name: "Web Intel", icon: "\u{1F50D}", tools: ["scrape","detect_stack","extract_contacts","score_lead","enrich_lead","check_agent_policy","find_agent_resource","validate_local-tooling_manifest"] },
-    { name: "OSINT & Intelligence", icon: "\u{1F30D}", tools: ["geo_intervention_pulse","flight_intel","osint_research_pack","scenario_verdict","weather_bias_score","supply_chain_stress","regulatory_pulse","attention_momentum","sec_8k_velocity","fred_surprises","treasury_dts","openrouter_models","github_trending","github_repo_intel","hn_frontpage","reddit_search"] },
-    { name: "Legal & Regulatory", icon: "\u{2696}\u{FE0F}", tools: ["court_opinions","court_docket","federal_register","patents_search","regulations_search"] },
-    { name: "Academic & Science", icon: "\u{1F52C}", tools: ["search_papers","search_arxiv","search_pubmed","clinical_trials","search_openalex"] },
-    { name: "Health & Safety", icon: "\u{1F48A}", tools: ["drug_recalls","adverse_events","product_recalls","vehicle_recalls","drug_labels"] },
-    { name: "Environmental", icon: "\u{1F525}", tools: ["wildfires","weather_alerts","tide_data","space_weather","water_levels","usgs_quake","openaq_air"] },
-    { name: "Government", icon: "\u{1F3DB}\u{FE0F}", tools: ["federal_spending","national_debt","federal_grants","nonprofit_filings","economic_indicators","lobbying_records"] },
-    { name: "Finance", icon: "\u{1F4B0}", tools: ["edgar_filings","insider_trades","fred_series","currency_rates","business_days"] },
-    { name: "Security", icon: "\u{1F512}", tools: ["agent_threat_intel","mcp_supply_chain_iocs","agent_trifecta_score","agent_security_policies","cve_search"] },
-  ];
+  const categories = TOOL_CATEGORIES;
 
   const assigned = new Set<string>();
   categories.forEach(c => c.tools.forEach(t => assigned.add(t)));
@@ -4231,25 +4263,16 @@ function toolDetailPage(toolName: string) {
     return shellPage("Not found", `<section class="detail-page"><div class="back-link">← <a href="/tools" style="color: var(--accent); text-decoration: none;">Back to tools</a></div><h1>Tool not found</h1><p style="color: var(--text-2);">No tool named "${toolName}".</p></section>`);
   }
 
-  // Find related tools (same price range or similar keywords)
-  const toolIdx = TOOLS.findIndex((t: any) => t.name === tool.name);
-  const related = TOOLS.filter((t: any) => t.name !== tool.name).slice(0, 4);
+  // Find related tools (same category)
+  const relatedNames = relatedTools(tool.name);
+  const related = relatedNames.map(n => TOOLS.find((t: any) => t.name === n)).filter(Boolean);
   const relatedCards = related.map((t: any) => `<a href="/tools/${t.name}" class="tool-card" style="min-height: auto;">
     <div class="tool-name">${t.name}</div>
     <div class="tool-price">$${(t as any).price_usd}</div>
   </a>`).join("");
 
-  // Build category label from tool name keywords
-  const catLabel = tool.name.includes("polymarket") || tool.name.includes("kalshi") || tool.name.includes("market") ? "Prediction Markets"
-    : tool.name.includes("sec") || tool.name.includes("edgar") || tool.name.includes("insider") || tool.name.includes("fred") || tool.name.includes("btc") || tool.name.includes("crypto") ? "Finance"
-    : tool.name.includes("court") || tool.name.includes("patent") || tool.name.includes("trademark") || tool.name.includes("regulation") || tool.name.includes("federal_register") || tool.name.includes("judge") ? "Legal & Regulatory"
-    : tool.name.includes("paper") || tool.name.includes("arxiv") || tool.name.includes("pubmed") || tool.name.includes("clinical") || tool.name.includes("citation") || tool.name.includes("isbn") || tool.name.includes("openalex") ? "Academic & Science"
-    : tool.name.includes("drug") || tool.name.includes("recall") || tool.name.includes("adverse") || tool.name.includes("food") || tool.name.includes("disease") || tool.name.includes("health") || tool.name.includes("air") ? "Health & Safety"
-    : tool.name.includes("wildfire") || tool.name.includes("weather") || tool.name.includes("tide") || tool.name.includes("quake") || tool.name.includes("space") || tool.name.includes("water") || tool.name.includes("marine") || tool.name.includes("aurora") ? "Environmental"
-    : tool.name.includes("federal") || tool.name.includes("gov") || tool.name.includes("grant") || tool.name.includes("lobby") || tool.name.includes("nonprofit") || tool.name.includes("postal") || tool.name.includes("contract") || tool.name.includes("debt") || tool.name.includes("economic") ? "Government"
-    : tool.name.includes("cve") || tool.name.includes("threat") || tool.name.includes("security") || tool.name.includes("dns") || tool.name.includes("trifecta") || tool.name.includes("policy") || tool.name.includes("mcp_ioc") || tool.name.includes("company") ? "Security"
-    : tool.name.includes("scrape") || tool.name.includes("detect") || tool.name.includes("contact") || tool.name.includes("lead") || tool.name.includes("enrich") || tool.name.includes("agent") ? "Web Intel"
-    : "OSINT & Intelligence";
+  // Category label from single source of truth
+  const catLabel = categoryForTool(tool.name);
 
   // JSON-LD structured data for this specific tool
   const jsonLd = `<script type="application/ld+json">
@@ -4356,7 +4379,7 @@ ${jsonLd}`;
         <div style="width: 48px; height: 48px; border-radius: 50%; overflow: hidden; flex-shrink: 0;"><img src="/hu-white-pfp.jpg" alt="Hu White" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;"></div>
         <div>
           <div style="font-size: 15px; font-weight: 600; color: var(--text);">Hu White</div>
-          <div style="font-size: 13px; color: var(--text-3);">Generative-AI veteran · x402 protocol contributor · <a href="https://github.com/huwhitememes" style="color: var(--accent); text-decoration: none;">GitHub</a> · <a href="https://www.linkedin.com/in/huwhitememes/" style="color: var(--accent); text-decoration: none;">LinkedIn</a></div>
+          <div style="font-size: 13px; color: var(--text-3);">Generative-AI veteran · x402 protocol contributor · <a href="https://github.com/huwhitememes" style="color: var(--accent); text-decoration: none;">GitHub</a> · <a href="https://www.linkedin.com/in/huwhitememes/" style="color: var(--accent); text-decoration: none;">LinkedIn</a> · <a href="https://x.com/huwhitememes" style="color: var(--accent); text-decoration: none;">X</a></div>
         </div>
       </div>
       <p style="font-size: 13px; color: var(--text-2); margin-top: 12px; line-height: 1.6;">Built and operates agenttoll.dev — a marketplace of 100+ paid MCP tools settling on Base USDC. Every tool is tested against live APIs before listing.</p>
