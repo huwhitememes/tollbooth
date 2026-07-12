@@ -11,7 +11,7 @@ dist/
 
 # Internal docs — not for public repo
 docs/LOCAL_*
-docs/INTERNAL_*
+docs/internal-*
 docs/PLAN_*
 docs/JULY_*
 docs/REGISTRY_*
