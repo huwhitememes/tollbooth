@@ -152,15 +152,18 @@ $6T+ federal budget, contracts, grants, lobbying, nonprofits, national debt — 
 - POST /paid/gov/lobbying-records — FEC lobbying disclosure records. $0.04
 - POST /paid/gov/federal-contracts — Federal contracts via USAspending.gov. $0.04
 
-## Finance & Corporate (6 tools)
+## Finance & Crypto (8 tools)
 
-SEC EDGAR, Form 4 insider trades, FRED economic data, currency rates.
+SEC EDGAR, Form 4 insider trades, FRED economic data, currency rates, crypto prices, Bitcoin mempool.
 - POST /paid/finance/edgar-filings — SEC EDGAR full-text filings search. $0.03
 - POST /paid/finance/insider-trades — SEC Form 4 insider transactions. $0.03
 - POST /paid/finance/fred-series — FRED economic data (GDP, CPI, rates, 800K+ series). $0.02
 - POST /paid/finance/currency-rates — Live FX rates, 160+ currencies. $0.01
 - POST /paid/finance/fred-surprises — FRED 10Y-2Y spread and yield curve inversion. $0.02
 - POST /paid/finance/business-days — Business day calculator with US federal holidays. $0.01
+- POST /paid/utility/crypto-price-simple — Current crypto price in USD for any CoinGecko coin. $0.02
+- POST /paid/utility/btc-mempool-fees — Bitcoin network fees (fastest, half-hour, hour, economy). $0.02
+- POST /paid/utility/btc-address-balance — Bitcoin address balance and transaction history. $0.03
 
 ## Web Intelligence (7 tools)
 
@@ -194,17 +197,15 @@ Live community intelligence from 1.2M+ generative video practitioners — workfl
 - POST /paid/genvideo/gen-video-intel — Model names, capabilities, pricing, workflows, gotchas. $0.05
 - POST /paid/genvideo/model-settings-lookup — Recommended settings per model (temp, top_p, etc). $0.02
 
-## Utility (8 tools)
+## Utility (6 tools)
 
-DNS, geolocation, crypto prices, Bitcoin mempool, ISBN lookup, airport status, timezone, postal codes.
+DNS, geolocation, timezone, airport status, postal codes, ISBN lookup.
 - POST /paid/utility/dns-records-lookup — DNS via Cloudflare DoH (A, AAAA, MX, TXT, NS, CNAME). $0.02
 - POST /paid/utility/ip-geolocation — Geolocate IP: country, city, ISP, ASN, coordinates. $0.02
-- POST /paid/utility/crypto-price-simple — Current crypto price in USD for any CoinGecko coin. $0.02
-- POST /paid/utility/btc-mempool-fees — Bitcoin network fees (fastest, half-hour, hour, economy). $0.02
-- POST /paid/utility/btc-address-balance — Bitcoin address balance and transaction history. $0.03
-- POST /paid/utility/isbn-book-lookup — Book metadata by ISBN via Open Library. $0.02
-- POST /paid/utility/airport-status — Airport details by ICAO code. $0.02
 - POST /paid/utility/timezone-current — Current date/time for any IANA timezone. $0.01
+- POST /paid/utility/airport-status — Airport details by ICAO code. $0.02
+- POST /paid/utility/postal-code-lookup — City, state, geo for postal/zip codes, 60+ countries. $0.02
+- POST /paid/utility/isbn-book-lookup — Book metadata by ISBN via Open Library. $0.02
 
 ## Architecture
 
