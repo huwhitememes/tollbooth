@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0a1018"/>
+      <stop offset="60%" stop-color="#06080c"/>
+      <stop offset="100%" stop-color="#040608"/>
+    </linearGradient>
+    <radialGradient id="glow1" cx="30%" cy="40%" r="50%">
+      <stop offset="0%" stop-color="#2dd4bf" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#2dd4bf" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glow2" cx="75%" cy="60%" r="40%">
+      <stop offset="0%" stop-color="#0ea5e9" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#0ea5e9" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="chrome" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#8b9bb4"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect width="1200" height="630" fill="url(#glow1)"/>
+  <rect width="1200" height="630" fill="url(#glow2)"/>
+  
+  <!-- Badge -->
+  <rect x="100" y="80" width="360" height="36" rx="18" fill="rgba(45,212,191,0.12)" stroke="rgba(45,212,191,0.25)" stroke-width="1"/>
+  <circle cx="118" cy="98" r="4" fill="#2dd4bf"/>
+  <text x="132" y="103" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="500" fill="#2dd4bf">x402 · USDC on Base · No account needed</text>
+  
+  <!-- Domain name -->
+  <text x="96" y="260" font-family="'JetBrains Mono', monospace" font-size="64" font-weight="700" fill="url(#chrome)" letter-spacing="-2">
+    agent<tspan fill="#2dd4bf">toll</tspan>.dev
+  </text>
+  
+  <!-- Headline -->
+  <text x="100" y="340" font-family="Inter, system-ui, sans-serif" font-size="52" font-weight="800" fill="url(#chrome)" letter-spacing="-1.5">
+    Paid data tools
+  </text>
+  <text x="100" y="400" font-family="Inter, system-ui, sans-serif" font-size="52" font-weight="800" fill="url(#chrome)" letter-spacing="-1.5">
+    for AI agents.
+  </text>
+  
+  <!-- Stats row -->
+  <text x="100" y="470" font-family="'JetBrains Mono', monospace" font-size="20" font-weight="600" fill="#e8eef6">
+    100+ tools · 10 categories · $0.01–$0.10 per call
+  </text>
+  
+  <!-- Feature line -->
+  <text x="100" y="510" font-family="Inter, system-ui, sans-serif" font-size="18" fill="#8b9bb4">
+    Prediction markets · SEC filings · OSINT · Court records · Academic · Health · Env
+  </text>
+  
+  <!-- Bottom bar -->
+  <rect x="0" y="600" width="1200" height="30" fill="rgba(45,212,191,0.06)"/>
+  <text x="100" y="620" font-family="'JetBrains Mono', monospace" font-size="13" fill="#5a6b85">
+    Settles on Base USDC · Built by Hu White
+  </text>
+</svg>

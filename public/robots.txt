@@ -1,0 +1,35 @@
+User-agent: *
+Allow: /
+Allow: /tools
+Allow: /tools/
+Allow: /docs
+Disallow: /paid/
+Disallow: /admin/
+Disallow: /mcp
+
+# AI Search Crawlers — explicitly allowed for GEO
+User-agent: GPTBot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+Sitemap: https://agenttoll.dev/sitemap.xml
