@@ -1,0 +1,213 @@
+# agenttoll.dev
+
+Operator: Hu White (@huwhitememes)
+Contact: memerhuwhite@gmail.com
+
+Lead: Pay-per-call AI agent data tools. 100 tools across 10 categories. Agents pay $0.01-$0.10/call via x402 micropayments in USDC on Base. No API keys, no accounts, no subscriptions.
+
+Buyer-agent summary: agenttoll.dev gives agents one entry point for callable OSINT, market intelligence, web intel, legal, academic, health, environmental, government, finance, and utility data tools. Every tool is paid via x402 — an agent requests data, gets HTTP 402 with a payment challenge, pays cents of USDC on Base, retries with proof, gets JSON back. No keys, no OAuth, no billing dashboard.
+
+Start with `POST /paid/osint/usgs-quake` ($0.02), `POST /paid/osint/hn-frontpage` ($0.02), or `POST /paid/utility/crypto-price-simple` ($0.02). Then explore `/tools` for the full catalog.
+
+Live payment protocol: x402. Chain: Base mainnet (eip155:8453). Facilitator: https://facilitator.payai.network (free, no-auth). Seller wallet: 0x62a0D3d9DF0dE8804983009949c714EaeAFd87F1.
+
+Canonical pricing/status catalog: /.well-known/agent.json
+OpenAPI spec: /openapi.json
+x402 discovery manifest: /.well-known/x402
+MCP endpoint: /mcp
+Tools directory: /tools
+Blog: /blog/x402-protocol-explained
+Codebase: https://github.com/huwhitememes/tollbooth (open source)
+
+MCP server: Connect any MCP-compatible agent to `https://agenttoll.dev/mcp`. Use `Accept: application/json, text/event-stream` with an `mcp-session-id` header. `initialize` → `notifications/initialized` → `tools/list` returns all 100 tools with pricing.
+
+Free endpoints (no payment required):
+- GET /api/info — service info and capabilities
+- GET /tools — full tools directory (HTML)
+- GET /tools/{tool-name} — individual tool detail page with pricing, inputs, example
+- GET /openapi.json — full OpenAPI spec
+- GET /.well-known/agent.json — agent discovery manifest (100 tools)
+- GET /.well-known/x402 — x402 resource listing
+
+## Quickstart (curl)
+
+Unpaid request returns HTTP 402:
+
+  curl -X POST https://agenttoll.dev/paid/osint/usgs-quake \
+    -H "Content-Type: application/json" \
+    -d '{"limit": 10}'
+
+Response:
+  {"error":"payment_required","price_usd":"0.02","network":"eip155:8453","accepts":{"scheme":"exact","price":"$0.02","network":"eip155:8453","payTo":"0x62a0D3d9DF0dE8804983009949c714EaeAFd87F1"}}
+
+Agent pays 0.02 USDC on Base to the payTo address, retries with X-Payment header, gets JSON data.
+
+Quickstart (x402-fetch client):
+
+  import { wrapFetchWithPayment } from "x402/fetch";
+  import { createWalletClient, http } from "viem";
+  import { base } from "viem/chains";
+  import { privateKeyToAccount } from "viem/accounts";
+
+  const account = privateKeyToAccount(process.env.AGENT_PRIVATE_KEY);
+  const walletClient = createWalletClient({ account, chain: base, transport: http() });
+  const fetchWithPayment = wrapFetchWithPayment(fetch, walletClient,
+    { facilitatorUrl: "https://facilitator.payai.network" });
+
+  const response = await fetchWithPayment("https://agenttoll.dev/paid/osint/usgs-quake",
+    { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ limit: 10 }) });
+
+## Market Intelligence (10 tools)
+
+Prediction market scanning for Polymarket and Kalshi — arbitrage detection, orderbook analysis, trending markets, smart money tracking.
+- POST /paid/polymarket/event-scan — Scan one Polymarket negRisk event for arbitrage. $0.03
+- POST /paid/polymarket/market-scan — Scan high-volume Polymarket markets for resolution candidates. $0.05
+- POST /paid/markets/cross-platform-scan — Match Polymarket and Kalshi markets for cross-platform arbitrage. $0.10
+- POST /paid/polymarket/rebalance-scan — Single-market rebalance arbitrage (YES+NO pricing violations). $0.04
+- POST /paid/polymarket/trending — Top trending Polymarket markets by 24h volume. $0.02
+- POST /paid/polymarket/odds-feed — Normalized live odds across Polymarket and Kalshi. $0.02
+- POST /paid/polymarket/volume-analytics — Markets ranked by 24h volume with liquidity depth. $0.03
+- POST /paid/polymarket/resolution-history — Recently resolved markets with final outcomes. $0.03
+- POST /paid/polymarket/orderbook-imbalance — CLOB orderbook imbalance as directional signal. $0.05
+- POST /paid/polymarket/smart-money — Leaderboard top traders, current positions, ROI. $0.10
+
+## OSINT (14 tools)
+
+Open-source intelligence feeds — GDELT, ADS-B, SEC, Treasury, HN, GitHub, USGS, OpenAQ, OpenRouter. Cron-pre-warmed via Cloudflare KV for sub-50ms cache hits.
+- POST /paid/osint/attention-momentum — HN frontpage + Reddit velocity + pypistats/npm/crates momentum score. $0.02
+- POST /paid/osint/flight-intel — Live military/exec jet intel via adsb.lol. $0.02
+- POST /paid/osint/geo-pulse — Composite geo/military tension signal: GDELT + BBC/AlJazeera + ADS-B. $0.05
+- POST /paid/osint/github-trending — GitHub trending repos by stars + recent activity. $0.02
+- POST /paid/osint/hn-frontpage — HN frontpage with dwell scoring. $0.02
+- POST /paid/osint/openaq-air — OpenAQ air quality readings by city/country. $0.02
+- POST /paid/osint/openrouter-models — OpenRouter model catalog with pricing. $0.02
+- POST /paid/osint/research-pack — Literature discovery factory: GDELT + BBC RSS + HN + arXiv. $0.04
+- POST /paid/osint/regulatory-pulse — FDA + trials + USPTO + FCC + FAA + SEC composite. $0.03
+- POST /paid/osint/scenario-verdict — 3-scenario verdict.json with escalation probabilities. $0.05
+- POST /paid/osint/sec-8k-velocity — SEC EDGAR 8-K filing spike detection. $0.03
+- POST /paid/osint/supply-stress — Port/chokepoint stress: CBP + GDELT + AIS + BTS. $0.03
+- POST /paid/osint/treasury-dts — Treasury TGA operating cash balance. $0.04
+- POST /paid/osint/usgs-quake — USGS earthquakes M2.5+ last 24h. $0.02
+- POST /paid/osint/weather-bias — Open-Meteo archive vs forecast bias for Kalshi weather markets. $0.03
+
+## Legal & Regulatory (7 tools)
+
+Court records, patents, trademarks, federal regulations — CourtListener, Google Patents, USPTO, Federal Register.
+- POST /paid/legal/court-opinions — Search US federal court opinions. $0.05
+- POST /paid/legal/court-docket — Federal court docket lookup via RECAP. $0.05
+- POST /paid/legal/federal-register — Search daily Federal Register. $0.03
+- POST /paid/legal/patents-search — Full-text patent search via Google Patents. $0.04
+- POST /paid/legal/regulations-search — Search open rulemakings and public dockets. $0.03
+- POST /paid/legal/judges-search — Search federal and state judges. $0.04
+- POST /paid/legal/trademarks-search — Search USPTO trademark database. $0.03
+
+## Academic & Scientific (7 tools)
+
+226M+ papers via Semantic Scholar, arXiv, PubMed, ClinicalTrials.gov, OpenAlex.
+- POST /paid/academic/search-papers — Search 226M+ papers with AI-ranked relevance. $0.04
+- POST /paid/academic/search-arxiv — Search arXiv preprints. $0.02
+- POST /paid/academic/search-pubmed — Search 37M+ biomedical papers. $0.03
+- POST /paid/academic/clinical-trials — Search 480K+ clinical studies. $0.04
+- POST /paid/academic/search-openalex — Search 250M+ works with bibliometrics. $0.03
+- POST /paid/academic/paper-details — Full metadata for a single paper. $0.02
+- POST /paid/academic/citation-graph — Forward/backward citation graph. $0.03
+
+## Public Health & Safety (8 tools)
+
+FDA adverse events, drug recalls, product recalls, disease outbreaks — openFDA, CPSC, NHTSA, CDC.
+- POST /paid/health/drug-recalls — FDA drug/device/food enforcement recalls. $0.03
+- POST /paid/health/adverse-events — 20M+ FDA adverse drug event reports. $0.04
+- POST /paid/health/product-recalls — CPSC consumer product recalls. $0.03
+- POST /paid/health/vehicle-recalls — NHTSA vehicle recalls by make/model/VIN. $0.03
+- POST /paid/health/drug-labels — Official FDA drug labels. $0.03
+- POST /paid/health/disease-outbreaks — CDC disease outbreak surveillance data. $0.03
+- POST /paid/health/food-safety — openFDA food enforcement actions. $0.02
+- POST /paid/health/food-recall-check — Food recalls by brand or product. $0.02
+
+## Environmental & Climate (12 tools)
+
+Wildfires, weather, tides, space weather, air quality, marine conditions — NASA, NOAA, USGS, Open-Meteo.
+- POST /paid/env/wildfires — Active wildfire detections from NASA FIRMS. $0.03
+- POST /paid/env/weather-alerts — Active NOAA NWS severe weather alerts. $0.02
+- POST /paid/env/tide-data — NOAA tide predictions and observed water levels. $0.03
+- POST /paid/env/space-weather — NOAA solar flares, geomagnetic storms, Kp index. $0.02
+- POST /paid/env/water-levels — Real-time USGS river/stream flow and flood data. $0.03
+- POST /paid/env/space-weather-kp — Current planetary K-index and storm conditions. $0.03
+- POST /paid/env/weather-forecast-grid — 7-day NWS forecast for any US coordinate. $0.02
+- POST /paid/env/weather-current-global — Current weather for any global coordinate. $0.02
+- POST /paid/env/aurora-forecast — NOAA aurora oval 30-minute forecast. $0.03
+- POST /paid/env/marine-conditions — Wave height, sea temperature for any ocean coordinate. $0.03
+- POST /paid/env/air-quality-index — PM2.5, UV, ozone, NO2 for any global location. $0.03
+- POST /paid/env/weather-bias-score — Open-Meteo archive vs forecast bias for weather markets. $0.03
+
+## Government Spending (7 tools)
+
+$6T+ federal budget, contracts, grants, lobbying, nonprofits, national debt — USAspending, Treasury, Grants.gov, FEC, ProPublica, World Bank.
+- POST /paid/gov/federal-spending — Search $6T+ federal budget by agency/recipient. $0.04
+- POST /paid/gov/national-debt — US national debt to the penny. $0.02
+- POST /paid/gov/federal-grants — Search Grants.gov open funding opportunities. $0.03
+- POST /paid/gov/nonprofit-filings — Search nonprofit IRS 990 filings. $0.03
+- POST /paid/gov/economic-indicators — GDP, CPI, unemployment via World Bank. $0.03
+- POST /paid/gov/lobbying-records — FEC lobbying disclosure records. $0.04
+- POST /paid/gov/federal-contracts — Federal contracts via USAspending.gov. $0.04
+
+## Finance & Corporate (6 tools)
+
+SEC EDGAR, Form 4 insider trades, FRED economic data, currency rates.
+- POST /paid/finance/edgar-filings — SEC EDGAR full-text filings search. $0.03
+- POST /paid/finance/insider-trades — SEC Form 4 insider transactions. $0.03
+- POST /paid/finance/fred-series — FRED economic data (GDP, CPI, rates, 800K+ series). $0.02
+- POST /paid/finance/currency-rates — Live FX rates, 160+ currencies. $0.01
+- POST /paid/finance/fred-surprises — FRED 10Y-2Y spread and yield curve inversion. $0.02
+- POST /paid/finance/business-days — Business day calculator with US federal holidays. $0.01
+
+## Web Intelligence (7 tools)
+
+Scrape, tech stack detection, lead scoring, contact extraction, agent policy checks.
+- POST /paid/web/scrape — Fetch URL, return structured metadata, headings, links, text. $0.01
+- POST /paid/web/detect-stack — Fingerprint URL for framework, analytics, hosting, payments. $0.02
+- POST /paid/web/extract-contacts — Extract emails, phones, social links from a URL. $0.02
+- POST /paid/web/score-lead — Score a company domain for outbound fit. $0.03
+- POST /paid/web/enrich-lead — Enrich company domain with metadata, tech, social. $0.05
+- POST /paid/web/check-agent-policy — Check robots.txt, llms.txt, agent.json for discovery signals. $0.01
+- POST /paid/web/find-agent-resource — Search curated atlas of agent-useful APIs and tools. $0.01
+
+## Security & Agent Intel (5 tools)
+
+OWASP Agentic Top 10, MCP supply chain IOCs, CVE search, company registry, lethal trifecta scoring.
+- POST /paid/security/agent-threat-intel — OWASP Agentic Top 10 threat catalog. $0.03
+- POST /paid/security/mcp-supply-chain-iocs — Known-malicious MCP packages and C2 hosts. $0.02
+- POST /paid/security/cve-search — NIST NVD CVE database search. $0.02
+- POST /paid/security/company-search — OpenCorporates global company registry. $0.03
+- POST /paid/security/agent-trifecta-score — Score agent lethal trifecta risk. $0.05
+
+## Social & Developer (2 tools)
+
+Reddit and GitHub intelligence for sentiment, activity, repo health.
+- POST /paid/social/reddit-search — Reddit posts/comments by keyword or subreddit. $0.02
+- POST /paid/social/github-repo-intel — GitHub repo intelligence: stars, commits, health metrics. $0.02
+
+## Gen-Video Community Intelligence (2 tools)
+
+Live community intelligence from 1.2M+ generative video practitioners — workflows, settings, model comparisons.
+- POST /paid/genvideo/gen-video-intel — Model names, capabilities, pricing, workflows, gotchas. $0.05
+- POST /paid/genvideo/model-settings-lookup — Recommended settings per model (temp, top_p, etc). $0.02
+
+## Utility (8 tools)
+
+DNS, geolocation, crypto prices, Bitcoin mempool, ISBN lookup, airport status, timezone, postal codes.
+- POST /paid/utility/dns-records-lookup — DNS via Cloudflare DoH (A, AAAA, MX, TXT, NS, CNAME). $0.02
+- POST /paid/utility/ip-geolocation — Geolocate IP: country, city, ISP, ASN, coordinates. $0.02
+- POST /paid/utility/crypto-price-simple — Current crypto price in USD for any CoinGecko coin. $0.02
+- POST /paid/utility/btc-mempool-fees — Bitcoin network fees (fastest, half-hour, hour, economy). $0.02
+- POST /paid/utility/btc-address-balance — Bitcoin address balance and transaction history. $0.03
+- POST /paid/utility/isbn-book-lookup — Book metadata by ISBN via Open Library. $0.02
+- POST /paid/utility/airport-status — Airport details by ICAO code. $0.02
+- POST /paid/utility/timezone-current — Current date/time for any IANA timezone. $0.01
+
+## Architecture
+
+Runs on Cloudflare Workers + TypeScript. Durable Objects power the MCP server. KV namespace (tollbooth-cache) with */15 cron pre-warming for sub-50ms cache hits on OSINT feeds. Static assets served via Workers ASSETS binding. No backend servers to manage.
+
+Every paid tool touches five layers: payment middleware config, HTTP route handler, MCP tool registration, discovery manifest entry, and OpenAPI spec path. The codebase at github.com/huwhitememes/tollbooth documents this pattern in full.

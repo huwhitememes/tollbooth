@@ -4795,6 +4795,10 @@ export default {
       return Response.redirect(new URL("/tools", url.origin).toString(), 301);
     }
 
+    if (url.pathname === "/.well-known/ai" || url.pathname === "/ai") {
+      return Response.redirect(new URL("/llms.txt", url.origin).toString(), 302);
+    }
+
 
     if (url.pathname === "/.well-known/x402" || url.pathname === "/.well-known/x402/") {
       return jsonResponse(x402WellKnownPlain());
