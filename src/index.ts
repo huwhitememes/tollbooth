@@ -3961,7 +3961,7 @@ ${SHARED_CSS}
 
 <!-- NAV -->
 <nav>
-  <div class="logo">agent<span>toll</span>.dev</div>
+  <a href="/" class="logo" style="text-decoration:none;color:inherit;">agent<span>toll</span>.dev</a>
   <button class="nav-toggle" aria-label="Menu" onclick="document.querySelector('nav .links').classList.toggle('open')">≡</button>
   <div class="links">
     <a href="/tools">Tools</a>
@@ -4130,7 +4130,7 @@ ${SHARED_CSS}
 <canvas id="shader-bg"></canvas>
 <div class="glass-overlay"></div>
 <nav>
-  <div class="logo">agent<span>toll</span>.dev</div>
+  <a href="/" class="logo" style="text-decoration:none;color:inherit;">agent<span>toll</span>.dev</a>
   <button class="nav-toggle" aria-label="Menu" onclick="document.querySelector('nav .links').classList.toggle('open')">≡</button>
   <div class="links">
     <a href="/tools">Tools</a>
