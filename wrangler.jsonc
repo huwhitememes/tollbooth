@@ -36,5 +36,11 @@
       "new_sqlite_classes": ["TollboothMCP"],
       "tag": "v1"
     }
-  ]
+  ],
+  "observability": {
+    "logs": {
+      "enabled": true,
+      "invocation_logs": true
+    }
+  }
 }
