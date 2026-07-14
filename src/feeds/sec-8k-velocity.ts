@@ -54,7 +54,7 @@ export async function fetchSec8kVelocity(opts:{ hours?:number; minScore?:number;
   } catch { /* EFTS occasionally 403 without cookie — try Atom */ }
 
   if(eftsHits.length){
-    // bucket by hour for velocity calc — template {hour} per local-tooling normalization reasoning
+    // bucket by hour for velocity calc — template {hour} per manual-capture normalization reasoning
     const hourly: Record<string, number> = {};
     const nowH = Math.floor(now/(3600*1000));
     for(const h of eftsHits){

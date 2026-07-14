@@ -5,6 +5,7 @@ import { withX402, type X402Config } from "agents/x402";
 import { registerExactEvmScheme } from "@x402/evm/exact/server";
 import { bazaarResourceServerExtension, declareDiscoveryExtension } from "@x402/extensions/bazaar";
 import { paymentMiddleware } from "@x402/hono";
+import { createFacilitatorConfig } from "@coinbase/x402";
 import { Hono } from "hono";
 import { z } from "zod";
 import { scanPolymarketEvent, scanPolymarketMarkets } from "./polymarket";
@@ -41,10 +42,14 @@ import { getSpaceWeatherKp, getWeatherForecast, getWeatherCurrent, getAuroraFore
 
 // Environment-driven config — production defaults, overridable via process.env vars
 // Base Sepolia testnet: chain 84532, USDC at 0x1a35EE5c47503e1B627338D2c1943774f2E50B6D
+const PAYAI_FACILITATOR_URL = "https://facilitator.payai.network";
+const CDP_FACILITATOR_URL = "https://api.cdp.coinbase.com/platform/v2/x402";
+const hasCdpCredentials = Boolean(process.env.CDP_API_KEY_ID && process.env.CDP_API_KEY_SECRET);
+
 const SERVICE = {
   name: "agenttoll.dev",
   slug: "tollbooth",
-  version: "0.11.0",
+  version: "0.12.0",
   origin: process.env.X402_ORIGIN ?? "https://agenttoll.dev",
   mcpPath: "/mcp",
   description: "Paid MCP and HTTP tools for prediction market intelligence, OSINT feeds, legal/regulatory data, academic research, public health, environmental data, and government spending — all on Base USDC.",
@@ -52,7 +57,7 @@ const SERVICE = {
   network: (process.env.X402_NETWORK as `${string}:${string}`) ?? "eip155:8453",
   networkName: process.env.X402_NETWORK_NAME ?? "Base mainnet",
   usdc: (process.env.X402_USDC as `0x${string}`) ?? "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-  facilitator: process.env.X402_FACILITATOR ?? "https://facilitator.payai.network",
+  facilitator: process.env.X402_FACILITATOR ?? (hasCdpCredentials ? CDP_FACILITATOR_URL : PAYAI_FACILITATOR_URL),
 } as const;
 
 const TOOLS = [
@@ -99,9 +104,9 @@ const TOOLS = [
     example: { query: "open source CRM", category: "sales" },
   },
   {
-    name: "validate_local-tooling_manifest",
+    name: "validate_agent_manifest",
     price_usd: "0.03",
-    description: "Validate an Local tooling-style manifest for required identity, endpoint, tools, pricing, and payment fields.",
+    description: "Validate an agent manifest for required identity, endpoint, tools, pricing, and payment fields.",
     input: { manifest_json: "JSON string" },
     example: { manifest_json: "{...}" },
   },
@@ -216,11 +221,11 @@ const TOOLS = [
     example: { profile: "payment-agent" },
     http_path: "/paid/security/policies",
   },
-  // ── OSINT Layer v0.9: 8 pillars mirror — OSINT stack stack ──────────────────
+  // ── OSINT Layer v0.9: 8 pillars mirror — OSINT stack ──────────────────
   {
     name: "geo_intervention_pulse",
     price_usd: "0.05",
-    description: "Composite geo/military tension signal: GDELT + BBC/AlJazeera RSS + adsb.lol/mil + Polymarket correlation, 60min window, booster math (multi-source + thermal + vessel + mil-aircraft). intervention-signal pattern, free sources.",
+    description: "Composite geo/military tension signal: GDELT + BBC/AlJazeera RSS + adsb.lol/mil + Polymarket correlation, 60min window, booster math (multi-source + thermal + vessel + mil-aircraft). intervention signal pattern, free sources.",
     input: { region: "optional: global, middle_east, ukraine, taiwan; default global", min_confidence: "optional decimal 0-1 default 0.6", hours_back: "optional 1-72 default 6", include_thermal: "optional bool default true" },
     example: { region: "middle_east", min_confidence: "0.7", hours_back: "6" },
     http_path: "/paid/osint/geo-pulse",
@@ -236,7 +241,7 @@ const TOOLS = [
   {
     name: "osint_research_pack",
     price_usd: "0.04",
-    description: "research pack-inspired literature discovery factory: GDELT + BBC RSS + HN Algolia + Reddit JSON in parallel, 4-layer verification (existence + recency + multi-source corr + allowlist), combined_score ranking. provenance tagged.",
+    description: "Research pack literature discovery factory: GDELT + BBC RSS + HN Algolia + Reddit JSON in parallel, 4-layer verification (existence + recency + multi-source corr + allowlist), combined_score ranking. provenance tagged.",
     input: { topic: "required query string", domains: "optional array of domains to filter", include_sources: "optional array: gdelt, bbc, hn, reddit, all", hours_back: "optional 1-720 default 72" },
     example: { topic: "Iran refinery drone strike", include_sources: "all", hours_back: "24" },
     http_path: "/paid/osint/research-pack",
@@ -244,7 +249,7 @@ const TOOLS = [
   {
     name: "scenario_verdict",
     price_usd: "0.05",
-    description: "scenario engine-inspired 3-scenario verdict.json: seed -> entity extract -> escalation score -1..1 -> bear/base/bull probs sum 1.0 -> composite YES prob + fair price hint + key_drivers. Optional GDELT enrichment. For prediction market composite.",
+    description: "Scenario engine 3-scenario verdict.json: seed -> entity extract -> escalation score -1..1 -> bear/base/bull probs sum 1.0 -> composite YES prob + fair price hint + key_drivers. Optional GDELT enrichment. For prediction market composite.",
     input: { seed_text: "required raw OSINT snippet text", market_question: "required Polymarket/Kalshi question", context: "optional extra context" },
     example: { seed_text: "2x tanker attacked near Hormuz, IRGC speedboats reported...", market_question: "Will oil price exceed $95 by July 20?" },
     http_path: "/paid/osint/scenario-verdict",
@@ -260,7 +265,7 @@ const TOOLS = [
   {
     name: "supply_chain_stress",
     price_usd: "0.03",
-    description: "Port/chokepoint stress composite: CBP BWT gov API + GDELT choke mentions + AIS chokepoint heuristic + BTS/AAR hints, index 0-95. Trade lead 2-5d freight spike per intervention-signal math. Free gov no-key.",
+    description: "Port/chokepoint stress composite: CBP BWT gov API + GDELT choke mentions + AIS chokepoint heuristic + BTS/AAR hints, index 0-95. Trade lead 2-5d freight spike per intervention signal math. Free gov no-key.",
     input: { ports: "optional array LAX,NYC,HOU etc", chokepoints: "optional array hormuz, bab-el-mandeb, suez, bosphorus, malacca" },
     example: { ports: "LAX,NYC", chokepoints: "hormuz,suez" },
     http_path: "/paid/osint/supply-stress",
@@ -866,7 +871,7 @@ const X402_CONFIG: X402Config = {
   facilitator: { url: SERVICE.facilitator },
 };
 
-class ResilientPayAIFacilitator extends HTTPFacilitatorClient {
+class ResilientFacilitatorClient extends HTTPFacilitatorClient {
   override async getSupported(): Promise<Awaited<ReturnType<HTTPFacilitatorClient["getSupported"]>>> {
     try {
       const supported = await super.getSupported();
@@ -874,7 +879,7 @@ class ResilientPayAIFacilitator extends HTTPFacilitatorClient {
         return supported;
       }
     } catch (error) {
-      console.warn("PayAI /supported failed; using exact Base capability fallback", error);
+      console.warn("Facilitator /supported failed; using exact Base capability fallback", error);
     }
     return {
       kinds: [{ x402Version: 2, scheme: "exact", network: SERVICE.network }],
@@ -884,7 +889,14 @@ class ResilientPayAIFacilitator extends HTTPFacilitatorClient {
   }
 }
 
-const httpFacilitator = new ResilientPayAIFacilitator({ url: SERVICE.facilitator });
+function createFacilitatorClientConfig() {
+  if (SERVICE.facilitator === CDP_FACILITATOR_URL) {
+    return createFacilitatorConfig(process.env.CDP_API_KEY_ID, process.env.CDP_API_KEY_SECRET);
+  }
+  return { url: SERVICE.facilitator };
+}
+
+const httpFacilitator = new ResilientFacilitatorClient(createFacilitatorClientConfig());
 const httpResourceServer = new x402ResourceServer(httpFacilitator);
 registerExactEvmScheme(httpResourceServer);
 httpResourceServer.registerExtension(bazaarResourceServerExtension);
@@ -1008,7 +1020,7 @@ const kalshiMarketsDiscovery = declareDiscoveryExtension({
   output: { example: { source: "Kalshi Trade API", markets: [] } },
 });
 
-// ─── OSINT discovery extensions (OSINT stack stack — v0.9) ────────────────
+// ─── OSINT discovery extensions (OSINT stack — v0.9) ────────────────
 const geoPulseDiscovery = declareDiscoveryExtension({
   bodyType: "json",
   input: { region: "global", min_confidence: 0.6, hours_back: 6 },
@@ -1266,6 +1278,7 @@ paidHttp.use(paymentMiddleware({
     serviceName: "agenttoll.dev",
     tags: ["security", "owasp", "agentic", "threat-intel", "x402"],
     iconUrl: `${SERVICE.origin}/favicon.ico`,
+    extensions: threatIntelDiscovery,
     unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.03", network: SERVICE.network } }),
   },
   "POST /paid/security/mcp-iocs": {
@@ -1276,6 +1289,7 @@ paidHttp.use(paymentMiddleware({
     serviceName: "agenttoll.dev",
     tags: ["security", "mcp", "supply-chain", "ioc", "x402"],
     iconUrl: `${SERVICE.origin}/favicon.ico`,
+    extensions: mcpIocsDiscovery,
     unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.02", network: SERVICE.network } }),
   },
   "POST /paid/security/trifecta-score": {
@@ -1286,6 +1300,7 @@ paidHttp.use(paymentMiddleware({
     serviceName: "agenttoll.dev",
     tags: ["security", "trifecta", "risk-assessment", "lethal-trifecta", "x402"],
     iconUrl: `${SERVICE.origin}/favicon.ico`,
+    extensions: trifectaDiscovery,
     unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.05", network: SERVICE.network } }),
   },
   "POST /paid/security/policies": {
@@ -1296,13 +1311,14 @@ paidHttp.use(paymentMiddleware({
     serviceName: "agenttoll.dev",
     tags: ["security", "policy", "governance", "agent", "x402"],
     iconUrl: `${SERVICE.origin}/favicon.ico`,
+    extensions: policiesDiscovery,
     unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.05", network: SERVICE.network } }),
   },
-  // ── OSINT (OSINT stack) — 11 SKUs ─────────────────────────────────────
+  // ── OSINT — 11 SKUs ─────────────────────────────────────────────
   "POST /paid/osint/geo-pulse": {
     accepts: { scheme: "exact", price: "$0.04", network: SERVICE.network, payTo: SERVICE.seller },
     resource: `${SERVICE.origin}/paid/osint/geo-pulse`,
-    description: "Composite geopolitical intervention signal — GDELT + BBC + AlJazeera + ADS-B mil + Poly boosters (intervention-signal pattern)",
+    description: "Composite geopolitical intervention signal — GDELT + BBC + AlJazeera + ADS-B mil + prediction-market boosters (intervention signal pattern)",
     mimeType: "application/json",
     serviceName: "agenttoll.dev",
     tags: ["osint", "geopolitical", "gdelt", "adsb", "intervention-signal", "x402"],
@@ -1324,10 +1340,10 @@ paidHttp.use(paymentMiddleware({
   "POST /paid/osint/research-pack": {
     accepts: { scheme: "exact", price: "$0.05", network: SERVICE.network, payTo: SERVICE.seller },
     resource: `${SERVICE.origin}/paid/osint/research-pack`,
-    description: "Multi-source OSINT pack — GDELT + BBC + HN + Reddit, 4-layer VerifiedRegistry, combined relevance scoring (research pack)",
+    description: "Multi-source OSINT pack — GDELT + BBC + HN + Reddit, 4-layer verification layer, combined relevance scoring (research pack)",
     mimeType: "application/json",
     serviceName: "agenttoll.dev",
-    tags: ["osint", "research", "gdelt", "verification", "autoresearch", "x402"],
+    tags: ["osint", "research", "gdelt", "verification", "x402"],
     iconUrl: `${SERVICE.origin}/favicon.ico`,
     extensions: researchPackDiscovery,
     unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "$0.05", network: SERVICE.network } }),
@@ -1335,10 +1351,10 @@ paidHttp.use(paymentMiddleware({
   "POST /paid/osint/scenario-verdict": {
     accepts: { scheme: "exact", price: "$0.05", network: SERVICE.network, payTo: SERVICE.seller },
     resource: `${SERVICE.origin}/paid/osint/scenario-verdict`,
-    description: "scenario engine-style seed->entity->3-scenario verdict.json + composite YES prob mapped to market question",
+    description: "Scenario engine seed->entity->3-scenario verdict.json + composite YES prob mapped to market question",
     mimeType: "application/json",
     serviceName: "agenttoll.dev",
-    tags: ["osint", "scenario-engine", "scenario", "verdict", "prediction-market", "x402"],
+    tags: ["osint", "scenario", "verdict", "prediction-market", "x402"],
     iconUrl: `${SERVICE.origin}/favicon.ico`,
     extensions: scenarioVerdictDiscovery,
     unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "$0.05", network: SERVICE.network } }),
@@ -1346,7 +1362,7 @@ paidHttp.use(paymentMiddleware({
   "POST /paid/osint/weather-bias": {
     accepts: { scheme: "exact", price: "$0.03", network: SERVICE.network, payTo: SERVICE.seller },
     resource: `${SERVICE.origin}/paid/osint/weather-bias`,
-    description: "Weather bias score vs recent mean — fixes weather model with Open-Meteo archive+forecast, ticker mapping HIGHNY/HIGHCHI etc",
+    description: "Weather bias score vs recent mean — uses Open-Meteo archive+forecast and ticker mapping for Kalshi HIGH* markets",
     mimeType: "application/json",
     serviceName: "agenttoll.dev",
     tags: ["osint", "weather", "kalshi", "open-meteo", "bias", "x402"],
@@ -1655,7 +1671,7 @@ paidHttp.post("/paid/security/policies", async (c) => {
   }
 });
 
-// ─── OSINT (OSINT stack) ────────────────────────────────────────────────
+// ─── OSINT ────────────────────────────────────────────────────────
 paidHttp.post("/paid/osint/geo-pulse", async (c) => {
   const body = await c.req.json<Record<string, unknown>>().catch(() => ({} as Record<string, unknown>));
   try {
@@ -2278,7 +2294,7 @@ async function proxyBazaarSearch(request: Request) {
   });
 }
 
-function validateLocal toolingManifest(manifestJson: string) {
+function validateAgentManifest(manifestJson: string) {
   let manifest: any;
   try {
     manifest = JSON.parse(manifestJson);
@@ -2418,12 +2434,12 @@ export class TollboothMCP extends McpAgent<Env> {
     );
 
     this.server.paidTool(
-      "validate_local-tooling_manifest",
-      "Validate an Local tooling-style manifest for identity, endpoint, tools, pricing, and payment fields.",
+      "validate_agent_manifest",
+      "Validate an agent manifest for identity, endpoint, tools, pricing, and payment fields.",
       0.03,
-      { manifest_json: z.string().describe("Local tooling-style manifest as a JSON string") },
+      { manifest_json: z.string().describe("agent manifest as a JSON string") },
       {},
-      async ({ manifest_json }) => ({ content: [{ type: "text", text: JSON.stringify(validateLocal toolingManifest(manifest_json)) }] }),
+      async ({ manifest_json }) => ({ content: [{ type: "text", text: JSON.stringify(validateAgentManifest(manifest_json)) }] }),
     );
 
     this.server.paidTool(
@@ -2568,10 +2584,10 @@ export class TollboothMCP extends McpAgent<Env> {
       }),
     );
 
-    // ── OSINT (OSINT stack: scenario engine + research pack + intervention-signal + feed monitor) ──
+    // ── OSINT (OSINT: scenario engine + research pack + intervention-signal + feed monitor) ──
     this.server.paidTool(
       "geo_pulse",
-      "Composite geopolitical intervention signal — GDELT + BBC + AlJazeera + ADS-B mil + Polymarket boosters (intervention-signal pattern). Returns alert_level + signals array.",
+      "Composite geopolitical intervention signal — GDELT + BBC + AlJazeera + ADS-B mil + prediction-market boosters (intervention signal pattern). Returns alert_level + signals array.",
       0.04,
       {
         region: z.string().optional().describe("global|middle_east|ukraine|taiwan|asia_pacific"),
@@ -2596,7 +2612,7 @@ export class TollboothMCP extends McpAgent<Env> {
     );
     this.server.paidTool(
       "research_pack",
-      "Multi-source OSINT research pack — GDELT + BBC + HN + Reddit, 4-layer VerifiedRegistry (existence+recency+multi-source+domain allowlist) + combined relevance scoring. research pack pipeline pattern.",
+      "Multi-source OSINT research pack — GDELT + BBC + HN + Reddit, 4-layer verification layer (existence+recency+multi-source+domain allowlist) + combined relevance scoring. research pack pipeline.",
       0.05,
       {
         topic: z.string().min(3).max(200).describe("Research topic query"),
@@ -2609,7 +2625,7 @@ export class TollboothMCP extends McpAgent<Env> {
     );
     this.server.paidTool(
       "scenario_verdict",
-      "scenario engine-style seed→entity→3-scenario verdict.json + composite YES prob mapped to market question. Input raw seed text + question, get bear/base/bull scenarios + fair_price_hint.",
+      "Scenario engine seed→entity→3-scenario verdict.json + composite YES prob mapped to market question. Input raw seed text + question, get bear/base/bull scenarios + fair_price_hint.",
       0.05,
       {
         seed_text: z.string().min(10).max(5000).describe("Raw seed text / headline pack"),
@@ -2621,7 +2637,7 @@ export class TollboothMCP extends McpAgent<Env> {
     );
     this.server.paidTool(
       "weather_bias",
-      "Weather bias vs recent mean — fixes weather model hardcoded-path bug. Open-Meteo archive+forecast, ticker map HIGHNY/HIGHCHI/HIGHMIA/HIGHLAX, subtitle parser hint. For Kalshi HIGH* fade edge.",
+      "Weather bias vs recent mean — uses Open-Meteo archive+forecast and ticker mapping for Kalshi HIGH* fade edge.",
       0.03,
       {
         city: z.string().min(2).max(30).describe("NYC|CHI|MIA|LAX or lat,lon = NYC default"),
@@ -2871,14 +2887,21 @@ function serviceInfo() {
     description: SERVICE.description,
     endpoints: {
       mcp: `${SERVICE.origin}${SERVICE.mcpPath}`,
+      mcp_manifest: `${SERVICE.origin}/.well-known/mcp.json`,
       info: `${SERVICE.origin}/api/info`,
+      system_info: `${SERVICE.origin}/api/system/info`,
       agent: `${SERVICE.origin}/.well-known/agent.json`,
       x402: `${SERVICE.origin}/.well-known/x402`,
       x402_json: `${SERVICE.origin}/.well-known/x402.json`,
+      quote: `${SERVICE.origin}/api/quote?tool=trending_markets`,
       receipt: `${SERVICE.origin}/receipt/{tx}`,
       docs: `${SERVICE.origin}/docs`,
+      discovery: `${SERVICE.origin}/discovery`,
+      llms: `${SERVICE.origin}/llms.txt`,
+      llms_full: `${SERVICE.origin}/llms-full.txt`,
       openapi: `${SERVICE.origin}/openapi.json`,
-      local-tooling: `${SERVICE.origin}/local-tooling`,
+      openapi_alias: `${SERVICE.origin}/api/openapi.json`,
+      agent_manifest: `${SERVICE.origin}/.well-known/agent.json`,
       bazaar_search: `${SERVICE.origin}/api/x402/bazaar/search?query=search&limit=10`,
       polymarket_event_scan: `${SERVICE.origin}/paid/polymarket/event-scan`,
       polymarket_market_scan: `${SERVICE.origin}/paid/polymarket/market-scan`,
@@ -2887,7 +2910,7 @@ function serviceInfo() {
       mcp_supply_chain_iocs: `${SERVICE.origin}/paid/security/mcp-iocs`,
       agent_trifecta_score: `${SERVICE.origin}/paid/security/trifecta-score`,
       agent_security_policies: `${SERVICE.origin}/paid/security/policies`,
-      // OSINT (OSINT stack stack)
+      // OSINT (OSINT stack)
       geo_pulse: `${SERVICE.origin}/paid/osint/geo-pulse`,
       flight_intel: `${SERVICE.origin}/paid/osint/flight-intel`,
       research_pack: `${SERVICE.origin}/paid/osint/research-pack`,
@@ -2940,6 +2963,206 @@ function agentJson() {
       input: tool.input,
     })),
   };
+}
+
+function categorySummaries() {
+  return TOOL_CATEGORIES.map((category) => ({
+    name: category.name,
+    tool_count: category.tools.filter((name) => TOOLS.some((tool) => tool.name === name)).length,
+    tools: category.tools.filter((name) => TOOLS.some((tool) => tool.name === name)),
+  })).filter((category) => category.tool_count > 0);
+}
+
+function toolHttpUrl(tool: (typeof TOOLS)[number]) {
+  return "http_path" in tool ? `${SERVICE.origin}${tool.http_path}` : null;
+}
+
+function toolQuotePayload(tool: (typeof TOOLS)[number]) {
+  const httpEndpoint = toolHttpUrl(tool);
+  return {
+    service: SERVICE.name,
+    tool: tool.name,
+    category: categoryForTool(tool.name),
+    description: tool.description,
+    price_usd: tool.price_usd,
+    amount: `$${tool.price_usd}`,
+    payment: {
+      protocol: "x402",
+      scheme: "exact",
+      network: SERVICE.network,
+      network_name: SERVICE.networkName,
+      asset: "USDC",
+      asset_contract: SERVICE.usdc,
+      pay_to: SERVICE.seller,
+      facilitator: SERVICE.facilitator,
+    },
+    endpoints: {
+      mcp: `${SERVICE.origin}${SERVICE.mcpPath}`,
+      ...(httpEndpoint ? { http: httpEndpoint } : {}),
+      quote: `${SERVICE.origin}/api/quote?tool=${encodeURIComponent(tool.name)}`,
+      tool_page: `${SERVICE.origin}/tools/${tool.name}`,
+    },
+    input: tool.input,
+    example: tool.example,
+  };
+}
+
+function quoteTool(url: URL) {
+  const requested = url.searchParams.get("tool") ?? url.searchParams.get("name");
+  if (!requested) {
+    return jsonResponse({
+      service: SERVICE.name,
+      description: "Free quote endpoint for agenttoll.dev paid tools. Pass ?tool=<tool_name> to price one call before payment.",
+      example: `${SERVICE.origin}/api/quote?tool=trending_markets`,
+      tools: TOOLS.map((tool) => ({ name: tool.name, price_usd: tool.price_usd, quote: `${SERVICE.origin}/api/quote?tool=${encodeURIComponent(tool.name)}` })),
+    });
+  }
+
+  const normalized = requested.trim().toLowerCase();
+  const tool = TOOLS.find((candidate) => candidate.name.toLowerCase() === normalized || ("http_path" in candidate && candidate.http_path.toLowerCase() === normalized));
+  if (!tool) {
+    return jsonResponse({
+      error: "tool_not_found",
+      message: `No paid tool matched ${requested}`,
+      tools: TOOLS.map((candidate) => candidate.name),
+    }, 404);
+  }
+
+  return jsonResponse(toolQuotePayload(tool));
+}
+
+function systemInfo() {
+  const info = serviceInfo();
+  return {
+    product: SERVICE.name,
+    service: SERVICE.slug,
+    version: SERVICE.version,
+    description: SERVICE.description,
+    network: SERVICE.network,
+    network_name: SERVICE.networkName,
+    payment_assets: ["USDC"],
+    payment_modes: ["x402"],
+    seller: SERVICE.seller,
+    facilitator: SERVICE.facilitator,
+    asset_contracts: {
+      USDC: SERVICE.usdc,
+    },
+    tool_count: TOOLS.length,
+    resource_count: TOOLS.length + 4,
+    categories: categorySummaries(),
+    price_range_usd: {
+      min: Math.min(...TOOLS.map((tool) => Number(tool.price_usd))).toFixed(2),
+      max: Math.max(...TOOLS.map((tool) => Number(tool.price_usd))).toFixed(2),
+    },
+    discovery: {
+      homepage: SERVICE.origin,
+      docs: `${SERVICE.origin}/docs`,
+      discovery_page: `${SERVICE.origin}/discovery`,
+      tools: `${SERVICE.origin}/tools`,
+      mcp: `${SERVICE.origin}${SERVICE.mcpPath}`,
+      mcp_manifest: `${SERVICE.origin}/.well-known/mcp.json`,
+      agent: `${SERVICE.origin}/.well-known/agent.json`,
+      x402: `${SERVICE.origin}/.well-known/x402`,
+      x402_json: `${SERVICE.origin}/.well-known/x402.json`,
+      openapi: `${SERVICE.origin}/openapi.json`,
+      openapi_alias: `${SERVICE.origin}/api/openapi.json`,
+      llms: `${SERVICE.origin}/llms.txt`,
+      llms_full: `${SERVICE.origin}/llms-full.txt`,
+      quote: `${SERVICE.origin}/api/quote?tool=trending_markets`,
+    },
+    endpoints: info.endpoints,
+  };
+}
+
+function mcpManifest() {
+  return {
+    mcpUrl: `${SERVICE.origin}${SERVICE.mcpPath}`,
+    fullRosterUrl: `${SERVICE.origin}/tools`,
+    name: SERVICE.name,
+    version: SERVICE.version,
+    description: `${SERVICE.description} Paid calls use x402. No API key or account is required for wallet-paying agents.`,
+    capabilities: TOOLS.map((tool) => tool.name),
+    auth: {
+      modes: ["x402"],
+      note: "Paid tool calls return an x402 payment challenge. Sign and retry with the payment header from an x402-capable client.",
+    },
+    payments: serviceInfo().payments,
+    discovery: {
+      systemInfo: `${SERVICE.origin}/api/system/info`,
+      agentJson: `${SERVICE.origin}/.well-known/agent.json`,
+      x402: `${SERVICE.origin}/.well-known/x402`,
+      llms: `${SERVICE.origin}/llms.txt`,
+      llmsFull: `${SERVICE.origin}/llms-full.txt`,
+      quote: `${SERVICE.origin}/api/quote?tool=trending_markets`,
+    },
+    docsUrl: `${SERVICE.origin}/docs`,
+    openapiUrl: `${SERVICE.origin}/openapi.json`,
+    x402Url: `${SERVICE.origin}/.well-known/x402`,
+  };
+}
+
+function llmsFullText() {
+  const lines = [
+    `# ${SERVICE.name}`,
+    "",
+    SERVICE.description,
+    "",
+    "agenttoll.dev sells paid data calls to AI agents. Agents discover tools, request a call, receive an HTTP 402 challenge, pay in Base USDC with x402, and receive structured JSON.",
+    "",
+    "## Payment",
+    "",
+    `- Protocol: x402`,
+    `- Scheme: exact`,
+    `- Network: ${SERVICE.network} (${SERVICE.networkName})`,
+    `- Asset: USDC (${SERVICE.usdc})`,
+    `- Seller wallet: ${SERVICE.seller}`,
+    `- Facilitator: ${SERVICE.facilitator}`,
+    "- API keys: not required for x402 paid calls",
+    "",
+    "## Discovery",
+    "",
+    `- Human discovery page: ${SERVICE.origin}/discovery`,
+    `- Tool directory: ${SERVICE.origin}/tools`,
+    `- MCP endpoint: ${SERVICE.origin}${SERVICE.mcpPath}`,
+    `- MCP manifest: ${SERVICE.origin}/.well-known/mcp.json`,
+    `- Agent manifest: ${SERVICE.origin}/.well-known/agent.json`,
+    `- x402 resources: ${SERVICE.origin}/.well-known/x402`,
+    `- Full x402 catalog: ${SERVICE.origin}/.well-known/x402.json`,
+    `- OpenAPI: ${SERVICE.origin}/openapi.json`,
+    `- System info: ${SERVICE.origin}/api/system/info`,
+    `- Quote endpoint: ${SERVICE.origin}/api/quote?tool=trending_markets`,
+    "",
+    "## How to use a tool",
+    "",
+    "1. Pick a tool from /tools, /api/system/info, /.well-known/agent.json, or /.well-known/mcp.json.",
+    "2. Price it with /api/quote?tool=<tool_name>.",
+    "3. Call the MCP tool or HTTP endpoint.",
+    "4. Sign the x402 challenge and retry with the payment header.",
+    "5. Read the JSON response. Verify any on-chain payment with /receipt/<tx>.",
+    "",
+    "## Categories",
+    "",
+    ...categorySummaries().flatMap((category) => [`### ${category.name}`, "", `${category.tool_count} tools: ${category.tools.join(", ")}.`, ""]),
+    "## Tools",
+    "",
+    ...TOOLS.flatMap((tool) => {
+      const quote = toolQuotePayload(tool);
+      return [
+        `### ${tool.name}`,
+        "",
+        `Category: ${quote.category}`,
+        `Price: $${tool.price_usd} per call`,
+        `Description: ${tool.description}`,
+        `Quote: ${quote.endpoints.quote}`,
+        `Tool page: ${quote.endpoints.tool_page}`,
+        ...(quote.endpoints.http ? [`HTTP endpoint: ${quote.endpoints.http}`] : [`MCP endpoint: ${quote.endpoints.mcp}`]),
+        `Input: ${JSON.stringify(tool.input)}`,
+        `Example: ${JSON.stringify(tool.example)}`,
+        "",
+      ];
+    }),
+  ];
+  return `${lines.join("\n")}\n`;
 }
 
 function toolJsonSchema(tool: (typeof TOOLS)[number]) {
@@ -3033,6 +3256,17 @@ function jsonResponse(data: unknown, status = 200) {
     headers: {
       "Content-Type": "application/json; charset=utf-8",
       "Cache-Control": "public, max-age=60",
+      "Access-Control-Allow-Origin": "*",
+    },
+  });
+}
+
+function textResponse(text: string, status = 200) {
+  return new Response(text, {
+    status,
+    headers: {
+      "Content-Type": "text/plain; charset=utf-8",
+      "Cache-Control": "public, max-age=300",
       "Access-Control-Allow-Origin": "*",
     },
   });
@@ -3967,9 +4201,10 @@ ${SHARED_CSS}
   <div class="links">
     <a href="/tools">Tools</a>
     <a href="/docs">Docs</a>
+    <a href="/discovery">Discovery</a>
     <a href="/blog/x402-protocol-explained">Blog</a>
     <a href="/.well-known/agent.json">agent.json</a>
-    <a href="/api/info">API</a>
+    <a href="/api/system/info">API</a>
     <a href="/mcp" class="cta">MCP Endpoint</a>
   </div>
 </nav>
@@ -3982,6 +4217,7 @@ ${SHARED_CSS}
     <p class="sub">Prediction markets, SEC filings, federal contracts, court records, academic research, OSINT, health data, environmental feeds. ${TOOLS.length}+ tools. $0.01–$0.10 per call. Pay in USDC over x402.</p>
     <div class="actions">
       <a href="/tools" class="btn btn-primary">Browse ${TOOLS.length} tools →</a>
+      <a href="/discovery" class="btn btn-ghost">Discovery hub</a>
       <a href="/.well-known/agent.json" class="btn btn-ghost">View agent.json</a>
     </div>
 
@@ -4094,8 +4330,11 @@ ${SHARED_CSS}
     <div class="left">Built by Hu White · <a href="mailto:memerhuwhite@gmail.com" style="color: var(--accent); text-decoration: none;">Contact</a> · Settles on Base USDC to <code>${SERVICE.seller.slice(0,6)}…${SERVICE.seller.slice(-4)}</code></div>
     <div class="links">
       <a href="/tools">Tools</a>
+      <a href="/discovery">Discovery</a>
       <a href="/mcp">MCP</a>
+      <a href="/.well-known/mcp.json">MCP manifest</a>
       <a href="/openapi.json">OpenAPI</a>
+      <a href="/llms-full.txt">llms-full.txt</a>
       <a href="/.well-known/agent.json">agent.json</a>
       <a href="mailto:memerhuwhite@gmail.com">Contact</a>
     </div>
@@ -4146,9 +4385,10 @@ ${SHARED_CSS}
   <div class="links">
     <a href="/tools">Tools</a>
     <a href="/docs">Docs</a>
+    <a href="/discovery">Discovery</a>
     <a href="/blog/x402-protocol-explained">Blog</a>
     <a href="/.well-known/agent.json">agent.json</a>
-    <a href="/api/info">API</a>
+    <a href="/api/system/info">API</a>
     <a href="/mcp" class="cta">MCP Endpoint</a>
   </div>
 </nav>
@@ -4160,8 +4400,11 @@ ${content}
     <div class="left">Built by Hu White · <a href="mailto:memerhuwhite@gmail.com" style="color: var(--accent); text-decoration: none;">Contact</a> · Settles on Base USDC to <code>${SERVICE.seller.slice(0,6)}…${SERVICE.seller.slice(-4)}</code></div>
     <div class="links">
       <a href="/tools">Tools</a>
+      <a href="/discovery">Discovery</a>
       <a href="/mcp">MCP</a>
+      <a href="/.well-known/mcp.json">MCP manifest</a>
       <a href="/openapi.json">OpenAPI</a>
+      <a href="/llms-full.txt">llms-full.txt</a>
       <a href="/.well-known/agent.json">agent.json</a>
       <a href="mailto:memerhuwhite@gmail.com">Contact</a>
     </div>
@@ -4176,7 +4419,7 @@ ${content}
 const TOOL_CATEGORIES = [
   { name: "Prediction Markets", icon: "\u{1F4CA}", tools: ["polymarket_event_scan","polymarket_market_scan","cross_platform_arb_scan","rebalance_arb_scan","trending_markets","odds_feed","volume_analytics","resolution_history","kalshi_markets","combinatorial_arb","orderbook_imbalance","smart_money"] },
   { name: "OSINT & Intelligence", icon: "\u{1F30D}", tools: ["geo_intervention_pulse","flight_intel","osint_research_pack","scenario_verdict","weather_bias_score","supply_chain_stress","regulatory_pulse","attention_momentum","sec_8k_velocity","fred_surprises","treasury_dts","openrouter_models","github_trending","github_repo_intel","hn_frontpage","reddit_search"] },
-  { name: "Web Intel", icon: "\u{1F50D}", tools: ["scrape","detect_stack","extract_contacts","score_lead","enrich_lead","check_agent_policy","find_agent_resource","validate_local-tooling_manifest"] },
+  { name: "Web Intel", icon: "\u{1F50D}", tools: ["scrape","detect_stack","extract_contacts","score_lead","enrich_lead","check_agent_policy","find_agent_resource","validate_agent_manifest"] },
   { name: "Legal & Regulatory", icon: "\u{2696}\u{FE0F}", tools: ["court_opinions","court_docket","federal_register","patents_search","regulations_search","judges_search","trademarks_search"] },
   { name: "Academic & Science", icon: "\u{1F52C}", tools: ["search_papers","search_arxiv","search_pubmed","clinical_trials","search_openalex","paper_details","citation_graph"] },
   { name: "Health & Safety", icon: "\u{1F48A}", tools: ["drug_recalls","adverse_events","product_recalls","vehicle_recalls","drug_labels","disease_outbreaks","food_safety","food_recall_check"] },
@@ -4389,10 +4632,54 @@ ${jsonLd}`;
   return shellPage(tool.name, content, headExtra);
 }
 
+function discoveryPage() {
+  const surfaces = [
+    { label: "MCP manifest", href: "/.well-known/mcp.json", text: "Machine-readable MCP entrypoint, auth modes, payments, and tool roster." },
+    { label: "System info", href: "/api/system/info", text: "Network, seller wallet, asset contract, categories, and discovery URLs." },
+    { label: "llms-full.txt", href: "/llms-full.txt", text: "Long-form agent context with every tool, price, quote URL, and endpoint." },
+    { label: "Quote API", href: "/api/quote?tool=trending_markets", text: "Free price lookup before an agent attempts a paid call." },
+    { label: "OpenAPI", href: "/openapi.json", text: "OpenAPI 3.1 spec for public metadata and paid HTTP routes." },
+    { label: "x402 resources", href: "/.well-known/x402", text: "x402 discovery surface used by paid-resource crawlers." },
+    { label: "agent.json", href: "/.well-known/agent.json", text: "Agent-facing manifest with MCP URL, payment data, and tool list." },
+    { label: "Tools", href: "/tools", text: "Human-readable catalog with pages for each paid tool." },
+  ];
+
+  const content = `<section style="padding: 60px 0;">
+    <h2 style="font-size: clamp(28px, 5vw, 48px); font-weight: 700; letter-spacing: -0.03em; margin-bottom: 8px;">Discovery hub</h2>
+    <p style="color: var(--text-2); font-size: 16px; margin-bottom: 32px; max-width: 760px;">These are the public entrypoints agents and humans can use to inspect agenttoll.dev before paying for a call. The JSON and text routes are crawler-friendly. The tool pages stay readable for people.</p>
+    <div class="tools-grid">
+      ${surfaces.map((surface) => `<a href="${surface.href}" class="tool-card">
+        <div class="tool-name">${surface.label}</div>
+        <div class="tool-desc">${surface.text}</div>
+        <div class="tool-price" style="font-size: 12px; margin-top: 12px;">${surface.href}</div>
+      </a>`).join("")}
+    </div>
+    <div class="cat-card" style="margin-top: 32px;">
+      <h3 style="font-size: 15px; font-weight: 600; margin-bottom: 8px;">Quote a tool</h3>
+      <p style="font-size: 14px; color: var(--text-2); margin-bottom: 12px;">Use the free quote endpoint to check price, network, asset, seller wallet, and endpoints before a paid x402 call.</p>
+      <pre style="background: rgba(6,8,12,0.6); border: 1px solid var(--border); border-radius: 12px; padding: 16px; font-family: 'JetBrains Mono', monospace; font-size: 13px; overflow-x: auto;">curl ${SERVICE.origin}/api/quote?tool=trending_markets</pre>
+    </div>
+  </section>`;
+
+  return shellPage("Discovery", content, `<meta name="description" content="Human and machine discovery surfaces for agenttoll.dev: MCP manifest, x402 resources, OpenAPI, llms-full.txt, system info, and quote API.">`);
+}
+
 function docsPage() {
   const content = `<section style="padding: 60px 0;">
     <h2 style="font-size: clamp(28px, 5vw, 48px); font-weight: 700; letter-spacing: -0.03em; margin-bottom: 8px;">Documentation</h2>
     <p style="color: var(--text-2); font-size: 16px; margin-bottom: 32px; max-width: 620px;">agenttoll.dev is a paid MCP service. Agents buy data calls one at a time in USDC on Base. No accounts, no subscriptions.</p>
+
+    <div class="cat-card" style="margin-bottom: 16px;">
+      <h3 style="font-size: 15px; font-weight: 600; margin-bottom: 8px;">Agent discovery surfaces</h3>
+      <p style="font-size: 14px; color: var(--text-2); margin-bottom: 12px;">Use these routes when you want a crawler, MCP client, or human reviewer to understand the service before paying.</p>
+      <p style="font-size: 14px; color: var(--text-2); line-height: 1.9;">
+        <a href="/discovery" style="color: var(--accent); text-decoration: none;">Discovery hub</a><br>
+        <a href="/.well-known/mcp.json" style="color: var(--accent); text-decoration: none;">MCP manifest</a><br>
+        <a href="/api/system/info" style="color: var(--accent); text-decoration: none;">System info</a><br>
+        <a href="/llms-full.txt" style="color: var(--accent); text-decoration: none;">llms-full.txt</a><br>
+        <a href="/api/quote?tool=trending_markets" style="color: var(--accent); text-decoration: none;">Quote API</a>
+      </p>
+    </div>
 
     <div class="cat-card" style="margin-bottom: 16px;">
       <h3 style="font-size: 15px; font-weight: 600; margin-bottom: 8px;">MCP endpoint</h3>
@@ -4403,8 +4690,8 @@ function docsPage() {
       <h3 style="font-size: 15px; font-weight: 600; margin-bottom: 8px;">Payment rail</h3>
       <p style="font-size: 14px; color: var(--text-2); margin-bottom: 12px;">Paid tools settle in Base USDC through x402. A buyer wallet needs USDC on Base mainnet.</p>
       <pre style="background: rgba(6,8,12,0.6); border: 1px solid var(--border); border-radius: 12px; padding: 16px; font-family: 'JetBrains Mono', monospace; font-size: 13px; overflow-x: auto;">Network: ${SERVICE.networkName}
-USDC: ${SERVICE.usdc}
-Seller: ${SERVICE.seller}</pre>
+USDC token contract: ${SERVICE.usdc}
+Seller wallet: ${SERVICE.seller}</pre>
     </div>
 
     <div class="cat-card" style="margin-bottom: 16px;">
@@ -4448,6 +4735,37 @@ function openApiSpec() {
         get: {
           summary: "Get agenttoll.dev service metadata",
           responses: { "200": { description: "Service metadata, payment rail, endpoints, and paid tool catalog.", "content": { "application/json": { "schema": { "type": "object", "properties": { "success": { "type": "boolean" }, "data": { "oneOf": [ { "type": "array" }, { "type": "object" } ] }, "cached": { "type": "boolean" }, "meta": { "type": "object", "properties": { "count": { "type": "integer" }, "source": { "type": "string" }, "generated_at": { "type": "string", "format": "date-time" } } } } } } } } },
+        },
+      },
+      "/api/system/info": {
+        get: {
+          summary: "Get machine-readable system info",
+          responses: { "200": { description: "Network, payment, category, and discovery metadata.", "content": { "application/json": { "schema": { "type": "object" } } } } },
+        },
+      },
+      "/api/quote": {
+        get: {
+          summary: "Quote one paid tool before payment",
+          parameters: [{ name: "tool", in: "query", required: false, schema: { type: "string" }, description: "Tool name, for example trending_markets" }],
+          responses: { "200": { description: "Tool price, payment rail, endpoints, and example input.", "content": { "application/json": { "schema": { "type": "object" } } } }, "404": { description: "Tool not found." } },
+        },
+      },
+      "/llms-full.txt": {
+        get: {
+          summary: "Long-form LLM discovery context",
+          responses: { "200": { description: "Plain-text catalog for agents and LLM crawlers.", "content": { "text/plain": { "schema": { "type": "string" } } } } },
+        },
+      },
+      "/.well-known/mcp.json": {
+        get: {
+          summary: "Get MCP discovery manifest",
+          responses: { "200": { description: "MCP URL, tool roster, x402 auth mode, and discovery links.", "content": { "application/json": { "schema": { "type": "object" } } } } },
+        },
+      },
+      "/api/openapi.json": {
+        get: {
+          summary: "OpenAPI alias",
+          responses: { "200": { description: "Same OpenAPI 3.1 document served at /openapi.json.", "content": { "application/json": { "schema": { "type": "object" } } } } },
         },
       },
       "/.well-known/agent.json": {
@@ -4573,8 +4891,8 @@ function openApiSpec() {
       },
       "/paid/osint/geo-pulse": {
         post: {
-          summary: "Paid geo intervention pulse — GDELT + BBC + ADS-B + Poly boosters",
-          description: "Returns HTTP 402 until paid $0.04 in Base USDC through x402. intervention-signal pattern.",
+          summary: "Paid geo intervention pulse — GDELT + BBC + ADS-B + prediction-market boosters",
+          description: "Returns HTTP 402 until paid $0.04 in Base USDC through x402. intervention signal pattern.",
           requestBody: { content: { "application/json": { schema: { type: "object", properties: { region: { type: "string", enum: ["global","middle_east","ukraine","taiwan","asia_pacific"] }, min_confidence: { type: "number" }, hours_back: { type: "integer", minimum: 1, maximum: 72 }, include_thermal: { type: "boolean" } } } } } },
           responses: { "200": { description: "Geo pulse.", "content": { "application/json": { "schema": { "type": "object", "properties": { "success": { "type": "boolean" }, "data": { "oneOf": [ { "type": "array" }, { "type": "object" } ] }, "cached": { "type": "boolean" }, "meta": { "type": "object", "properties": { "count": { "type": "integer" }, "source": { "type": "string" }, "generated_at": { "type": "string", "format": "date-time" } } } } } } } }, "402": { description: "payment required" } },
         },
@@ -4597,7 +4915,7 @@ function openApiSpec() {
       },
       "/paid/osint/scenario-verdict": {
         post: {
-          summary: "Paid scenario engine 3-scenario verdict",
+          summary: "Paid scenario-engine verdict",
           description: "Returns HTTP 402 until paid $0.05. Seed->entity->bear/base/bull->YES prob + fair price.",
           requestBody: { required: true, content: { "application/json": { schema: { type: "object", required: ["seed_text","market_question"], properties: { seed_text: { type: "string", minLength: 10, maxLength: 5000 }, market_question: { type: "string", minLength: 5, maxLength: 500 }, context: { type: "string" } } } } } },
           responses: { "200": { description: "Scenario verdict.", "content": { "application/json": { "schema": { "type": "object", "properties": { "success": { "type": "boolean" }, "data": { "oneOf": [ { "type": "array" }, { "type": "object" } ] }, "cached": { "type": "boolean" }, "meta": { "type": "object", "properties": { "count": { "type": "integer" }, "source": { "type": "string" }, "generated_at": { "type": "string", "format": "date-time" } } } } } } } }, "402": { description: "payment required" } },
@@ -4789,6 +5107,14 @@ export default {
       return jsonResponse(serviceInfo());
     }
 
+    if (url.pathname === "/api/system/info") {
+      return jsonResponse(systemInfo());
+    }
+
+    if (url.pathname === "/api/quote") {
+      return quoteTool(url);
+    }
+
     if (url.pathname === "/api/x402/bazaar/search") {
       return proxyBazaarSearch(request);
     }
@@ -4801,8 +5127,16 @@ export default {
       return htmlResponse(docsPage());
     }
 
-    if (url.pathname === "/openapi.json") {
+    if (url.pathname === "/discovery") {
+      return htmlResponse(discoveryPage());
+    }
+
+    if (url.pathname === "/openapi.json" || url.pathname === "/api/openapi.json") {
       return jsonResponse(openApiSpec());
+    }
+
+    if (url.pathname === "/llms-full.txt") {
+      return textResponse(llmsFullText());
     }
 
     if (url.pathname === "/tools" || url.pathname === "/tools/") {
@@ -4814,8 +5148,8 @@ export default {
       return htmlResponse(toolDetailPage(toolName ?? ""));
     }
 
-    if (url.pathname === "/local-tooling") {
-      return Response.redirect(new URL("/tools", url.origin).toString(), 301);
+    if (url.pathname === "/agent-manifest") {
+      return Response.redirect(new URL("/.well-known/agent.json", url.origin).toString(), 301);
     }
 
     if (url.pathname === "/.well-known/ai" || url.pathname === "/ai") {
@@ -4829,6 +5163,10 @@ export default {
 
     if (url.pathname === "/.well-known/x402.json") {
       return jsonResponse(x402WellKnownJson());
+    }
+
+    if (url.pathname === "/.well-known/mcp.json") {
+      return jsonResponse(mcpManifest());
     }
 
     if (url.pathname === "/.well-known/agent.json" || url.pathname === "/agent.json") {

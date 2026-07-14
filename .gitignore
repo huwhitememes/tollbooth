@@ -9,24 +9,14 @@ dist/
 *.bak
 *.Zone.Identifier
 
-# Internal docs — not for public repo
-docs/LOCAL_*
-docs/internal-*
-docs/PLAN_*
-docs/JULY_*
-docs/REGISTRY_*
-docs/OSS_*
-docs/LOCAL_*
-docs/DIRECTORY_*
-docs/NETWORK_*
-docs/BUILD_LOG.md
-docs/RESEARCH.md
-docs/STRATEGY.md
-docs/X402_PR.md
+# Local planning docs — not for public repo
+docs/*.md
 docs/design/
 research/
 test/
-scripts/
+scripts/*
+!scripts/verify-live.mjs
+!scripts/settle-polymarket-http.mjs
 wrangler.testnet.jsonc
 *PFP*1080*
 *pfp-original*

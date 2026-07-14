@@ -1,9 +1,9 @@
 /**
- * OSINT Products for Prediction Market Edge — OSINT stack Stack
+ * OSINT Products for Prediction Market Edge
  * Ripped patterns:
- * - scenario engine: seed -> entity extraction -> 3-scenario verdict.json
- * - research pack: literature discovery factory + VerifiedRegistry 4-layer verification + safe config
- * - intervention-signal: GDELT + RSS + FIRMS + ACLED + AIS + ADS-B adapters, confidence booster math, 60min window correlation
+ * - scenario modeling: seed -> entity extraction -> three-scenario verdict
+ * - research pack: source discovery plus layered verification
+ * - intervention signals: public feeds, confidence scoring, and windowed correlation
  *
  * All upstreams free or free-key per feeds/registry.yaml v2.
  * Pricing matches existing tiers: raw $0.01-0.02, normalized $0.02-0.03, composite reasoning $0.04-0.05.
@@ -114,7 +114,7 @@ function cityToCoord(input: string) {
 }
 function esc(s: string) { return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }
 
-// ——— 1. geo_intervention_pulse —  flagship composite (from intervention-signal pattern) ———
+// ——— 1. geo_intervention_pulse — flagship public-feed composite ———
 export async function queryGeoPulse(opts: { region?: string; min_confidence?: number; hours_back?: number; include_thermal?: boolean } = {}) {
   const region = (opts.region ?? "global").toLowerCase();
   const minConf = clamp(finite(opts.min_confidence, 0.7), 0, 1);
@@ -149,14 +149,14 @@ export async function queryGeoPulse(opts: { region?: string; min_confidence?: nu
     hex: ac.hex ?? ac.icao ?? "", flight: ac.flight?.trim() ?? ac.call ?? "", type: ac.t ?? ac.type ?? "", lat: finite(ac.lat, 0), lon: finite(ac.lon, 0), alt: finite(ac.alt_baro ?? ac.alt, 0), source: "adsb.lol/mil"
   })).filter((a: any) => a.hex);
 
-  // time windowing — group by hour (intervention-signal pattern)
+  // time windowing — group by hour (intervention signal pattern)
   type Evt = { id: string; source: string; title: string; summary: string; url: string; published: string; tone: number; priority: "critical"|"high"|"medium"|"low" };
   const allEvents: Evt[] = [];
   for (const a of gdeltArticles) allEvents.push({ id: `gdelt-${a.url.slice(-20)}`, source: a.source, title: a.title, summary: `${a.domain} tone=${a.tone} seen=${a.seendate}`, url: a.url, published: a.seendate?.length === 14 ? `${a.seendate.slice(0,4)}-${a.seendate.slice(4,6)}-${a.seendate.slice(6,8)}T${a.seendate.slice(8,10)}:${a.seendate.slice(10,12)}:00Z` : ts, tone: a.tone, priority: a.tone < -2 ? "critical" : "high" });
   for (const b of bbcNorm) allEvents.push({ id: `bbc-${b.url.slice(-20)}`, source: b.source, title: b.title, summary: b.summary, url: b.url, published: b.published, tone: b.tone_est, priority: /strike|war|attack/i.test(b.title) ? "critical" : "high" });
   for (const a of aljNorm) allEvents.push({ id: `alj-${a.url.slice(-20)}`, source: a.source, title: a.title, summary: a.summary, url: a.url, published: a.published, tone: a.tone_est, priority: /strike|explosion|clashes/i.test(a.title) ? "critical" : "high" });
 
-  // booster math per local-scoring/src/signal_generator.py + config
+  // booster math from local scoring config
   const KEYWORD_HITS = (t: string) => /military operation|deployment|strike|exercise|escalation|conflict|defense|airstrike|attack|war|clashes|fired|explosion|artillery|missile|bombing|invasion/i.test(t);
   const thresholds = { keyword_match_score: 0.7, multiple_sources_bonus: 0.2, priority_weight: { critical: 1.0, high: 0.9, medium: 0.7, low: 0.4 }, alert_threshold: 0.8, time_window_min: 60 };
 
@@ -331,7 +331,7 @@ export async function queryFlightIntel(opts: { airport_code?: string; tail_numbe
   };
 }
 
-// ——— 3. osint_research_pack (research pack lit discovery factory adapted) ———
+// ——— 3. osint_research_pack — source discovery and verification ———
 export async function queryResearchPack(opts: { topic: string; domains?: string[]; include_sources?: string[]; hours_back?: number } | any = undefined) {
   const topic = (opts.topic ?? "").trim();
   if (!topic) throw new Error("topic required");
@@ -404,7 +404,7 @@ export async function queryResearchPack(opts: { topic: string; domains?: string[
 
   await Promise.allSettled(jobs);
 
-  // verification layer (ARC VerifiedRegistry adapted — 4-layer light)
+  // verification layer — 4-layer light
   // 1) source exists (we fetched) 2) recent (<72h) 3) multi-source correlated (>=2 sources share keyword) 4) domain not blocked
   const now = Date.now();
   let verified = 0, stale = 0, multiCorrelated = 0;
@@ -443,13 +443,13 @@ export async function queryResearchPack(opts: { topic: string; domains?: string[
       stale: stale,
       multi_source_correlated_keywords: multiCorrelated,
       keyword_source_map: Object.fromEntries(Array.from(kwSources.entries()).map(([k,s])=>[k, Array.from(s)])),
-      model: "ARC VerifiedRegistry light 4-layer: existence + recency + multi-source + domain allowlist",
+      model: "verification layer light 4-layer: existence + recency + multi-source + domain allowlist",
     },
     provenance: scored.slice(0,5).map(r=>({ source:r.source, url:r.url, license:r.license, verification:r.verification_score })),
   };
 }
 
-// ——— 4. scenario_verdict (scenario engine-style) ———
+// ——— 4. scenario_verdict (scenario-engine) ———
 export async function queryScenarioVerdict(opts: { seed_text: string; market_question: string; context?: string } | any = undefined) {
   const seed = (opts.seed_text ?? "").trim();
   const q = (opts.market_question ?? "").trim();
@@ -489,7 +489,7 @@ export async function queryScenarioVerdict(opts: { seed_text: string; market_que
   compositeYes = clamp(Math.round(compositeYes*100)/100, 0.05, 0.95);
   const direction = compositeYes >= 0.55 ? "YES" : compositeYes <= 0.45 ? "NO" : "UNCERTAIN";
 
-  // build three scenarios (scenario engine verdict.json shape per scenario-engine/scenario-engine-cli pattern)
+  // build three scenarios for machine-readable market mapping
   const scenarios = [
     {
       name: "Bear / No escalation / Status quo",
@@ -526,7 +526,7 @@ export async function queryScenarioVerdict(opts: { seed_text: string; market_que
   } catch {}
 
   return {
-    version: "verdict.json v1 (scenario engine CLI inspired — scenario-engine/scenario-engine-cli outputs machine-readable verdict alongside report)",
+    version: "verdict.json v1 (scenario engine CLI inspired)",
     timestamp: ts,
     market_question: q,
     seed_summary: seed.slice(0, 600),
@@ -546,7 +546,7 @@ export async function queryScenarioVerdict(opts: { seed_text: string; market_que
   };
 }
 
-// ——— 5. weather_bias_score (fixes weather model) ———
+// ——— 5. weather_bias_score (uses weather model) ———
 export async function queryWeatherBias(opts: { city: string; model?: string; days_back?: number } | any = undefined) {
   const cityRaw = (opts.city ?? "NYC").trim();
   const coord = cityToCoord(cityRaw);
@@ -609,7 +609,7 @@ export async function queryWeatherBias(opts: { city: string; model?: string; day
       HIGHCHI: "Chicago HIGHCHI — O'Hare",
       HIGHMIA: "Miami HIGHMIA — MIA",
       HIGHLAX: "LA — LAX",
-      format: "HIGH* ticker date %y%b%d uppercase per weather model extraction — e.g., HIGHNY-24JUN15",
+      format: "HIGH* ticker date %y%b%d uppercase per weather ticker extraction — e.g., HIGHNY-24JUN15",
       subtitle_parser: "50° to 51° range / or below / or above — parse subtitle for precise bucket edges (see research/09-*)",
     },
     provenance: [
@@ -660,10 +660,10 @@ export async function querySupplyStress(opts: { ports?: string[]; chokepoints?: 
     stress_index: score,
     stress_level: level,
     components: {
-      cbp_border_wait: cbpData ? { available: true, sample: Array.isArray(cbpData) ? cbpData.slice(0,3) : cbpData } : { available: false, note: "CBP BWT API requires exploration via browser-use XHR — fallback indicates need for Local tooling capture pattern" },
+      cbp_border_wait: cbpData ? { available: true, sample: Array.isArray(cbpData) ? cbpData.slice(0,3) : cbpData } : { available: false, note: "CBP BWT API requires exploration via browser-use XHR — fallback indicates need for manual capture pattern" },
       ais_vessel_counts: { note: "AIS requires aisstream.io free WS key or marinetraffic free tier — pattern extracted from intervention-signal config, not fetched in worker edge for cost. Use feeds/registry.yaml marinetraffic-ports upstream with key rotation locally", chokepoint_mentions: gdeltChokeMentions },
       bts_transtats_hint: "BTS TranStats gov CSV bulk + API free for airline delay cascade",
-      rail_aar_hint: "AAR weekly rail freight pdf parsing via traffic-jack (behind cloudflare) — Local tooling XHR needed",
+      rail_aar_hint: "AAR weekly rail freight pdf parsing via traffic-jack (behind cloudflare) — manual capture XHR needed",
     },
     trading_hint: "For Polymarket commodity / shipping cost / port congestion markets: stress_index >70 correlates with freight rate spike 2-5 days lead (per intervention-signal booster math). Pair with flight_intel for M&A meeting proxy.",
     provenance: [
@@ -704,7 +704,7 @@ export async function queryRegulatoryPulse(opts: { org?: string; hours_back?: nu
   fetches["uspto_tsdR_hint"] = { pattern: "USPTO TSDR bulk via https://bulkdata.uspto.gov/ + API — clone uspto trademark repo", note: "for trademark_velocity SKU, use daily diff of new filings vs 30d mean >2.5 sigma" };
 
   // FCC OET: equipment authorization
-  fetches["fcc_oet_hint"] = { pattern: "FCC OET filings pre-market products — RSS https://apps.fcc.gov/oetcf/eas/reports/GenericSearch.cfm? sort via Local tooling", note: "fcc_preproduct_pulse SKU — device type spike predicts launch" };
+  fetches["fcc_oet_hint"] = { pattern: "FCC OET filings pre-market products — RSS https://apps.fcc.gov/oetcf/eas/reports/GenericSearch.cfm? sort via manual capture", note: "fcc_preproduct_pulse SKU — device type spike predicts launch" };
 
   // FAA registry
   fetches["faa_registry_hint"] = { pattern: "FAA aircraft registry CSV bulk monthly https://www.faa.gov/licenses_certificates/aircraft_registry/releasable_aircraft_download/", note: "fleet_growth_signal SKU" };

@@ -1,5 +1,5 @@
 // AUTO LANE — pure public-API feeds (no browser), ship Tollbooth auto
-// MANUAL LANE: registry.yaml method: manual-capture status: needs-capture — needs browser-use hu-x -> local-tooling capture --stealth --url
+// MANUAL LANE: registry.yaml method: manual-capture status: needs-capture — needs browser-use hu-x -> manual-capture --stealth --url
 export { fetchGeoPulse } from "./geo-pulse";
 export { fetchFlightIntel } from "./flight-intel";
 export { fetchResearchPack } from "./research-pack";

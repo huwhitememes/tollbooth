@@ -46,7 +46,7 @@
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://agenttoll.dev/tools/validate_local-tooling_manifest</loc>
+    <loc>https://agenttoll.dev/tools/validate_agent_manifest</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
