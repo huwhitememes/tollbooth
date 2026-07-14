@@ -3907,6 +3907,7 @@ footer code {
 /* ── Category sections (tools directory) ── */
 .cat-section {
   margin-bottom: 48px;
+  scroll-margin-top: 24px;
 }
 .cat-section-head {
   display: flex;
@@ -4236,62 +4237,62 @@ ${SHARED_CSS}
       <a href="/tools">View all →</a>
     </div>
     <div class="cat-grid">
-      <a href="/tools" class="cat-card">
+      <a href="/tools#prediction-markets" class="cat-card">
         <h3><span class="icon">📊</span> Prediction Markets</h3>
         <p>Polymarket arbitrage, Kalshi cross-platform, trending markets, odds feed, smart money tracking.</p>
         <span class="cat-count">12 tools</span>
       </a>
-      <a href="/tools" class="cat-card">
+      <a href="/tools#osint-intelligence" class="cat-card">
         <h3><span class="icon">🌍</span> OSINT & Intelligence</h3>
         <p>Geo tension signals, flight intel, research packs, SEC 8-K velocity, treasury data, HN, GitHub, Reddit.</p>
         <span class="cat-count">16 tools</span>
       </a>
-      <a href="/tools" class="cat-card">
+      <a href="/tools#web-intel" class="cat-card">
         <h3><span class="icon">🔍</span> Web Intel</h3>
         <p>Scrape, tech stack fingerprint, contact extraction, lead scoring, agent policy checks.</p>
         <span class="cat-count">8 tools</span>
       </a>
-      <a href="/tools" class="cat-card">
+      <a href="/tools#legal-regulatory" class="cat-card">
         <h3><span class="icon">⚖️</span> Legal & Regulatory</h3>
         <p>Court opinions, dockets, federal register, patents, trademarks, judges, regulations.</p>
         <span class="cat-count">7 tools</span>
       </a>
-      <a href="/tools" class="cat-card">
+      <a href="/tools#academic-science" class="cat-card">
         <h3><span class="icon">🔬</span> Academic & Science</h3>
         <p>Papers, arXiv, PubMed, clinical trials, OpenAlex, citation graphs.</p>
         <span class="cat-count">7 tools</span>
       </a>
-      <a href="/tools" class="cat-card">
+      <a href="/tools#health-safety" class="cat-card">
         <h3><span class="icon">💊</span> Health & Safety</h3>
         <p>Drug recalls, adverse events, product recalls, vehicle recalls, disease outbreaks, food safety.</p>
         <span class="cat-count">8 tools</span>
       </a>
-      <a href="/tools" class="cat-card">
+      <a href="/tools#environmental" class="cat-card">
         <h3><span class="icon">🔥</span> Environmental</h3>
         <p>Wildfires, weather alerts, tides, space weather, earthquakes, marine conditions, air quality.</p>
         <span class="cat-count">13 tools</span>
       </a>
-      <a href="/tools" class="cat-card">
+      <a href="/tools#government" class="cat-card">
         <h3><span class="icon">🏛️</span> Government</h3>
         <p>Federal spending, grants, contracts, lobbying, nonprofits, economic data, national debt.</p>
         <span class="cat-count">7 tools</span>
       </a>
-      <a href="/tools" class="cat-card">
+      <a href="/tools#finance-crypto" class="cat-card">
         <h3><span class="icon">💰</span> Finance & Crypto</h3>
         <p>SEC EDGAR, insider trades, FRED economic data, currency rates, crypto prices, Bitcoin mempool.</p>
         <span class="cat-count">8 tools</span>
       </a>
-      <a href="/tools" class="cat-card">
+      <a href="/tools#security" class="cat-card">
         <h3><span class="icon">🔒</span> Security</h3>
         <p>Threat intel, MCP supply-chain IOCs, trifecta score, agent policies, CVE search, company registry.</p>
         <span class="cat-count">6 tools</span>
       </a>
-      <a href="/tools" class="cat-card">
+      <a href="/tools#gen-video-intel" class="cat-card">
         <h3><span class="icon">🎬</span> Gen-Video Intel</h3>
         <p>Generative video model intelligence, recommended settings, community workflow data.</p>
         <span class="cat-count">2 tools</span>
       </a>
-      <a href="/tools" class="cat-card">
+      <a href="/tools#utility" class="cat-card">
         <h3><span class="icon">🔧</span> Utility</h3>
         <p>DNS lookup, IP geolocation, timezone, airport status, postal codes, ISBN book search.</p>
         <span class="cat-count">6 tools</span>
@@ -4438,6 +4439,14 @@ function categoryForTool(name: string): string {
   return "Other";
 }
 
+function categorySlug(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/&/g, " ")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
 function relatedTools(name: string): string[] {
   for (const cat of TOOL_CATEGORIES) {
     if (cat.tools.includes(name)) {
@@ -4460,7 +4469,7 @@ function toolsDirectoryPage() {
       .filter(Boolean);
     if (catTools.length === 0) return "";
     catTools.forEach((t: any) => assigned.add(t.name));
-    return `<div class="cat-section">
+    return `<div class="cat-section" id="${categorySlug(cat.name)}">
       <div class="cat-section-head">
         <h2><span class="cat-icon">${cat.icon}</span> ${cat.name}</h2>
         <span class="cat-count">${catTools.length} tools</span>
@@ -4475,7 +4484,7 @@ function toolsDirectoryPage() {
     </div>`;
   }).join("");
 
-  const otherSection = unassigned.length > 0 ? `<div class="cat-section">
+  const otherSection = unassigned.length > 0 ? `<div class="cat-section" id="other">
     <div class="cat-section-head">
       <h2><span class="cat-icon">\u{1F4E6}</span> Other</h2>
       <span class="cat-count">${unassigned.length} tools</span>
