@@ -202,7 +202,6 @@ const TOOLS = [
     price_usd: "0.02",
     description: "Query known-malicious MCP packages, versions, C2 hosts, and email IOCs. Updated as new supply-chain incidents break. The virus database for MCP.",
     input: {
-      note: "All parameters optional. Send {} to return the full IOC feed, or filter by package or C2 host.",
       package: "optional npm package name to check, e.g. postmark-mcp",
       host: "optional C2 host/domain substring to check, e.g. giftshop.club",
     },
@@ -532,7 +531,7 @@ const TOOLS = [
     name: "national_debt",
     price_usd: "0.02",
     description: "US national debt to the penny via Treasury FiscalData. Total debt, debt by instrument, fiscal year data.",
-    input: { note: "No input parameters required. Send an empty JSON object: {}." },
+    input: {},
     example: {},
     http_path: "/paid/gov/national-debt",
   },
@@ -598,7 +597,6 @@ const TOOLS = [
     price_usd: "0.06",
     description: "Scan Polymarket negRisk events for combinatorial arbitrage across dependency-linked outcomes. Detect mispriced multi-leg bundles.",
     input: {
-      note: "All parameters optional. Send {} to scan the default set of active negRisk events.",
       limit: "optional integer; number of active events to inspect before filtering for arbitrage, default 20, max 100",
     },
     example: { limit: 20 },
@@ -609,7 +607,6 @@ const TOOLS = [
     price_usd: "0.04",
     description: "Polymarket CLOB orderbook imbalance — top-of-book bid/ask depth ratio, directional pressure signal for any market.",
     input: {
-      note: "All parameters optional. Send {} to scan top active markets by volume, or pass token_id for one exact CLOB order book.",
       token_id: "optional Polymarket CLOB token ID for a single market order book",
       condition_id: "optional Polymarket condition ID; used when available to scope a market",
       limit: "optional integer; number of active markets to scan when token_id is omitted, default 10, max 50",
@@ -694,7 +691,6 @@ const TOOLS = [
     price_usd: "0.03",
     description: "CDC disease outbreak data. Outbreak location, pathogen, cases, deaths, investigation status.",
     input: {
-      note: "All parameters optional. Send {} for latest CDC rows, or filter by disease/pathogen text.",
       query: "optional disease/pathogen search term, e.g. influenza",
       limit: "optional integer; number of CDC rows to return, default 20, max 100",
     },
@@ -755,7 +751,7 @@ const TOOLS = [
     name: "space_weather_kp",
     price_usd: "0.03",
     description: "Current planetary K-index and geomagnetic storm conditions from NOAA SWPC. Aurora prediction, satellite drag, GPS interference signals.",
-    input: { note: "No input parameters required. Send an empty JSON object: {}." },
+    input: {},
     example: {},
     http_path: "/paid/env/space-weather-kp",
   },
@@ -779,7 +775,7 @@ const TOOLS = [
     name: "aurora_forecast",
     price_usd: "0.03",
     description: "NOAA aurora oval forecast — 30-minute northern/southern lights visibility probability by lat/lon grid.",
-    input: { note: "No input parameters required. Send an empty JSON object: {}." },
+    input: {},
     example: {},
     http_path: "/paid/env/aurora",
   },
@@ -867,7 +863,7 @@ const TOOLS = [
     name: "btc_mempool_fees",
     price_usd: "0.02",
     description: "Recommended Bitcoin network transaction fees — fastest, half-hour, hour, economy tiers via mempool.space.",
-    input: { note: "No input parameters required. Send an empty JSON object: {}." },
+    input: {},
     example: {},
     http_path: "/paid/finance/btc-fees",
   },
@@ -4868,12 +4864,37 @@ function toolDetailPage(toolName: string) {
   // Category label from single source of truth
   const catLabel = categoryForTool(tool.name);
   const hasExample = tool.example && Object.keys(tool.example).length > 0;
-  const inputDoc = JSON.stringify(tool.input, null, 2);
-  const exampleDoc = hasExample
-    ? JSON.stringify(tool.example, null, 2)
-    : `curl -X POST ${SERVICE.origin}${tool.http_path ?? "/mcp"}
-  -H "Content-Type: application/json"
-  -d '{}'`;
+  const hasInput = tool.input && Object.keys(tool.input).length > 0;
+  const requestBody = hasExample ? tool.example : {};
+  const html = (value: string) => value.replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch] as string));
+  const inputDoc = hasInput ? JSON.stringify(tool.input, null, 2) : "{}";
+  const exampleDoc = JSON.stringify(requestBody, null, 2);
+  const transactionSpec = JSON.stringify({
+    mcp: {
+      endpoint: `${SERVICE.origin}${SERVICE.mcpPath}`,
+      tool: tool.name,
+      arguments: requestBody,
+    },
+    http: tool.http_path ? {
+      method: "POST",
+      url: `${SERVICE.origin}${tool.http_path}`,
+      headers: { "content-type": "application/json" },
+      body: requestBody,
+      unpaid_response: "HTTP 402 with x402 payment requirements",
+      paid_response: "HTTP 200 JSON with payment-response receipt header",
+    } : undefined,
+    payment: {
+      protocol: "x402",
+      scheme: "exact",
+      price_usd: tool.price_usd,
+      network: SERVICE.network,
+      network_name: SERVICE.networkName,
+      asset: "USDC",
+      asset_address: SERVICE.usdc,
+      pay_to: SERVICE.seller,
+    },
+    receipt: `${SERVICE.origin}/receipt/:tx`,
+  }, null, 2);
 
   // JSON-LD structured data for this specific tool
   const jsonLd = `<script type="application/ld+json">
@@ -4927,29 +4948,36 @@ ${jsonLd}`;
 
     <div class="tool-section" data-rail-label="INPUT SCHEMA">
       <h3>Input parameters</h3>
-      <pre>${inputDoc}</pre>
+      <p style="color: var(--text-2); font-size: 14px; margin-bottom: 8px;">Only send these request-body fields. If this block is empty, send <code>{}</code>.</p>
+      <pre>${html(inputDoc)}</pre>
     </div>
 
-    <div class="tool-section" data-rail-label="EXAMPLE REQUEST">
-      <h3>Example usage</h3>
-      <pre>${exampleDoc}</pre>
+    <div class="tool-section" data-rail-label="REQUEST BODY">
+      <h3>Request body</h3>
+      <pre>${html(exampleDoc)}</pre>
     </div>
 
-    ${tool.http_path ? `<div class="tool-section" data-rail-label="HTTP ROUTE"><h3>HTTP endpoint</h3><p style="color: var(--text-2); font-size: 14px; margin-bottom: 8px;">POST to this path with JSON body. Server returns 402 with x402 payment requirements.</p><pre>${tool.http_path}</pre></div>` : ''}
+    ${tool.http_path ? `<div class="tool-section" data-rail-label="HTTP ROUTE"><h3>HTTP endpoint</h3><p style="color: var(--text-2); font-size: 14px; margin-bottom: 8px;">POST JSON to this URL. The first unpaid call returns HTTP 402 with x402 payment requirements; an x402-capable client signs and retries.</p><pre>${SERVICE.origin}${tool.http_path}</pre></div>` : ''}
 
     <div class="tool-section" data-rail-label="MCP ENTRYPOINT">
-      <h3>How to call ${tool.name}</h3>
-      <p style="color: var(--text-2); font-size: 14px; margin-bottom: 12px;">Connect any MCP-compatible client (Claude Desktop, Cursor, custom agent) to the agenttoll.dev MCP endpoint:</p>
+      <h3>MCP call</h3>
+      <p style="color: var(--text-2); font-size: 14px; margin-bottom: 12px;">Connect an MCP client to the endpoint, call tool <code>${tool.name}</code>, and pass the request body as arguments.</p>
       <pre>${SERVICE.origin}${SERVICE.mcpPath}</pre>
-      <p style="color: var(--text-3); font-size: 13px; margin-top: 12px;">Or call the HTTP endpoint directly with an x402-capable fetch client.</p>
+      <p style="color: var(--text-3); font-size: 13px; margin-top: 12px;">MCP paid-tool calls may surface the payment challenge inside the JSON-RPC result instead of as a raw HTTP 402.</p>
+    </div>
+
+    <div class="tool-section" data-rail-label="TRANSACTION SPEC">
+      <h3>What the agent needs to transact</h3>
+      <pre>${html(transactionSpec)}</pre>
     </div>
 
     <div class="tool-section" data-rail-label="PAYMENT RAIL">
       <h3>Pricing & payment</h3>
       <div style="display: flex; gap: 24px; flex-wrap: wrap; margin-top: 8px;">
         <div><div style="font-size: 13px; color: var(--text-3);">Price</div><div style="font-family: 'JetBrains Mono', monospace; font-size: 16px; color: var(--price); font-weight: 700;">$${tool.price_usd}/call</div></div>
-        <div><div style="font-size: 13px; color: var(--text-3);">Network</div><div style="font-family: 'JetBrains Mono', monospace; font-size: 16px; color: var(--text);">Base USDC</div></div>
-        <div><div style="font-size: 13px; color: var(--text-3);">Protocol</div><div style="font-family: 'JetBrains Mono', monospace; font-size: 16px; color: var(--text);">x402</div></div>
+        <div><div style="font-size: 13px; color: var(--text-3);">Network</div><div style="font-family: 'JetBrains Mono', monospace; font-size: 16px; color: var(--text);">${SERVICE.networkName}</div></div>
+        <div><div style="font-size: 13px; color: var(--text-3);">Asset</div><div style="font-family: 'JetBrains Mono', monospace; font-size: 16px; color: var(--text);">USDC</div></div>
+        <div><div style="font-size: 13px; color: var(--text-3);">Protocol</div><div style="font-family: 'JetBrains Mono', monospace; font-size: 16px; color: var(--text);">x402 exact</div></div>
         <div><div style="font-size: 13px; color: var(--text-3);">Receipts</div><div style="font-family: 'JetBrains Mono', monospace; font-size: 16px; color: var(--text);">/receipt/:tx</div></div>
       </div>
     </div>
