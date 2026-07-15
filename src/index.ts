@@ -4081,6 +4081,8 @@ footer .inner::before {
 }
 .cat-card::before { content: 'CATEGORY'; }
 .tool-card::before { content: 'TOOL'; }
+.cat-card[data-rail-label]::before,
+.tool-card[data-rail-label]::before { content: attr(data-rail-label); }
 .step::before,
 .detail-page .tool-section::before { content: 'PAYMENT RAIL'; }
 .tldr::before { content: 'ARTICLE'; }
@@ -4872,27 +4874,27 @@ ${jsonLd}`;
 
 function discoveryPage() {
   const surfaces = [
-    { label: "MCP manifest", href: "/.well-known/mcp.json", text: "Machine-readable MCP entrypoint, auth modes, payments, and tool roster." },
-    { label: "System info", href: "/api/system/info", text: "Network, seller wallet, asset contract, categories, and discovery URLs." },
-    { label: "llms-full.txt", href: "/llms-full.txt", text: "Long-form agent context with every tool, price, quote URL, and endpoint." },
-    { label: "Quote API", href: "/api/quote?tool=trending_markets", text: "Free price lookup before an agent attempts a paid call." },
-    { label: "OpenAPI", href: "/openapi.json", text: "OpenAPI 3.1 spec for public metadata and paid HTTP routes." },
-    { label: "x402 resources", href: "/.well-known/x402", text: "x402 discovery surface used by paid-resource crawlers." },
-    { label: "agent.json", href: "/.well-known/agent.json", text: "Agent-facing manifest with MCP URL, payment data, and tool list." },
-    { label: "Tools", href: "/tools", text: "Human-readable catalog with pages for each paid tool." },
+    { type: "MCP MANIFEST", label: "MCP manifest", href: "/.well-known/mcp.json", text: "Machine-readable MCP entrypoint, auth modes, payments, and tool roster." },
+    { type: "SYSTEM API", label: "System info", href: "/api/system/info", text: "Network, seller wallet, asset contract, categories, and discovery URLs." },
+    { type: "AGENT CONTEXT", label: "llms-full.txt", href: "/llms-full.txt", text: "Long-form agent context with every tool, price, quote URL, and endpoint." },
+    { type: "PRICE QUOTE", label: "Quote API", href: "/api/quote?tool=trending_markets", text: "Free price lookup before an agent attempts a paid call." },
+    { type: "OPENAPI SPEC", label: "OpenAPI", href: "/openapi.json", text: "OpenAPI 3.1 spec for public metadata and paid HTTP routes." },
+    { type: "X402 DISCOVERY", label: "x402 resources", href: "/.well-known/x402", text: "x402 discovery surface used by paid-resource crawlers." },
+    { type: "AGENT MANIFEST", label: "agent.json", href: "/.well-known/agent.json", text: "Agent-facing manifest with MCP URL, payment data, and tool list." },
+    { type: "HUMAN CATALOG", label: "Tools", href: "/tools", text: "Human-readable catalog with pages for each paid tool." },
   ];
 
   const content = `<section style="padding: 60px 0;">
     <h2 style="font-size: clamp(28px, 5vw, 48px); font-weight: 700; letter-spacing: -0.03em; margin-bottom: 8px;">Discovery hub</h2>
     <p style="color: var(--text-2); font-size: 16px; margin-bottom: 32px; max-width: 760px;">These are the public entrypoints agents and humans can use to inspect agenttoll.dev before paying for a call. The JSON and text routes are crawler-friendly. The tool pages stay readable for people.</p>
     <div class="tools-grid">
-      ${surfaces.map((surface) => `<a href="${surface.href}" class="tool-card">
+      ${surfaces.map((surface) => `<a href="${surface.href}" class="tool-card" data-rail-label="${surface.type}">
         <div class="tool-name">${surface.label}</div>
         <div class="tool-desc">${surface.text}</div>
         <div class="tool-price" style="font-size: 12px; margin-top: 12px;">${surface.href}</div>
       </a>`).join("")}
     </div>
-    <div class="cat-card" style="margin-top: 32px;">
+    <div class="cat-card" data-rail-label="FREE QUOTE" style="margin-top: 32px;">
       <h3 style="font-size: 15px; font-weight: 600; margin-bottom: 8px;">Quote a tool</h3>
       <p style="font-size: 14px; color: var(--text-2); margin-bottom: 12px;">Use the free quote endpoint to check price, network, asset, seller wallet, and endpoints before a paid x402 call.</p>
       <pre style="background: rgba(6,8,12,0.6); border: 1px solid var(--border); border-radius: 12px; padding: 16px; font-family: 'JetBrains Mono', monospace; font-size: 13px; overflow-x: auto;">curl ${SERVICE.origin}/api/quote?tool=trending_markets</pre>
