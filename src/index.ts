@@ -3569,7 +3569,7 @@ main {
   color: #06080c;
   box-shadow: 0 0 30px rgba(45, 212, 191, 0.3);
 }
-.btn-primary:hover { box-shadow: 0 0 50px rgba(45, 212, 191, 0.5); transform: translateY(-1px); }
+.btn-primary:hover { box-shadow: 0 0 26px rgba(45, 212, 191, 0.12); }
 .btn:active { transform: scale(0.97); }
 .btn-ghost {
   background: var(--bg-glass);
@@ -3664,8 +3664,7 @@ main {
 }
 .cat-card:hover {
   border-color: var(--border-hover);
-  transform: translateY(-2px);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 0 28px rgba(45, 212, 191, 0.12);
 }
 .cat-card h3 {
   font-size: 15px;
@@ -3782,7 +3781,7 @@ footer code {
 .hero .actions { animation-delay: 0.5s; }
 .hero .stats { animation-delay: 0.65s; }
 @keyframes slideUp {
-  from { opacity: 0; transform: translateY(30px); }
+  from { opacity: 1; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
 }
 /* Responsive */
@@ -3845,8 +3844,7 @@ footer code {
 }
 .tool-card:hover {
   border-color: var(--border-hover);
-  transform: translateY(-2px);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 0 28px rgba(45, 212, 191, 0.12);
 }
 .tool-card .tool-name {
   font-size: 15px;
@@ -3983,6 +3981,177 @@ footer code {
   color: var(--text-3);
   text-transform: uppercase;
   letter-spacing: 0.06em;
+}
+
+
+
+/* ── Full-suite payment rail system ─────────────────────────────── */
+nav {
+  gap: 16px;
+}
+nav .logo {
+  background: rgba(8, 16, 21, 0.72);
+  border: 1px solid rgba(45, 212, 191, 0.24);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+}
+nav .logo:hover {
+  color: var(--text);
+  border-color: rgba(45, 212, 191, 0.38);
+}
+nav .links {
+  gap: 8px;
+  padding: 6px;
+  border: 1px solid rgba(45, 212, 191, 0.18);
+  border-radius: 16px;
+  background: linear-gradient(180deg, rgba(6, 8, 12, 0.72), rgba(10, 17, 24, 0.56));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+  backdrop-filter: blur(14px);
+}
+nav .links a {
+  padding: 8px 12px;
+  border: 1px solid rgba(56, 78, 112, 0.22);
+  background: rgba(8, 16, 21, 0.54);
+}
+nav .links a:hover {
+  color: var(--text);
+  border-color: rgba(45, 212, 191, 0.34);
+  background: rgba(45, 212, 191, 0.08);
+}
+nav .links .cta {
+  background: rgba(45, 212, 191, 0.12);
+  border-color: rgba(45, 212, 191, 0.38);
+  color: #8ddfd5;
+}
+.rail-card,
+.cat-card,
+.tool-card,
+.step,
+.detail-page .tool-section,
+.tldr,
+.author-card,
+.rail-search,
+footer .inner {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(45, 212, 191, 0.22);
+  background: linear-gradient(180deg, rgba(6, 8, 12, 0.76), rgba(13, 23, 29, 0.62));
+  box-shadow: var(--rail-glow), inset 0 1px 0 rgba(255,255,255,0.06);
+  backdrop-filter: blur(14px);
+}
+.cat-card,
+.tool-card,
+.step,
+.detail-page .tool-section,
+.tldr,
+.author-card {
+  padding-top: 56px;
+}
+.rail-search {
+  margin-bottom: 32px;
+  border-radius: 16px;
+  padding: 46px 14px 14px;
+}
+.author-card {
+  border-radius: 18px;
+}
+.rail-card::before,
+.cat-card::before,
+.tool-card::before,
+.step::before,
+.detail-page .tool-section::before,
+.tldr::before,
+.author-card::before,
+.rail-search::before,
+footer .inner::before {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  border-bottom: 1px solid rgba(45, 212, 191, 0.16);
+  background: rgba(8, 16, 21, 0.62);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  line-height: 1;
+  letter-spacing: 0.14em;
+  color: #8ddfd5;
+}
+.cat-card::before { content: 'CATEGORY'; }
+.tool-card::before { content: 'TOOL'; }
+.step::before,
+.detail-page .tool-section::before { content: 'PAYMENT RAIL'; }
+.tldr::before { content: 'ARTICLE'; }
+.author-card::before { content: 'OPERATOR'; }
+.rail-search::before { content: 'SEARCH'; }
+footer .inner::before {
+  content: none;
+  display: none;
+}
+.rail-card::before { content: attr(data-rail-label); }
+.cat-card:hover,
+.tool-card:hover {
+  border-color: rgba(45, 212, 191, 0.42);
+  transform: none;
+  box-shadow: 0 0 34px rgba(45, 212, 191, 0.14), inset 0 1px 0 rgba(255,255,255,0.07);
+}
+.btn {
+  border: 1px solid rgba(45, 212, 191, 0.24);
+  background: rgba(8, 16, 21, 0.68);
+  color: var(--text);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+}
+.btn-primary {
+  background: rgba(45, 212, 191, 0.14);
+  border-color: rgba(45, 212, 191, 0.44);
+  color: #a7fff4;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.07);
+}
+.btn-primary:hover,
+.btn:hover {
+  transform: none;
+  border-color: rgba(45, 212, 191, 0.52);
+  box-shadow: 0 0 26px rgba(45, 212, 191, 0.12), inset 0 1px 0 rgba(255,255,255,0.07);
+}
+.btn:active { transform: none; }
+.search-bar {
+  margin-bottom: 0;
+  border: 0;
+  background: rgba(6, 8, 12, 0.62);
+  box-shadow: inset 0 0 0 1px rgba(56, 78, 112, 0.24);
+}
+.search-bar:focus {
+  box-shadow: inset 0 0 0 1px rgba(45, 212, 191, 0.54), var(--focus-ring);
+}
+footer {
+  border-top: 0;
+}
+footer .inner {
+  border-radius: 20px;
+  padding: 24px;
+  border-color: rgba(45, 212, 191, 0.14);
+  background: linear-gradient(180deg, rgba(6, 8, 12, 0.58), rgba(10, 17, 24, 0.42));
+  box-shadow: 0 0 22px rgba(45, 212, 191, 0.06), inset 0 1px 0 rgba(255,255,255,0.04);
+}
+footer .links a {
+  padding: 7px 10px;
+  border: 1px solid rgba(56, 78, 112, 0.22);
+  border-radius: 8px;
+  background: rgba(8, 16, 21, 0.42);
+  transition: color var(--duration-fast) ease, border-color var(--duration-fast) ease, background-color var(--duration-fast) ease;
+}
+footer .links a:hover {
+  color: var(--text);
+  border-color: rgba(45, 212, 191, 0.34);
+  background: rgba(45, 212, 191, 0.08);
+}
+.detail-page .back-link,
+.section-head a,
+article a,
+.back-link a {
+  border-radius: 8px;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -4561,7 +4730,7 @@ function toolsDirectoryPage() {
   const content = `<section style="padding: 60px 0;">
     <h2 style="font-size: clamp(28px, 5vw, 48px); font-weight: 700; letter-spacing: -0.03em; margin-bottom: 8px;">All ${TOOLS.length} tools</h2>
     <p style="color: var(--text-2); font-size: 16px; margin-bottom: 32px;">Every paid x402 MCP tool, grouped by category. Click any tool for details, pricing, and example input.</p>
-    <input class="search-bar" type="text" placeholder="Search tools…" id="tool-search" onkeyup="const q=this.value.toLowerCase();document.querySelectorAll('.tool-card,.cat-section').forEach(c=>{if(c.classList.contains('cat-section')){const cards=c.querySelectorAll('.tool-card');let any=false;cards.forEach(card=>{const m=card.textContent.toLowerCase().includes(q);card.style.display=m?'':'none';if(m)any=true});c.style.display=any?'':'none'}else{const m=c.textContent.toLowerCase().includes(q);c.style.display=m?'':'none'}})">
+    <div class="rail-search"><input class="search-bar" type="text" placeholder="Search tools…" id="tool-search" onkeyup="const q=this.value.toLowerCase();document.querySelectorAll('.tool-card,.cat-section').forEach(c=>{if(c.classList.contains('cat-section')){const cards=c.querySelectorAll('.tool-card');let any=false;cards.forEach(card=>{const m=card.textContent.toLowerCase().includes(q);card.style.display=m?'':'none';if(m)any=true});c.style.display=any?'':'none'}else{const m=c.textContent.toLowerCase().includes(q);c.style.display=m?'':'none'}})"></div>
     ${sections}
     ${otherSection}
   </section>`;
@@ -4673,20 +4842,20 @@ ${jsonLd}`;
       <details style="margin-bottom: 12px;"><summary style="cursor: pointer; color: var(--text); font-size: 14px; font-weight: 500;">How do I verify my payment?</summary><p style="color: var(--text-2); font-size: 14px; margin-top: 8px; padding-left: 16px;">After settlement, check <code>/receipt/&lt;tx&gt;</code> for on-chain verification via Basescan. Every payment is a real USDC transfer to ${SERVICE.seller.slice(0,10)}…</p></details>
     </div>
 
-    <div style="margin-top: 32px; display: flex; gap: 12px; flex-wrap: wrap;">
+    <div class="rail-card" data-rail-label="ACTION RAIL" style="margin-top: 32px; padding: 52px 22px 22px; display: flex; gap: 12px; flex-wrap: wrap;">
       <a href="${SERVICE.origin}${SERVICE.mcpPath}" class="btn btn-primary">Open MCP endpoint →</a>
       <a href="/.well-known/agent.json" class="btn btn-ghost">View agent.json</a>
       <a href="/tools" class="btn btn-ghost">Browse all ${TOOLS.length} tools</a>
     </div>
 
-    <div style="margin-top: 48px; padding-top: 24px; border-top: 1px solid var(--border);">
+    <div class="rail-card" data-rail-label="RELATED TOOL" style="margin-top: 48px; padding: 52px 22px 22px;">
       <h3 style="font-size: 14px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-3); margin-bottom: 16px;">Related tools</h3>
       <div class="tools-grid" style="padding: 0;">
         ${relatedCards}
       </div>
     </div>
 
-    <div style="margin-top: 48px; padding: 24px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; backdrop-filter: blur(12px);">
+    <div class="author-card" style="margin-top: 48px;">
       <div style="display: flex; gap: 16px; align-items: center;">
         <div style="width: 48px; height: 48px; border-radius: 50%; overflow: hidden; flex-shrink: 0;"><img src="/hu-white-pfp.jpg" alt="Hu White" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;"></div>
         <div>
@@ -4779,7 +4948,7 @@ Seller wallet: ${SERVICE.seller}</pre>
       <p style="font-size: 14px; color: var(--text-2);">After payment settles, verify on Base with <code>/receipt/&lt;tx&gt;</code>.</p>
     </div>
 
-    <div style="margin-top: 32px; display: flex; gap: 12px; flex-wrap: wrap;">
+    <div class="rail-card" data-rail-label="ACTION RAIL" style="margin-top: 32px; padding: 52px 22px 22px; display: flex; gap: 12px; flex-wrap: wrap;">
       <a href="${SERVICE.origin}${SERVICE.mcpPath}" class="btn btn-primary">Open MCP endpoint →</a>
       <a href="/tools" class="btn btn-ghost">Browse ${TOOLS.length} tools</a>
       <a href="/.well-known/agent.json" class="btn btn-ghost">View agent.json</a>
