@@ -4056,6 +4056,7 @@ footer .inner {
 }
 .author-card {
   border-radius: 18px;
+  padding: 56px 22px 22px;
 }
 .rail-card::before,
 .cat-card::before,
