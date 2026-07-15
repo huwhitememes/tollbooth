@@ -202,7 +202,7 @@ const TOOLS = [
     price_usd: "0.02",
     description: "Query known-malicious MCP packages, versions, C2 hosts, and email IOCs. Updated as new supply-chain incidents break. The virus database for MCP.",
     input: { package: "optional: npm package name", host: "optional: C2 host" },
-    example: {},
+    example: { package: "postmark-mcp" },
     http_path: "/paid/security/mcp-iocs",
   },
   {
@@ -528,7 +528,7 @@ const TOOLS = [
     name: "national_debt",
     price_usd: "0.02",
     description: "US national debt to the penny via Treasury FiscalData. Total debt, debt by instrument, fiscal year data.",
-    input: {},
+    input: { note: "No input parameters required; send an empty JSON object." },
     example: {},
     http_path: "/paid/gov/national-debt",
   },
@@ -594,7 +594,7 @@ const TOOLS = [
     price_usd: "0.06",
     description: "Scan Polymarket negRisk events for combinatorial arbitrage across dependency-linked outcomes. Detect mispriced multi-leg bundles.",
     input: { limit: "optional int 5-50 default 20" },
-    example: {},
+    example: { limit: 20 },
     http_path: "/paid/polymarket/combinatorial-arb",
   },
   {
@@ -602,7 +602,7 @@ const TOOLS = [
     price_usd: "0.04",
     description: "Polymarket CLOB orderbook imbalance — top-of-book bid/ask depth ratio, directional pressure signal for any market.",
     input: { token_id: "optional Polymarket token ID", condition_id: "optional condition ID", limit: "optional int 5-50" },
-    example: {},
+    example: { limit: 10 },
     http_path: "/paid/polymarket/orderbook-imbalance",
   },
   {
@@ -682,7 +682,7 @@ const TOOLS = [
     price_usd: "0.03",
     description: "CDC disease outbreak data. Outbreak location, pathogen, cases, deaths, investigation status.",
     input: { query: "optional pathogen or location", limit: "optional int 5-50" },
-    example: {},
+    example: { query: "influenza", limit: 20 },
     http_path: "/paid/health/outbreaks",
   },
   {
@@ -739,7 +739,7 @@ const TOOLS = [
     name: "space_weather_kp",
     price_usd: "0.03",
     description: "Current planetary K-index and geomagnetic storm conditions from NOAA SWPC. Aurora prediction, satellite drag, GPS interference signals.",
-    input: {},
+    input: { note: "No input parameters required; send an empty JSON object." },
     example: {},
     http_path: "/paid/env/space-weather-kp",
   },
@@ -763,7 +763,7 @@ const TOOLS = [
     name: "aurora_forecast",
     price_usd: "0.03",
     description: "NOAA aurora oval forecast — 30-minute northern/southern lights visibility probability by lat/lon grid.",
-    input: {},
+    input: { note: "No input parameters required; send an empty JSON object." },
     example: {},
     http_path: "/paid/env/aurora",
   },
@@ -851,7 +851,7 @@ const TOOLS = [
     name: "btc_mempool_fees",
     price_usd: "0.02",
     description: "Recommended Bitcoin network transaction fees — fastest, half-hour, hour, economy tiers via mempool.space.",
-    input: {},
+    input: { note: "No input parameters required; send an empty JSON object." },
     example: {},
     http_path: "/paid/finance/btc-fees",
   },
@@ -4851,6 +4851,13 @@ function toolDetailPage(toolName: string) {
 
   // Category label from single source of truth
   const catLabel = categoryForTool(tool.name);
+  const hasExample = tool.example && Object.keys(tool.example).length > 0;
+  const inputDoc = JSON.stringify(tool.input, null, 2);
+  const exampleDoc = hasExample
+    ? JSON.stringify(tool.example, null, 2)
+    : `curl -X POST ${SERVICE.origin}${tool.http_path ?? "/mcp"}
+  -H "Content-Type: application/json"
+  -d '{}'`;
 
   // JSON-LD structured data for this specific tool
   const jsonLd = `<script type="application/ld+json">
@@ -4904,12 +4911,12 @@ ${jsonLd}`;
 
     <div class="tool-section" data-rail-label="INPUT SCHEMA">
       <h3>Input parameters</h3>
-      <pre>${JSON.stringify(tool.input, null, 2)}</pre>
+      <pre>${inputDoc}</pre>
     </div>
 
     <div class="tool-section" data-rail-label="EXAMPLE REQUEST">
       <h3>Example usage</h3>
-      <pre>${JSON.stringify(tool.example, null, 2)}</pre>
+      <pre>${exampleDoc}</pre>
     </div>
 
     ${tool.http_path ? `<div class="tool-section" data-rail-label="HTTP ROUTE"><h3>HTTP endpoint</h3><p style="color: var(--text-2); font-size: 14px; margin-bottom: 8px;">POST to this path with JSON body. Server returns 402 with x402 payment requirements.</p><pre>${tool.http_path}</pre></div>` : ''}
