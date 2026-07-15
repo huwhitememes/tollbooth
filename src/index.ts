@@ -3392,6 +3392,12 @@ const SHARED_CSS = `:root {
   --accent-2: #0ea5e9;
   --accent-dim: rgba(45, 212, 191, 0.12);
   --price: #4ade80;
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --duration-fast: 160ms;
+  --duration-ui: 220ms;
+  --focus-ring: 0 0 0 3px rgba(45, 212, 191, 0.32);
+  --rail-glow: 0 0 36px rgba(45, 212, 191, 0.16);
 }
 * { margin: 0; padding: 0; box-sizing: border-box; }
 html { scroll-behavior: smooth; }
@@ -3437,6 +3443,10 @@ nav .logo {
   font-size: 16px;
   color: var(--text);
   letter-spacing: -0.02em;
+  text-decoration: none;
+  padding: 4px 6px;
+  border-radius: 8px;
+  transition: color var(--duration-fast) ease, box-shadow var(--duration-fast) ease;
 }
 nav .logo span { color: var(--accent); }
 nav .links { display: flex; gap: 28px; align-items: center; }
@@ -3445,9 +3455,27 @@ nav .links a {
   text-decoration: none;
   font-size: 14px;
   font-weight: 500;
-  transition: color 0.2s;
+  border-radius: 8px;
+  transition: color var(--duration-fast) ease, background-color var(--duration-fast) ease, box-shadow var(--duration-fast) ease;
 }
 nav .links a:hover { color: var(--text); }
+nav .logo:focus,
+nav .links a:focus,
+.btn:focus,
+.cat-card:focus,
+.tool-card:focus,
+.search-bar:focus,
+.nav-toggle:focus,
+nav .logo:focus-visible,
+nav .links a:focus-visible,
+.btn:focus-visible,
+.cat-card:focus-visible,
+.tool-card:focus-visible,
+.search-bar:focus-visible,
+.nav-toggle:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
 nav .links .cta {
   background: var(--accent-dim);
   border: 1px solid rgba(45, 212, 191, 0.3);
@@ -3508,10 +3536,8 @@ main {
   padding-bottom: 0.08em;
   padding-right: 0.1em;
   max-width: 900px;
-  background: linear-gradient(180deg, #ffffff 0%, #8b9bb4 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--text);
+  text-shadow: 0 0 42px rgba(45, 212, 191, 0.10), 0 1px 0 rgba(255,255,255,0.12);
 }
 .hero p.sub {
   font-size: clamp(16px, 2vw, 20px);
@@ -3535,7 +3561,7 @@ main {
   font-weight: 600;
   font-size: 15px;
   text-decoration: none;
-  transition: all 0.2s;
+  transition: transform var(--duration-fast) var(--ease-out), box-shadow var(--duration-ui) var(--ease-out), border-color var(--duration-fast) ease, background-color var(--duration-fast) ease;
   backdrop-filter: blur(10px);
 }
 .btn-primary {
@@ -3544,6 +3570,7 @@ main {
   box-shadow: 0 0 30px rgba(45, 212, 191, 0.3);
 }
 .btn-primary:hover { box-shadow: 0 0 50px rgba(45, 212, 191, 0.5); transform: translateY(-1px); }
+.btn:active { transform: scale(0.97); }
 .btn-ghost {
   background: var(--bg-glass);
   border: 1px solid var(--border);
@@ -3553,13 +3580,37 @@ main {
 /* Stats bar */
 .stats {
   display: flex;
-  gap: 48px;
+  gap: 0;
   justify-content: center;
   margin-top: 64px;
   flex-wrap: wrap;
+  max-width: 760px;
+  border: 1px solid rgba(45, 212, 191, 0.22);
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(6, 8, 12, 0.74), rgba(16, 22, 34, 0.58));
+  box-shadow: var(--rail-glow), inset 0 1px 0 rgba(255,255,255,0.06);
+  overflow: hidden;
+  backdrop-filter: blur(14px);
+}
+.stats::before {
+  content: 'PAYMENT RAIL';
+  width: 100%;
+  padding: 9px 14px 7px;
+  border-bottom: 1px solid rgba(45, 212, 191, 0.16);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  color: var(--accent);
+  text-align: left;
 }
 .stat {
   text-align: center;
+  min-width: 150px;
+  padding: 18px 22px 20px;
+  border-right: 1px solid rgba(56, 78, 112, 0.22);
+}
+.stat:last-child {
+  border-right: 0;
 }
 .stat .num {
   font-family: 'JetBrains Mono', monospace;
@@ -3608,7 +3659,7 @@ main {
   padding: 24px;
   text-decoration: none;
   color: inherit;
-  transition: all 0.2s;
+  transition: transform var(--duration-ui) var(--ease-out), border-color var(--duration-fast) ease, box-shadow var(--duration-ui) var(--ease-out), background-color var(--duration-fast) ease;
   backdrop-filter: blur(12px);
 }
 .cat-card:hover {
@@ -3786,7 +3837,7 @@ footer code {
   padding: 24px;
   text-decoration: none;
   color: inherit;
-  transition: all 0.2s;
+  transition: transform var(--duration-ui) var(--ease-out), border-color var(--duration-fast) ease, box-shadow var(--duration-ui) var(--ease-out), background-color var(--duration-fast) ease;
   backdrop-filter: blur(12px);
   display: flex;
   flex-direction: column;
@@ -3839,10 +3890,8 @@ footer code {
   font-weight: 700;
   letter-spacing: -0.03em;
   margin-bottom: 8px;
-  background: linear-gradient(180deg, #ffffff 0%, #8b9bb4 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--text);
+  text-shadow: 0 0 30px rgba(45, 212, 191, 0.10);
 }
 .detail-page .tool-price-large {
   font-family: 'JetBrains Mono', monospace;
@@ -3895,7 +3944,7 @@ footer code {
   margin-bottom: 32px;
   backdrop-filter: blur(12px);
   outline: none;
-  transition: border-color 0.2s;
+  transition: border-color var(--duration-fast) ease, box-shadow var(--duration-fast) ease;
 }
 .search-bar:focus {
   border-color: var(--accent);
@@ -3937,9 +3986,20 @@ footer code {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
   #shader-bg { display: none; }
+  .hero .badge,
+  .hero h1,
+  .hero .sub,
+  .hero .actions,
+  .hero .stats,
+  .hero .badge::before {
+    animation: none;
+  }
   .tool-card:hover { transform: none; }
+  .cat-card:hover { transform: none; }
   .btn-primary:hover { transform: none; }
+  .btn:active { transform: none; }
 }
 
 `;
