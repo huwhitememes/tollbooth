@@ -249,7 +249,7 @@ main {
   backdrop-filter: blur(14px);
 }
 .stats::before {
-  content: 'PAYMENT RAIL';
+  content: 'AGENT PAYMENT RAIL';
   width: 100%;
   padding: 9px 14px 7px;
   border-bottom: 1px solid rgba(45, 212, 191, 0.16);
@@ -437,7 +437,7 @@ footer code {
 .hero .actions { animation-delay: 0.5s; }
 .hero .stats { animation-delay: 0.65s; }
 @keyframes slideUp {
-  from { opacity: 1; transform: translateY(8px); }
+  from { opacity: 0; transform: translateY(30px); }
   to { opacity: 1; transform: translateY(0); }
 }
 /* Responsive */
@@ -735,8 +735,24 @@ footer .inner::before {
   letter-spacing: 0.14em;
   color: #8ddfd5;
 }
-.cat-card::before { content: 'CATEGORY'; }
-.tool-card::before { content: 'TOOL'; }
+.cat-card::before,
+.tool-card::before {
+  content: none;
+  display: none;
+}
+.cat-card:not([data-rail-label]),
+.tool-card:not([data-rail-label]) {
+  padding-top: 24px;
+}
+.cat-card[data-rail-label],
+.tool-card[data-rail-label] {
+  padding-top: 56px;
+}
+.cat-card[data-rail-label]::before,
+.tool-card[data-rail-label]::before {
+  content: attr(data-rail-label);
+  display: flex;
+}
 .step::before,
 .detail-page .tool-section::before { content: 'PAYMENT RAIL'; }
 .tldr::before { content: 'ARTICLE'; }

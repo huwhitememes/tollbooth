@@ -3593,7 +3593,7 @@ main {
   backdrop-filter: blur(14px);
 }
 .stats::before {
-  content: 'PAYMENT RAIL';
+  content: 'AGENT PAYMENT RAIL';
   width: 100%;
   padding: 9px 14px 7px;
   border-bottom: 1px solid rgba(45, 212, 191, 0.16);
@@ -3781,7 +3781,7 @@ footer code {
 .hero .actions { animation-delay: 0.5s; }
 .hero .stats { animation-delay: 0.65s; }
 @keyframes slideUp {
-  from { opacity: 1; transform: translateY(8px); }
+  from { opacity: 0; transform: translateY(30px); }
   to { opacity: 1; transform: translateY(0); }
 }
 /* Responsive */
@@ -4079,10 +4079,24 @@ footer .inner::before {
   letter-spacing: 0.14em;
   color: #8ddfd5;
 }
-.cat-card::before { content: 'CATEGORY'; }
-.tool-card::before { content: 'TOOL'; }
+.cat-card::before,
+.tool-card::before {
+  content: none;
+  display: none;
+}
+.cat-card:not([data-rail-label]),
+.tool-card:not([data-rail-label]) {
+  padding-top: 24px;
+}
+.cat-card[data-rail-label],
+.tool-card[data-rail-label] {
+  padding-top: 56px;
+}
 .cat-card[data-rail-label]::before,
-.tool-card[data-rail-label]::before { content: attr(data-rail-label); }
+.tool-card[data-rail-label]::before {
+  content: attr(data-rail-label);
+  display: flex;
+}
 .step::before,
 .detail-page .tool-section::before { content: 'PAYMENT RAIL'; }
 .tldr::before { content: 'ARTICLE'; }
@@ -4670,6 +4684,25 @@ function categoryForTool(name: string): string {
   return "Other";
 }
 
+function categoryRailLabel(name: string): string {
+  const labels: Record<string, string> = {
+    "Prediction Markets": "MARKET",
+    "OSINT & Intelligence": "OSINT",
+    "Web Intel": "WEB INTEL",
+    "Legal & Regulatory": "LEGAL",
+    "Academic & Science": "SCIENCE",
+    "Health & Safety": "SAFETY",
+    "Environmental": "ENV",
+    "Government": "GOV",
+    "Finance & Crypto": "FINANCE",
+    "Security": "SECURITY",
+    "Gen-Video Intel": "VIDEO",
+    "Utility": "UTILITY",
+    "Other": "OTHER",
+  };
+  return labels[name] ?? name.toUpperCase();
+}
+
 function categorySlug(name: string): string {
   return name
     .toLowerCase()
@@ -4749,7 +4782,7 @@ function toolDetailPage(toolName: string) {
   // Find related tools (same category)
   const relatedNames = relatedTools(tool.name);
   const related = relatedNames.map(n => TOOLS.find((t: any) => t.name === n)).filter(Boolean);
-  const relatedCards = related.map((t: any) => `<a href="/tools/${t.name}" class="tool-card" style="min-height: auto;">
+  const relatedCards = related.map((t: any) => `<a href="/tools/${t.name}" class="tool-card" data-rail-label="${categoryRailLabel(categoryForTool(t.name))}" style="min-height: auto;">
     <div class="tool-name">${t.name}</div>
     <div class="tool-price">$${(t as any).price_usd}</div>
   </a>`).join("");
@@ -4850,7 +4883,7 @@ ${jsonLd}`;
       <a href="/tools" class="btn btn-ghost">Browse all ${TOOLS.length} tools</a>
     </div>
 
-    <div class="rail-card" data-rail-label="RELATED TOOL" style="margin-top: 48px; padding: 52px 22px 22px;">
+    <div class="rail-card" data-rail-label="RELATED TOOLS" style="margin-top: 48px; padding: 52px 22px 22px;">
       <h3 style="font-size: 14px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-3); margin-bottom: 16px;">Related tools</h3>
       <div class="tools-grid" style="padding: 0;">
         ${relatedCards}
