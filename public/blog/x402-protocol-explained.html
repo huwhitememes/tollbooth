@@ -760,8 +760,8 @@ footer .inner::before {
   content: attr(data-rail-label);
   display: flex;
 }
-.step::before,
-.detail-page .tool-section::before { content: 'PAYMENT RAIL'; }
+.step::before { content: 'PAYMENT RAIL'; }
+.detail-page .tool-section::before { content: attr(data-rail-label); }
 .tldr::before { content: 'ARTICLE'; }
 .author-card::before { content: 'OPERATOR'; }
 .rail-search::before { content: 'SEARCH'; }

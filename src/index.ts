@@ -4104,8 +4104,8 @@ footer .inner::before {
   content: attr(data-rail-label);
   display: flex;
 }
-.step::before,
-.detail-page .tool-section::before { content: 'PAYMENT RAIL'; }
+.step::before { content: 'PAYMENT RAIL'; }
+.detail-page .tool-section::before { content: attr(data-rail-label); }
 .tldr::before { content: 'ARTICLE'; }
 .author-card::before { content: 'OPERATOR'; }
 .rail-search::before { content: 'SEARCH'; }
@@ -4897,31 +4897,31 @@ ${jsonLd}`;
     </div>
     <p class="tool-desc-full">${tool.description}</p>
 
-    <div class="tool-section">
+    <div class="tool-section" data-rail-label="TOOL OVERVIEW">
       <h3>What is ${tool.name}?</h3>
       <p style="color: var(--text-2); font-size: 15px; line-height: 1.7;">${tool.name} is a paid MCP tool in the ${catLabel} category on agenttoll.dev. It costs $${tool.price_usd} per call, settled in USDC on Base via the x402 payment protocol. No API keys, no accounts — your agent discovers it via <code>/.well-known/agent.json</code>, calls it, pays the $${tool.price_usd} fee, and receives structured JSON.</p>
     </div>
 
-    <div class="tool-section">
+    <div class="tool-section" data-rail-label="INPUT SCHEMA">
       <h3>Input parameters</h3>
       <pre>${JSON.stringify(tool.input, null, 2)}</pre>
     </div>
 
-    <div class="tool-section">
+    <div class="tool-section" data-rail-label="EXAMPLE REQUEST">
       <h3>Example usage</h3>
       <pre>${JSON.stringify(tool.example, null, 2)}</pre>
     </div>
 
-    ${tool.http_path ? `<div class="tool-section"><h3>HTTP endpoint</h3><p style="color: var(--text-2); font-size: 14px; margin-bottom: 8px;">POST to this path with JSON body. Server returns 402 with x402 payment requirements.</p><pre>${tool.http_path}</pre></div>` : ''}
+    ${tool.http_path ? `<div class="tool-section" data-rail-label="HTTP ROUTE"><h3>HTTP endpoint</h3><p style="color: var(--text-2); font-size: 14px; margin-bottom: 8px;">POST to this path with JSON body. Server returns 402 with x402 payment requirements.</p><pre>${tool.http_path}</pre></div>` : ''}
 
-    <div class="tool-section">
+    <div class="tool-section" data-rail-label="MCP ENTRYPOINT">
       <h3>How to call ${tool.name}</h3>
       <p style="color: var(--text-2); font-size: 14px; margin-bottom: 12px;">Connect any MCP-compatible client (Claude Desktop, Cursor, custom agent) to the agenttoll.dev MCP endpoint:</p>
       <pre>${SERVICE.origin}${SERVICE.mcpPath}</pre>
       <p style="color: var(--text-3); font-size: 13px; margin-top: 12px;">Or call the HTTP endpoint directly with an x402-capable fetch client.</p>
     </div>
 
-    <div class="tool-section">
+    <div class="tool-section" data-rail-label="PAYMENT RAIL">
       <h3>Pricing & payment</h3>
       <div style="display: flex; gap: 24px; flex-wrap: wrap; margin-top: 8px;">
         <div><div style="font-size: 13px; color: var(--text-3);">Price</div><div style="font-family: 'JetBrains Mono', monospace; font-size: 16px; color: var(--price); font-weight: 700;">$${tool.price_usd}/call</div></div>
@@ -4931,7 +4931,7 @@ ${jsonLd}`;
       </div>
     </div>
 
-    <div class="tool-section">
+    <div class="tool-section" data-rail-label="FAQ">
       <h3>FAQ</h3>
       <details style="margin-bottom: 12px;"><summary style="cursor: pointer; color: var(--text); font-size: 14px; font-weight: 500;">How much does ${tool.name} cost?</summary><p style="color: var(--text-2); font-size: 14px; margin-top: 8px; padding-left: 16px;">$${tool.price_usd} per call in USDC on Base. No subscriptions or minimums.</p></details>
       <details style="margin-bottom: 12px;"><summary style="cursor: pointer; color: var(--text); font-size: 14px; font-weight: 500;">Do I need an API key?</summary><p style="color: var(--text-2); font-size: 14px; margin-top: 8px; padding-left: 16px;">No. Payment is handled by the x402 protocol. Your agent wallet sends USDC on Base, the server verifies the transfer, and returns the data.</p></details>
