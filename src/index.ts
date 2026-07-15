@@ -4051,6 +4051,9 @@ footer .inner {
   border-radius: 16px;
   padding: 46px 14px 14px;
 }
+.rail-card {
+  border-radius: 20px;
+}
 .author-card {
   border-radius: 18px;
 }
@@ -4884,7 +4887,6 @@ ${jsonLd}`;
     </div>
 
     <div class="rail-card" data-rail-label="RELATED TOOLS" style="margin-top: 48px; padding: 52px 22px 22px;">
-      <h3 style="font-size: 14px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-3); margin-bottom: 16px;">Related tools</h3>
       <div class="tools-grid" style="padding: 0;">
         ${relatedCards}
       </div>
