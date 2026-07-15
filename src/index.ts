@@ -3820,7 +3820,10 @@ footer code {
   main { padding: 0 20px !important; }
   .hero h1 { font-size: clamp(32px, 10vw, 48px); }
   .section-head { flex-direction: column; align-items: flex-start; gap: 8px; }
-  footer .inner { flex-direction: column; text-align: center; }
+  footer .inner { text-align: center; }
+  footer .build-public,
+  footer .footer-meta { flex-direction: column; align-items: center; }
+  footer .links { justify-content: center; }
 }
 /* ── Tool directory & detail page styles ── */
 .tools-grid {
@@ -4154,6 +4157,49 @@ footer .inner {
   border-color: rgba(45, 212, 191, 0.14);
   background: linear-gradient(180deg, rgba(6, 8, 12, 0.58), rgba(10, 17, 24, 0.42));
   box-shadow: 0 0 22px rgba(45, 212, 191, 0.06), inset 0 1px 0 rgba(255,255,255,0.04);
+  flex-direction: column;
+  align-items: stretch;
+  gap: 18px;
+}
+footer .build-public,
+footer .footer-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+footer .build-public {
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(45, 212, 191, 0.12);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  line-height: 1.2;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+footer .build-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+footer .build-status::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent);
+}
+footer .studio-mark {
+  color: var(--text-2);
+}
+footer .footer-meta {
+  flex-wrap: wrap;
+}
+footer .links {
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 footer .links a {
   padding: 7px 10px;
@@ -4577,16 +4623,22 @@ ${SHARED_CSS}
 <!-- FOOTER -->
 <footer>
   <div class="inner">
-    <div class="left">Built by Hu White · <a href="mailto:memerhuwhite@gmail.com" style="color: var(--accent); text-decoration: none;">Contact</a> · Settles on Base USDC to <code>${SERVICE.seller.slice(0,6)}…${SERVICE.seller.slice(-4)}</code></div>
-    <div class="links">
-      <a href="/tools">Tools</a>
-      <a href="/discovery">Discovery</a>
-      <a href="/mcp">MCP</a>
-      <a href="/.well-known/mcp.json">MCP manifest</a>
-      <a href="/openapi.json">OpenAPI</a>
-      <a href="/llms-full.txt">llms-full.txt</a>
-      <a href="/.well-known/agent.json">agent.json</a>
-      <a href="mailto:memerhuwhite@gmail.com">Contact</a>
+    <div class="build-public">
+      <div class="build-status">v0.2, building in public</div>
+      <div class="studio-mark">© 2026 MEME KING STUDIO</div>
+    </div>
+    <div class="footer-meta">
+      <div class="left">Built by Hu White · <a href="mailto:memerhuwhite@gmail.com" style="color: var(--accent); text-decoration: none;">Contact</a> · Settles on Base USDC to <code>${SERVICE.seller.slice(0,6)}…${SERVICE.seller.slice(-4)}</code></div>
+      <div class="links">
+        <a href="/tools">Tools</a>
+        <a href="/discovery">Discovery</a>
+        <a href="/mcp">MCP</a>
+        <a href="/.well-known/mcp.json">MCP manifest</a>
+        <a href="/openapi.json">OpenAPI</a>
+        <a href="/llms-full.txt">llms-full.txt</a>
+        <a href="/.well-known/agent.json">agent.json</a>
+        <a href="mailto:memerhuwhite@gmail.com">Contact</a>
+      </div>
     </div>
   </div>
 </footer>
@@ -4647,16 +4699,22 @@ ${content}
 </main>
 <footer>
   <div class="inner">
-    <div class="left">Built by Hu White · <a href="mailto:memerhuwhite@gmail.com" style="color: var(--accent); text-decoration: none;">Contact</a> · Settles on Base USDC to <code>${SERVICE.seller.slice(0,6)}…${SERVICE.seller.slice(-4)}</code></div>
-    <div class="links">
-      <a href="/tools">Tools</a>
-      <a href="/discovery">Discovery</a>
-      <a href="/mcp">MCP</a>
-      <a href="/.well-known/mcp.json">MCP manifest</a>
-      <a href="/openapi.json">OpenAPI</a>
-      <a href="/llms-full.txt">llms-full.txt</a>
-      <a href="/.well-known/agent.json">agent.json</a>
-      <a href="mailto:memerhuwhite@gmail.com">Contact</a>
+    <div class="build-public">
+      <div class="build-status">v0.2, building in public</div>
+      <div class="studio-mark">© 2026 MEME KING STUDIO</div>
+    </div>
+    <div class="footer-meta">
+      <div class="left">Built by Hu White · <a href="mailto:memerhuwhite@gmail.com" style="color: var(--accent); text-decoration: none;">Contact</a> · Settles on Base USDC to <code>${SERVICE.seller.slice(0,6)}…${SERVICE.seller.slice(-4)}</code></div>
+      <div class="links">
+        <a href="/tools">Tools</a>
+        <a href="/discovery">Discovery</a>
+        <a href="/mcp">MCP</a>
+        <a href="/.well-known/mcp.json">MCP manifest</a>
+        <a href="/openapi.json">OpenAPI</a>
+        <a href="/llms-full.txt">llms-full.txt</a>
+        <a href="/.well-known/agent.json">agent.json</a>
+        <a href="mailto:memerhuwhite@gmail.com">Contact</a>
+      </div>
     </div>
   </div>
 </footer>
