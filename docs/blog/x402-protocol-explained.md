@@ -4,7 +4,7 @@ published: true
 description: "A builder's guide to the x402 payment protocol for AI agents, with real code from a 100-tool production marketplace running on Base USDC micropayments."
 tags: ai, web3, api, tutorial
 date: "2026-07-12T10:00:00Z"
-cover_image: https://agenttoll.dev/og-card.png
+cover_image: https://agenttoll.dev/blog/og-x402-article.png
 canonical_url: https://agenttoll.dev/blog/x402-protocol-explained
 ---
 

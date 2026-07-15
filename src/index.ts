@@ -3392,6 +3392,12 @@ const SHARED_CSS = `:root {
   --accent-2: #0ea5e9;
   --accent-dim: rgba(45, 212, 191, 0.12);
   --price: #4ade80;
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --duration-fast: 160ms;
+  --duration-ui: 220ms;
+  --focus-ring: 0 0 0 3px rgba(45, 212, 191, 0.32);
+  --rail-glow: 0 0 36px rgba(45, 212, 191, 0.16);
 }
 * { margin: 0; padding: 0; box-sizing: border-box; }
 html { scroll-behavior: smooth; }
@@ -3437,6 +3443,10 @@ nav .logo {
   font-size: 16px;
   color: var(--text);
   letter-spacing: -0.02em;
+  text-decoration: none;
+  padding: 4px 6px;
+  border-radius: 8px;
+  transition: color var(--duration-fast) ease, box-shadow var(--duration-fast) ease;
 }
 nav .logo span { color: var(--accent); }
 nav .links { display: flex; gap: 28px; align-items: center; }
@@ -3445,9 +3455,27 @@ nav .links a {
   text-decoration: none;
   font-size: 14px;
   font-weight: 500;
-  transition: color 0.2s;
+  border-radius: 8px;
+  transition: color var(--duration-fast) ease, background-color var(--duration-fast) ease, box-shadow var(--duration-fast) ease;
 }
 nav .links a:hover { color: var(--text); }
+nav .logo:focus,
+nav .links a:focus,
+.btn:focus,
+.cat-card:focus,
+.tool-card:focus,
+.search-bar:focus,
+.nav-toggle:focus,
+nav .logo:focus-visible,
+nav .links a:focus-visible,
+.btn:focus-visible,
+.cat-card:focus-visible,
+.tool-card:focus-visible,
+.search-bar:focus-visible,
+.nav-toggle:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
 nav .links .cta {
   background: var(--accent-dim);
   border: 1px solid rgba(45, 212, 191, 0.3);
@@ -3508,10 +3536,8 @@ main {
   padding-bottom: 0.08em;
   padding-right: 0.1em;
   max-width: 900px;
-  background: linear-gradient(180deg, #ffffff 0%, #8b9bb4 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--text);
+  text-shadow: 0 0 42px rgba(45, 212, 191, 0.10), 0 1px 0 rgba(255,255,255,0.12);
 }
 .hero p.sub {
   font-size: clamp(16px, 2vw, 20px);
@@ -3535,7 +3561,7 @@ main {
   font-weight: 600;
   font-size: 15px;
   text-decoration: none;
-  transition: all 0.2s;
+  transition: transform var(--duration-fast) var(--ease-out), box-shadow var(--duration-ui) var(--ease-out), border-color var(--duration-fast) ease, background-color var(--duration-fast) ease;
   backdrop-filter: blur(10px);
 }
 .btn-primary {
@@ -3543,7 +3569,8 @@ main {
   color: #06080c;
   box-shadow: 0 0 30px rgba(45, 212, 191, 0.3);
 }
-.btn-primary:hover { box-shadow: 0 0 50px rgba(45, 212, 191, 0.5); transform: translateY(-1px); }
+.btn-primary:hover { box-shadow: 0 0 26px rgba(45, 212, 191, 0.12); }
+.btn:active { transform: scale(0.97); }
 .btn-ghost {
   background: var(--bg-glass);
   border: 1px solid var(--border);
@@ -3553,13 +3580,37 @@ main {
 /* Stats bar */
 .stats {
   display: flex;
-  gap: 48px;
+  gap: 0;
   justify-content: center;
   margin-top: 64px;
   flex-wrap: wrap;
+  max-width: 760px;
+  border: 1px solid rgba(45, 212, 191, 0.22);
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(6, 8, 12, 0.74), rgba(16, 22, 34, 0.58));
+  box-shadow: var(--rail-glow), inset 0 1px 0 rgba(255,255,255,0.06);
+  overflow: hidden;
+  backdrop-filter: blur(14px);
+}
+.stats::before {
+  content: 'PAYMENT RAIL';
+  width: 100%;
+  padding: 9px 14px 7px;
+  border-bottom: 1px solid rgba(45, 212, 191, 0.16);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  color: var(--accent);
+  text-align: left;
 }
 .stat {
   text-align: center;
+  min-width: 150px;
+  padding: 18px 22px 20px;
+  border-right: 1px solid rgba(56, 78, 112, 0.22);
+}
+.stat:last-child {
+  border-right: 0;
 }
 .stat .num {
   font-family: 'JetBrains Mono', monospace;
@@ -3608,13 +3659,12 @@ main {
   padding: 24px;
   text-decoration: none;
   color: inherit;
-  transition: all 0.2s;
+  transition: transform var(--duration-ui) var(--ease-out), border-color var(--duration-fast) ease, box-shadow var(--duration-ui) var(--ease-out), background-color var(--duration-fast) ease;
   backdrop-filter: blur(12px);
 }
 .cat-card:hover {
   border-color: var(--border-hover);
-  transform: translateY(-2px);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 0 28px rgba(45, 212, 191, 0.12);
 }
 .cat-card h3 {
   font-size: 15px;
@@ -3731,7 +3781,7 @@ footer code {
 .hero .actions { animation-delay: 0.5s; }
 .hero .stats { animation-delay: 0.65s; }
 @keyframes slideUp {
-  from { opacity: 0; transform: translateY(30px); }
+  from { opacity: 1; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
 }
 /* Responsive */
@@ -3786,7 +3836,7 @@ footer code {
   padding: 24px;
   text-decoration: none;
   color: inherit;
-  transition: all 0.2s;
+  transition: transform var(--duration-ui) var(--ease-out), border-color var(--duration-fast) ease, box-shadow var(--duration-ui) var(--ease-out), background-color var(--duration-fast) ease;
   backdrop-filter: blur(12px);
   display: flex;
   flex-direction: column;
@@ -3794,8 +3844,7 @@ footer code {
 }
 .tool-card:hover {
   border-color: var(--border-hover);
-  transform: translateY(-2px);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 0 28px rgba(45, 212, 191, 0.12);
 }
 .tool-card .tool-name {
   font-size: 15px;
@@ -3839,10 +3888,8 @@ footer code {
   font-weight: 700;
   letter-spacing: -0.03em;
   margin-bottom: 8px;
-  background: linear-gradient(180deg, #ffffff 0%, #8b9bb4 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--text);
+  text-shadow: 0 0 30px rgba(45, 212, 191, 0.10);
 }
 .detail-page .tool-price-large {
   font-family: 'JetBrains Mono', monospace;
@@ -3895,7 +3942,7 @@ footer code {
   margin-bottom: 32px;
   backdrop-filter: blur(12px);
   outline: none;
-  transition: border-color 0.2s;
+  transition: border-color var(--duration-fast) ease, box-shadow var(--duration-fast) ease;
 }
 .search-bar:focus {
   border-color: var(--accent);
@@ -3936,10 +3983,194 @@ footer code {
   letter-spacing: 0.06em;
 }
 
+
+
+/* ── Full-suite payment rail system ─────────────────────────────── */
+nav {
+  gap: 16px;
+}
+nav .logo {
+  background: rgba(8, 16, 21, 0.72);
+  border: 1px solid rgba(45, 212, 191, 0.24);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+}
+nav .logo:hover {
+  color: var(--text);
+  border-color: rgba(45, 212, 191, 0.38);
+}
+nav .links {
+  gap: 8px;
+  padding: 6px;
+  border: 1px solid rgba(45, 212, 191, 0.18);
+  border-radius: 16px;
+  background: linear-gradient(180deg, rgba(6, 8, 12, 0.72), rgba(10, 17, 24, 0.56));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+  backdrop-filter: blur(14px);
+}
+nav .links a {
+  padding: 8px 12px;
+  border: 1px solid rgba(56, 78, 112, 0.22);
+  background: rgba(8, 16, 21, 0.54);
+}
+nav .links a:hover {
+  color: var(--text);
+  border-color: rgba(45, 212, 191, 0.34);
+  background: rgba(45, 212, 191, 0.08);
+}
+nav .links .cta {
+  background: rgba(45, 212, 191, 0.12);
+  border-color: rgba(45, 212, 191, 0.38);
+  color: #8ddfd5;
+}
+.rail-card,
+.cat-card,
+.tool-card,
+.step,
+.detail-page .tool-section,
+.tldr,
+.author-card,
+.rail-search,
+footer .inner {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(45, 212, 191, 0.22);
+  background: linear-gradient(180deg, rgba(6, 8, 12, 0.76), rgba(13, 23, 29, 0.62));
+  box-shadow: var(--rail-glow), inset 0 1px 0 rgba(255,255,255,0.06);
+  backdrop-filter: blur(14px);
+}
+.cat-card,
+.tool-card,
+.step,
+.detail-page .tool-section,
+.tldr,
+.author-card {
+  padding-top: 56px;
+}
+.rail-search {
+  margin-bottom: 32px;
+  border-radius: 16px;
+  padding: 46px 14px 14px;
+}
+.author-card {
+  border-radius: 18px;
+}
+.rail-card::before,
+.cat-card::before,
+.tool-card::before,
+.step::before,
+.detail-page .tool-section::before,
+.tldr::before,
+.author-card::before,
+.rail-search::before,
+footer .inner::before {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  border-bottom: 1px solid rgba(45, 212, 191, 0.16);
+  background: rgba(8, 16, 21, 0.62);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  line-height: 1;
+  letter-spacing: 0.14em;
+  color: #8ddfd5;
+}
+.cat-card::before { content: 'CATEGORY'; }
+.tool-card::before { content: 'TOOL'; }
+.cat-card[data-rail-label]::before,
+.tool-card[data-rail-label]::before { content: attr(data-rail-label); }
+.step::before,
+.detail-page .tool-section::before { content: 'PAYMENT RAIL'; }
+.tldr::before { content: 'ARTICLE'; }
+.author-card::before { content: 'OPERATOR'; }
+.rail-search::before { content: 'SEARCH'; }
+footer .inner::before {
+  content: none;
+  display: none;
+}
+.rail-card::before { content: attr(data-rail-label); }
+.cat-card:hover,
+.tool-card:hover {
+  border-color: rgba(45, 212, 191, 0.42);
+  transform: none;
+  box-shadow: 0 0 34px rgba(45, 212, 191, 0.14), inset 0 1px 0 rgba(255,255,255,0.07);
+}
+.btn {
+  border: 1px solid rgba(45, 212, 191, 0.24);
+  background: rgba(8, 16, 21, 0.68);
+  color: var(--text);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+}
+.btn-primary {
+  background: rgba(45, 212, 191, 0.14);
+  border-color: rgba(45, 212, 191, 0.44);
+  color: #a7fff4;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.07);
+}
+.btn-primary:hover,
+.btn:hover {
+  transform: none;
+  border-color: rgba(45, 212, 191, 0.52);
+  box-shadow: 0 0 26px rgba(45, 212, 191, 0.12), inset 0 1px 0 rgba(255,255,255,0.07);
+}
+.btn:active { transform: none; }
+.search-bar {
+  margin-bottom: 0;
+  border: 0;
+  background: rgba(6, 8, 12, 0.62);
+  box-shadow: inset 0 0 0 1px rgba(56, 78, 112, 0.24);
+}
+.search-bar:focus {
+  box-shadow: inset 0 0 0 1px rgba(45, 212, 191, 0.54), var(--focus-ring);
+}
+footer {
+  border-top: 0;
+}
+footer .inner {
+  border-radius: 20px;
+  padding: 24px;
+  border-color: rgba(45, 212, 191, 0.14);
+  background: linear-gradient(180deg, rgba(6, 8, 12, 0.58), rgba(10, 17, 24, 0.42));
+  box-shadow: 0 0 22px rgba(45, 212, 191, 0.06), inset 0 1px 0 rgba(255,255,255,0.04);
+}
+footer .links a {
+  padding: 7px 10px;
+  border: 1px solid rgba(56, 78, 112, 0.22);
+  border-radius: 8px;
+  background: rgba(8, 16, 21, 0.42);
+  transition: color var(--duration-fast) ease, border-color var(--duration-fast) ease, background-color var(--duration-fast) ease;
+}
+footer .links a:hover {
+  color: var(--text);
+  border-color: rgba(45, 212, 191, 0.34);
+  background: rgba(45, 212, 191, 0.08);
+}
+.detail-page .back-link,
+.section-head a,
+article a,
+.back-link a {
+  border-radius: 8px;
+}
+
 @media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
   #shader-bg { display: none; }
+  .hero .badge,
+  .hero h1,
+  .hero .sub,
+  .hero .actions,
+  .hero .stats,
+  .hero .badge::before {
+    animation: none;
+  }
   .tool-card:hover { transform: none; }
+  .cat-card:hover { transform: none; }
   .btn-primary:hover { transform: none; }
+  .btn:active { transform: none; }
 }
 
 `;
@@ -4501,7 +4732,7 @@ function toolsDirectoryPage() {
   const content = `<section style="padding: 60px 0;">
     <h2 style="font-size: clamp(28px, 5vw, 48px); font-weight: 700; letter-spacing: -0.03em; margin-bottom: 8px;">All ${TOOLS.length} tools</h2>
     <p style="color: var(--text-2); font-size: 16px; margin-bottom: 32px;">Every paid x402 MCP tool, grouped by category. Click any tool for details, pricing, and example input.</p>
-    <input class="search-bar" type="text" placeholder="Search tools…" id="tool-search" onkeyup="const q=this.value.toLowerCase();document.querySelectorAll('.tool-card,.cat-section').forEach(c=>{if(c.classList.contains('cat-section')){const cards=c.querySelectorAll('.tool-card');let any=false;cards.forEach(card=>{const m=card.textContent.toLowerCase().includes(q);card.style.display=m?'':'none';if(m)any=true});c.style.display=any?'':'none'}else{const m=c.textContent.toLowerCase().includes(q);c.style.display=m?'':'none'}})">
+    <div class="rail-search"><input class="search-bar" type="text" placeholder="Search tools…" id="tool-search" onkeyup="const q=this.value.toLowerCase();document.querySelectorAll('.tool-card,.cat-section').forEach(c=>{if(c.classList.contains('cat-section')){const cards=c.querySelectorAll('.tool-card');let any=false;cards.forEach(card=>{const m=card.textContent.toLowerCase().includes(q);card.style.display=m?'':'none';if(m)any=true});c.style.display=any?'':'none'}else{const m=c.textContent.toLowerCase().includes(q);c.style.display=m?'':'none'}})"></div>
     ${sections}
     ${otherSection}
   </section>`;
@@ -4613,20 +4844,20 @@ ${jsonLd}`;
       <details style="margin-bottom: 12px;"><summary style="cursor: pointer; color: var(--text); font-size: 14px; font-weight: 500;">How do I verify my payment?</summary><p style="color: var(--text-2); font-size: 14px; margin-top: 8px; padding-left: 16px;">After settlement, check <code>/receipt/&lt;tx&gt;</code> for on-chain verification via Basescan. Every payment is a real USDC transfer to ${SERVICE.seller.slice(0,10)}…</p></details>
     </div>
 
-    <div style="margin-top: 32px; display: flex; gap: 12px; flex-wrap: wrap;">
+    <div class="rail-card" data-rail-label="ACTION RAIL" style="margin-top: 32px; padding: 52px 22px 22px; display: flex; gap: 12px; flex-wrap: wrap;">
       <a href="${SERVICE.origin}${SERVICE.mcpPath}" class="btn btn-primary">Open MCP endpoint →</a>
       <a href="/.well-known/agent.json" class="btn btn-ghost">View agent.json</a>
       <a href="/tools" class="btn btn-ghost">Browse all ${TOOLS.length} tools</a>
     </div>
 
-    <div style="margin-top: 48px; padding-top: 24px; border-top: 1px solid var(--border);">
+    <div class="rail-card" data-rail-label="RELATED TOOL" style="margin-top: 48px; padding: 52px 22px 22px;">
       <h3 style="font-size: 14px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-3); margin-bottom: 16px;">Related tools</h3>
       <div class="tools-grid" style="padding: 0;">
         ${relatedCards}
       </div>
     </div>
 
-    <div style="margin-top: 48px; padding: 24px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; backdrop-filter: blur(12px);">
+    <div class="author-card" style="margin-top: 48px;">
       <div style="display: flex; gap: 16px; align-items: center;">
         <div style="width: 48px; height: 48px; border-radius: 50%; overflow: hidden; flex-shrink: 0;"><img src="/hu-white-pfp.jpg" alt="Hu White" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;"></div>
         <div>
@@ -4643,27 +4874,27 @@ ${jsonLd}`;
 
 function discoveryPage() {
   const surfaces = [
-    { label: "MCP manifest", href: "/.well-known/mcp.json", text: "Machine-readable MCP entrypoint, auth modes, payments, and tool roster." },
-    { label: "System info", href: "/api/system/info", text: "Network, seller wallet, asset contract, categories, and discovery URLs." },
-    { label: "llms-full.txt", href: "/llms-full.txt", text: "Long-form agent context with every tool, price, quote URL, and endpoint." },
-    { label: "Quote API", href: "/api/quote?tool=trending_markets", text: "Free price lookup before an agent attempts a paid call." },
-    { label: "OpenAPI", href: "/openapi.json", text: "OpenAPI 3.1 spec for public metadata and paid HTTP routes." },
-    { label: "x402 resources", href: "/.well-known/x402", text: "x402 discovery surface used by paid-resource crawlers." },
-    { label: "agent.json", href: "/.well-known/agent.json", text: "Agent-facing manifest with MCP URL, payment data, and tool list." },
-    { label: "Tools", href: "/tools", text: "Human-readable catalog with pages for each paid tool." },
+    { type: "MCP MANIFEST", label: "MCP manifest", href: "/.well-known/mcp.json", text: "Machine-readable MCP entrypoint, auth modes, payments, and tool roster." },
+    { type: "SYSTEM API", label: "System info", href: "/api/system/info", text: "Network, seller wallet, asset contract, categories, and discovery URLs." },
+    { type: "AGENT CONTEXT", label: "llms-full.txt", href: "/llms-full.txt", text: "Long-form agent context with every tool, price, quote URL, and endpoint." },
+    { type: "PRICE QUOTE", label: "Quote API", href: "/api/quote?tool=trending_markets", text: "Free price lookup before an agent attempts a paid call." },
+    { type: "OPENAPI SPEC", label: "OpenAPI", href: "/openapi.json", text: "OpenAPI 3.1 spec for public metadata and paid HTTP routes." },
+    { type: "X402 DISCOVERY", label: "x402 resources", href: "/.well-known/x402", text: "x402 discovery surface used by paid-resource crawlers." },
+    { type: "AGENT MANIFEST", label: "agent.json", href: "/.well-known/agent.json", text: "Agent-facing manifest with MCP URL, payment data, and tool list." },
+    { type: "HUMAN CATALOG", label: "Tools", href: "/tools", text: "Human-readable catalog with pages for each paid tool." },
   ];
 
   const content = `<section style="padding: 60px 0;">
     <h2 style="font-size: clamp(28px, 5vw, 48px); font-weight: 700; letter-spacing: -0.03em; margin-bottom: 8px;">Discovery hub</h2>
     <p style="color: var(--text-2); font-size: 16px; margin-bottom: 32px; max-width: 760px;">These are the public entrypoints agents and humans can use to inspect agenttoll.dev before paying for a call. The JSON and text routes are crawler-friendly. The tool pages stay readable for people.</p>
     <div class="tools-grid">
-      ${surfaces.map((surface) => `<a href="${surface.href}" class="tool-card">
+      ${surfaces.map((surface) => `<a href="${surface.href}" class="tool-card" data-rail-label="${surface.type}">
         <div class="tool-name">${surface.label}</div>
         <div class="tool-desc">${surface.text}</div>
         <div class="tool-price" style="font-size: 12px; margin-top: 12px;">${surface.href}</div>
       </a>`).join("")}
     </div>
-    <div class="cat-card" style="margin-top: 32px;">
+    <div class="cat-card" data-rail-label="FREE QUOTE" style="margin-top: 32px;">
       <h3 style="font-size: 15px; font-weight: 600; margin-bottom: 8px;">Quote a tool</h3>
       <p style="font-size: 14px; color: var(--text-2); margin-bottom: 12px;">Use the free quote endpoint to check price, network, asset, seller wallet, and endpoints before a paid x402 call.</p>
       <pre style="background: rgba(6,8,12,0.6); border: 1px solid var(--border); border-radius: 12px; padding: 16px; font-family: 'JetBrains Mono', monospace; font-size: 13px; overflow-x: auto;">curl ${SERVICE.origin}/api/quote?tool=trending_markets</pre>
@@ -4719,7 +4950,7 @@ Seller wallet: ${SERVICE.seller}</pre>
       <p style="font-size: 14px; color: var(--text-2);">After payment settles, verify on Base with <code>/receipt/&lt;tx&gt;</code>.</p>
     </div>
 
-    <div style="margin-top: 32px; display: flex; gap: 12px; flex-wrap: wrap;">
+    <div class="rail-card" data-rail-label="ACTION RAIL" style="margin-top: 32px; padding: 52px 22px 22px; display: flex; gap: 12px; flex-wrap: wrap;">
       <a href="${SERVICE.origin}${SERVICE.mcpPath}" class="btn btn-primary">Open MCP endpoint →</a>
       <a href="/tools" class="btn btn-ghost">Browse ${TOOLS.length} tools</a>
       <a href="/.well-known/agent.json" class="btn btn-ghost">View agent.json</a>
