@@ -3579,12 +3579,10 @@ main {
 .btn-ghost:hover { border-color: var(--border-hover); }
 /* Stats bar */
 .stats {
-  display: flex;
-  gap: 0;
-  justify-content: center;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  width: min(100%, 760px);
   margin-top: 64px;
-  flex-wrap: wrap;
-  max-width: 760px;
   border: 1px solid rgba(45, 212, 191, 0.22);
   border-radius: 18px;
   background: linear-gradient(180deg, rgba(6, 8, 12, 0.74), rgba(16, 22, 34, 0.58));
@@ -3594,7 +3592,8 @@ main {
 }
 .stats::before {
   content: 'PAYMENT RAIL';
-  width: 100%;
+  grid-column: 1 / -1;
+  box-sizing: border-box;
   padding: 9px 14px 7px;
   border-bottom: 1px solid rgba(45, 212, 191, 0.16);
   font-family: 'JetBrains Mono', monospace;
@@ -3604,27 +3603,62 @@ main {
   text-align: left;
 }
 .stat {
-  text-align: center;
-  min-width: 150px;
-  padding: 18px 22px 20px;
+  display: flex;
+  min-width: 0;
+  min-height: 118px;
+  padding: 18px 16px 20px;
   border-right: 1px solid rgba(56, 78, 112, 0.22);
+  text-align: center;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  box-sizing: border-box;
 }
 .stat:last-child {
   border-right: 0;
 }
 .stat .num {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 36px;
+  font-size: clamp(28px, 3.1vw, 36px);
   font-weight: 700;
   color: var(--text);
   letter-spacing: -0.04em;
+  line-height: 1;
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 .stat .label {
   font-size: 13px;
   color: var(--text-3);
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  margin-top: 2px;
+  margin-top: 14px;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 640px) {
+  .stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .stat:nth-child(2) {
+    border-right: 0;
+  }
+  .stat:nth-child(1),
+  .stat:nth-child(2) {
+    border-bottom: 1px solid rgba(56, 78, 112, 0.22);
+  }
+}
+@media (max-width: 420px) {
+  .stats {
+    grid-template-columns: 1fr;
+  }
+  .stat,
+  .stat:nth-child(2) {
+    border-right: 0;
+  }
+  .stat:nth-child(3) {
+    border-bottom: 1px solid rgba(56, 78, 112, 0.22);
+  }
 }
 /* Categories preview */
 .categories {
