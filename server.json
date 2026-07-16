@@ -1,7 +1,7 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.huwhitememes/agenttoll-dev",
-  "description": "100 paid x402 MCP tools for prediction markets, OSINT, web intel, legal, academic, health, environmental, government, finance, and security data on Base USDC.",
+  "description": "100 paid x402 MCP tools for prediction markets, OSINT, web intel, legal, academic, health, environmental, government, finance, security, gen-video intelligence, and utility data on Base USDC.",
   "version": "0.14.0",
   "remotes": [
     {

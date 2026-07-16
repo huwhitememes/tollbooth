@@ -4455,7 +4455,7 @@ ${SHARED_CSS}
 
     <div class="stats">
       <div class="stat"><div class="num">${TOOLS.length}+</div><div class="label">Tools</div></div>
-      <div class="stat"><div class="num">10</div><div class="label">Categories</div></div>
+      <div class="stat"><div class="num">${TOOL_CATEGORIES.length}</div><div class="label">Categories</div></div>
       <div class="stat"><div class="num">$0.01</div><div class="label">Min price</div></div>
       <div class="stat"><div class="num">Base</div><div class="label">Network</div></div>
     </div>

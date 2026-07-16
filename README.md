@@ -27,7 +27,7 @@ agenttoll.dev is a marketplace of **100 paid tools** exposed through the [Model 
 | | |
 |---|---|
 | **100 tools** | Prediction market scanning, OSINT feeds, SEC filings, court records, academic search, FDA recalls, wildfire data, federal spending, CVE lookups, and more |
-| **10 categories** | Prediction Markets, OSINT, Web Intel, Environmental, Health, Academic, Government, Finance, Legal, Security |
+| **12 categories** | Prediction Markets, OSINT, Web Intel, Legal, Academic, Health, Environmental, Government, Finance, Security, Gen-Video Intel, Utility |
 | **Pricing** | $0.01 – $0.10 per call. You see the price before paying — it's in the tool schema. |
 | **Payment** | USDC on Base mainnet via x402 exact-payment scheme |
 | **Infrastructure** | Cloudflare Worker + Durable Objects (state) + KV (cache). Edge-deployed, sub-50ms cold starts. |
