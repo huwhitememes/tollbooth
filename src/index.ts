@@ -201,8 +201,11 @@ const TOOLS = [
     name: "mcp_supply_chain_iocs",
     price_usd: "0.02",
     description: "Query known-malicious MCP packages, versions, C2 hosts, and email IOCs. Updated as new supply-chain incidents break. The virus database for MCP.",
-    input: { package: "optional: npm package name", host: "optional: C2 host" },
-    example: {},
+    input: {
+      package: "optional npm package name to check, e.g. postmark-mcp",
+      host: "optional C2 host/domain substring to check, e.g. giftshop.club",
+    },
+    example: { package: "postmark-mcp" },
     http_path: "/paid/security/mcp-iocs",
   },
   {
@@ -593,16 +596,22 @@ const TOOLS = [
     name: "combinatorial_arb",
     price_usd: "0.06",
     description: "Scan Polymarket negRisk events for combinatorial arbitrage across dependency-linked outcomes. Detect mispriced multi-leg bundles.",
-    input: { limit: "optional int 5-50 default 20" },
-    example: {},
+    input: {
+      limit: "optional integer; number of active events to inspect before filtering for arbitrage, default 20, max 100",
+    },
+    example: { limit: 20 },
     http_path: "/paid/polymarket/combinatorial-arb",
   },
   {
     name: "orderbook_imbalance",
     price_usd: "0.04",
     description: "Polymarket CLOB orderbook imbalance — top-of-book bid/ask depth ratio, directional pressure signal for any market.",
-    input: { token_id: "optional Polymarket token ID", condition_id: "optional condition ID", limit: "optional int 5-50" },
-    example: {},
+    input: {
+      token_id: "optional Polymarket CLOB token ID for a single market order book",
+      condition_id: "optional Polymarket condition ID; used when available to scope a market",
+      limit: "optional integer; number of active markets to scan when token_id is omitted, default 10, max 50",
+    },
+    example: { limit: 10 },
     http_path: "/paid/polymarket/orderbook-imbalance",
   },
   {
@@ -681,8 +690,11 @@ const TOOLS = [
     name: "disease_outbreaks",
     price_usd: "0.03",
     description: "CDC disease outbreak data. Outbreak location, pathogen, cases, deaths, investigation status.",
-    input: { query: "optional pathogen or location", limit: "optional int 5-50" },
-    example: {},
+    input: {
+      query: "optional disease/pathogen search term, e.g. influenza",
+      limit: "optional integer; number of CDC rows to return, default 20, max 100",
+    },
+    example: { query: "influenza", limit: 20 },
     http_path: "/paid/health/outbreaks",
   },
   {
@@ -3591,7 +3603,7 @@ main {
   backdrop-filter: blur(14px);
 }
 .stats::before {
-  content: 'PAYMENT RAIL';
+  content: 'AGENT PAYMENT RAIL';
   grid-column: 1 / -1;
   box-sizing: border-box;
   padding: 9px 14px 7px;
@@ -3815,7 +3827,7 @@ footer code {
 .hero .actions { animation-delay: 0.5s; }
 .hero .stats { animation-delay: 0.65s; }
 @keyframes slideUp {
-  from { opacity: 1; transform: translateY(8px); }
+  from { opacity: 0; transform: translateY(30px); }
   to { opacity: 1; transform: translateY(0); }
 }
 /* Responsive */
@@ -3854,7 +3866,10 @@ footer code {
   main { padding: 0 20px !important; }
   .hero h1 { font-size: clamp(32px, 10vw, 48px); }
   .section-head { flex-direction: column; align-items: flex-start; gap: 8px; }
-  footer .inner { flex-direction: column; text-align: center; }
+  footer .inner { text-align: center; }
+  footer .build-public,
+  footer .footer-meta { flex-direction: column; align-items: center; }
+  footer .links { justify-content: center; }
 }
 /* ── Tool directory & detail page styles ── */
 .tools-grid {
@@ -4085,8 +4100,12 @@ footer .inner {
   border-radius: 16px;
   padding: 46px 14px 14px;
 }
+.rail-card {
+  border-radius: 20px;
+}
 .author-card {
   border-radius: 18px;
+  padding: 56px 22px 22px;
 }
 .rail-card::before,
 .cat-card::before,
@@ -4113,12 +4132,26 @@ footer .inner::before {
   letter-spacing: 0.14em;
   color: #8ddfd5;
 }
-.cat-card::before { content: 'CATEGORY'; }
-.tool-card::before { content: 'TOOL'; }
+.cat-card::before,
+.tool-card::before {
+  content: none;
+  display: none;
+}
+.cat-card:not([data-rail-label]),
+.tool-card:not([data-rail-label]) {
+  padding-top: 24px;
+}
+.cat-card[data-rail-label],
+.tool-card[data-rail-label] {
+  padding-top: 56px;
+}
 .cat-card[data-rail-label]::before,
-.tool-card[data-rail-label]::before { content: attr(data-rail-label); }
-.step::before,
-.detail-page .tool-section::before { content: 'PAYMENT RAIL'; }
+.tool-card[data-rail-label]::before {
+  content: attr(data-rail-label);
+  display: flex;
+}
+.step::before { content: 'PAYMENT RAIL'; }
+.detail-page .tool-section::before { content: attr(data-rail-label); }
 .tldr::before { content: 'ARTICLE'; }
 .author-card::before { content: 'OPERATOR'; }
 .rail-search::before { content: 'SEARCH'; }
@@ -4170,6 +4203,49 @@ footer .inner {
   border-color: rgba(45, 212, 191, 0.14);
   background: linear-gradient(180deg, rgba(6, 8, 12, 0.58), rgba(10, 17, 24, 0.42));
   box-shadow: 0 0 22px rgba(45, 212, 191, 0.06), inset 0 1px 0 rgba(255,255,255,0.04);
+  flex-direction: column;
+  align-items: stretch;
+  gap: 18px;
+}
+footer .build-public,
+footer .footer-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+footer .build-public {
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(45, 212, 191, 0.12);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  line-height: 1.2;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+footer .build-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+footer .build-status::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent);
+}
+footer .studio-mark {
+  color: var(--text-2);
+}
+footer .footer-meta {
+  flex-wrap: wrap;
+}
+footer .links {
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 footer .links a {
   padding: 7px 10px;
@@ -4382,14 +4458,14 @@ function landingPage() {
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://agenttoll.dev/">
 <meta property="og:site_name" content="agenttoll.dev">
-<meta property="og:image" content="https://agenttoll.dev/og-card.png">
+<meta property="og:image" content="https://agenttoll.dev/og-card-v2.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:type" content="image/png">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="agenttoll.dev — Paid data tools for AI agents">
 <meta name="twitter:description" content="100+ paid x402 MCP tools. Pay per call in USDC on Base.">
-<meta name="twitter:image" content="https://agenttoll.dev/og-card.png">
+<meta name="twitter:image" content="https://agenttoll.dev/og-card-v2.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -4593,16 +4669,22 @@ ${SHARED_CSS}
 <!-- FOOTER -->
 <footer>
   <div class="inner">
-    <div class="left">Built by Hu White · <a href="mailto:memerhuwhite@gmail.com" style="color: var(--accent); text-decoration: none;">Contact</a> · Settles on Base USDC to <code>${SERVICE.seller.slice(0,6)}…${SERVICE.seller.slice(-4)}</code></div>
-    <div class="links">
-      <a href="/tools">Tools</a>
-      <a href="/discovery">Discovery</a>
-      <a href="/mcp">MCP</a>
-      <a href="/.well-known/mcp.json">MCP manifest</a>
-      <a href="/openapi.json">OpenAPI</a>
-      <a href="/llms-full.txt">llms-full.txt</a>
-      <a href="/.well-known/agent.json">agent.json</a>
-      <a href="mailto:memerhuwhite@gmail.com">Contact</a>
+    <div class="build-public">
+      <div class="build-status">v0.2, building in public</div>
+      <div class="studio-mark">© 2026 MEME KING STUDIO</div>
+    </div>
+    <div class="footer-meta">
+      <div class="left">Built by Hu White · <a href="mailto:memerhuwhite@gmail.com" style="color: var(--accent); text-decoration: none;">Contact</a> · Settles on Base USDC to <code>${SERVICE.seller.slice(0,6)}…${SERVICE.seller.slice(-4)}</code></div>
+      <div class="links">
+        <a href="/tools">Tools</a>
+        <a href="/discovery">Discovery</a>
+        <a href="/mcp">MCP</a>
+        <a href="/.well-known/mcp.json">MCP manifest</a>
+        <a href="/openapi.json">OpenAPI</a>
+        <a href="/llms-full.txt">llms-full.txt</a>
+        <a href="/.well-known/agent.json">agent.json</a>
+        <a href="mailto:memerhuwhite@gmail.com">Contact</a>
+      </div>
     </div>
   </div>
 </footer>
@@ -4628,12 +4710,12 @@ ${titleTag}
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://agenttoll.dev">
 <meta property="og:site_name" content="agenttoll.dev">
-<meta property="og:image" content="https://agenttoll.dev/og-card.png">
+<meta property="og:image" content="https://agenttoll.dev/og-card-v2.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:type" content="image/png">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://agenttoll.dev/og-card.png">
+<meta name="twitter:image" content="https://agenttoll.dev/og-card-v2.png">
 ${headExtra}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -4663,16 +4745,22 @@ ${content}
 </main>
 <footer>
   <div class="inner">
-    <div class="left">Built by Hu White · <a href="mailto:memerhuwhite@gmail.com" style="color: var(--accent); text-decoration: none;">Contact</a> · Settles on Base USDC to <code>${SERVICE.seller.slice(0,6)}…${SERVICE.seller.slice(-4)}</code></div>
-    <div class="links">
-      <a href="/tools">Tools</a>
-      <a href="/discovery">Discovery</a>
-      <a href="/mcp">MCP</a>
-      <a href="/.well-known/mcp.json">MCP manifest</a>
-      <a href="/openapi.json">OpenAPI</a>
-      <a href="/llms-full.txt">llms-full.txt</a>
-      <a href="/.well-known/agent.json">agent.json</a>
-      <a href="mailto:memerhuwhite@gmail.com">Contact</a>
+    <div class="build-public">
+      <div class="build-status">v0.2, building in public</div>
+      <div class="studio-mark">© 2026 MEME KING STUDIO</div>
+    </div>
+    <div class="footer-meta">
+      <div class="left">Built by Hu White · <a href="mailto:memerhuwhite@gmail.com" style="color: var(--accent); text-decoration: none;">Contact</a> · Settles on Base USDC to <code>${SERVICE.seller.slice(0,6)}…${SERVICE.seller.slice(-4)}</code></div>
+      <div class="links">
+        <a href="/tools">Tools</a>
+        <a href="/discovery">Discovery</a>
+        <a href="/mcp">MCP</a>
+        <a href="/.well-known/mcp.json">MCP manifest</a>
+        <a href="/openapi.json">OpenAPI</a>
+        <a href="/llms-full.txt">llms-full.txt</a>
+        <a href="/.well-known/agent.json">agent.json</a>
+        <a href="mailto:memerhuwhite@gmail.com">Contact</a>
+      </div>
     </div>
   </div>
 </footer>
@@ -4702,6 +4790,25 @@ function categoryForTool(name: string): string {
     if (cat.tools.includes(name)) return cat.name;
   }
   return "Other";
+}
+
+function categoryRailLabel(name: string): string {
+  const labels: Record<string, string> = {
+    "Prediction Markets": "MARKET",
+    "OSINT & Intelligence": "OSINT",
+    "Web Intel": "WEB INTEL",
+    "Legal & Regulatory": "LEGAL",
+    "Academic & Science": "SCIENCE",
+    "Health & Safety": "SAFETY",
+    "Environmental": "ENV",
+    "Government": "GOV",
+    "Finance & Crypto": "FINANCE",
+    "Security": "SECURITY",
+    "Gen-Video Intel": "VIDEO",
+    "Utility": "UTILITY",
+    "Other": "OTHER",
+  };
+  return labels[name] ?? name.toUpperCase();
 }
 
 function categorySlug(name: string): string {
@@ -4783,13 +4890,45 @@ function toolDetailPage(toolName: string) {
   // Find related tools (same category)
   const relatedNames = relatedTools(tool.name);
   const related = relatedNames.map(n => TOOLS.find((t: any) => t.name === n)).filter(Boolean);
-  const relatedCards = related.map((t: any) => `<a href="/tools/${t.name}" class="tool-card" style="min-height: auto;">
+  const relatedCards = related.map((t: any) => `<a href="/tools/${t.name}" class="tool-card" data-rail-label="${categoryRailLabel(categoryForTool(t.name))}" style="min-height: auto;">
     <div class="tool-name">${t.name}</div>
     <div class="tool-price">$${(t as any).price_usd}</div>
   </a>`).join("");
 
   // Category label from single source of truth
   const catLabel = categoryForTool(tool.name);
+  const hasExample = tool.example && Object.keys(tool.example).length > 0;
+  const hasInput = tool.input && Object.keys(tool.input).length > 0;
+  const requestBody = hasExample ? tool.example : {};
+  const html = (value: string) => value.replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch] as string));
+  const inputDoc = hasInput ? JSON.stringify(tool.input, null, 2) : "{}";
+  const exampleDoc = JSON.stringify(requestBody, null, 2);
+  const transactionSpec = JSON.stringify({
+    mcp: {
+      endpoint: `${SERVICE.origin}${SERVICE.mcpPath}`,
+      tool: tool.name,
+      arguments: requestBody,
+    },
+    http: tool.http_path ? {
+      method: "POST",
+      url: `${SERVICE.origin}${tool.http_path}`,
+      headers: { "content-type": "application/json" },
+      body: requestBody,
+      unpaid_response: "HTTP 402 with x402 payment requirements",
+      paid_response: "HTTP 200 JSON with payment-response receipt header",
+    } : undefined,
+    payment: {
+      protocol: "x402",
+      scheme: "exact",
+      price_usd: tool.price_usd,
+      network: SERVICE.network,
+      network_name: SERVICE.networkName,
+      asset: "USDC",
+      asset_address: SERVICE.usdc,
+      pay_to: SERVICE.seller,
+    },
+    receipt: `${SERVICE.origin}/receipt/:tx`,
+  }, null, 2);
 
   // JSON-LD structured data for this specific tool
   const jsonLd = `<script type="application/ld+json">
@@ -4836,41 +4975,48 @@ ${jsonLd}`;
     </div>
     <p class="tool-desc-full">${tool.description}</p>
 
-    <div class="tool-section">
+    <div class="tool-section" data-rail-label="TOOL OVERVIEW">
       <h3>What is ${tool.name}?</h3>
       <p style="color: var(--text-2); font-size: 15px; line-height: 1.7;">${tool.name} is a paid MCP tool in the ${catLabel} category on agenttoll.dev. It costs $${tool.price_usd} per call, settled in USDC on Base via the x402 payment protocol. No API keys, no accounts — your agent discovers it via <code>/.well-known/agent.json</code>, calls it, pays the $${tool.price_usd} fee, and receives structured JSON.</p>
     </div>
 
-    <div class="tool-section">
+    <div class="tool-section" data-rail-label="INPUT SCHEMA">
       <h3>Input parameters</h3>
-      <pre>${JSON.stringify(tool.input, null, 2)}</pre>
+      <p style="color: var(--text-2); font-size: 14px; margin-bottom: 8px;">Only send these request-body fields. If this block is empty, send <code>{}</code>.</p>
+      <pre>${html(inputDoc)}</pre>
     </div>
 
-    <div class="tool-section">
-      <h3>Example usage</h3>
-      <pre>${JSON.stringify(tool.example, null, 2)}</pre>
+    <div class="tool-section" data-rail-label="REQUEST BODY">
+      <h3>Request body</h3>
+      <pre>${html(exampleDoc)}</pre>
     </div>
 
-    ${tool.http_path ? `<div class="tool-section"><h3>HTTP endpoint</h3><p style="color: var(--text-2); font-size: 14px; margin-bottom: 8px;">POST to this path with JSON body. Server returns 402 with x402 payment requirements.</p><pre>${tool.http_path}</pre></div>` : ''}
+    ${tool.http_path ? `<div class="tool-section" data-rail-label="HTTP ROUTE"><h3>HTTP endpoint</h3><p style="color: var(--text-2); font-size: 14px; margin-bottom: 8px;">POST JSON to this URL. The first unpaid call returns HTTP 402 with x402 payment requirements; an x402-capable client signs and retries.</p><pre>${SERVICE.origin}${tool.http_path}</pre></div>` : ''}
 
-    <div class="tool-section">
-      <h3>How to call ${tool.name}</h3>
-      <p style="color: var(--text-2); font-size: 14px; margin-bottom: 12px;">Connect any MCP-compatible client (Claude Desktop, Cursor, custom agent) to the agenttoll.dev MCP endpoint:</p>
+    <div class="tool-section" data-rail-label="MCP ENTRYPOINT">
+      <h3>MCP call</h3>
+      <p style="color: var(--text-2); font-size: 14px; margin-bottom: 12px;">Connect an MCP client to the endpoint, call tool <code>${tool.name}</code>, and pass the request body as arguments.</p>
       <pre>${SERVICE.origin}${SERVICE.mcpPath}</pre>
-      <p style="color: var(--text-3); font-size: 13px; margin-top: 12px;">Or call the HTTP endpoint directly with an x402-capable fetch client.</p>
+      <p style="color: var(--text-3); font-size: 13px; margin-top: 12px;">MCP paid-tool calls may surface the payment challenge inside the JSON-RPC result instead of as a raw HTTP 402.</p>
     </div>
 
-    <div class="tool-section">
+    <div class="tool-section" data-rail-label="TRANSACTION SPEC">
+      <h3>What the agent needs to transact</h3>
+      <pre>${html(transactionSpec)}</pre>
+    </div>
+
+    <div class="tool-section" data-rail-label="PAYMENT RAIL">
       <h3>Pricing & payment</h3>
       <div style="display: flex; gap: 24px; flex-wrap: wrap; margin-top: 8px;">
         <div><div style="font-size: 13px; color: var(--text-3);">Price</div><div style="font-family: 'JetBrains Mono', monospace; font-size: 16px; color: var(--price); font-weight: 700;">$${tool.price_usd}/call</div></div>
-        <div><div style="font-size: 13px; color: var(--text-3);">Network</div><div style="font-family: 'JetBrains Mono', monospace; font-size: 16px; color: var(--text);">Base USDC</div></div>
-        <div><div style="font-size: 13px; color: var(--text-3);">Protocol</div><div style="font-family: 'JetBrains Mono', monospace; font-size: 16px; color: var(--text);">x402</div></div>
+        <div><div style="font-size: 13px; color: var(--text-3);">Network</div><div style="font-family: 'JetBrains Mono', monospace; font-size: 16px; color: var(--text);">${SERVICE.networkName}</div></div>
+        <div><div style="font-size: 13px; color: var(--text-3);">Asset</div><div style="font-family: 'JetBrains Mono', monospace; font-size: 16px; color: var(--text);">USDC</div></div>
+        <div><div style="font-size: 13px; color: var(--text-3);">Protocol</div><div style="font-family: 'JetBrains Mono', monospace; font-size: 16px; color: var(--text);">x402 exact</div></div>
         <div><div style="font-size: 13px; color: var(--text-3);">Receipts</div><div style="font-family: 'JetBrains Mono', monospace; font-size: 16px; color: var(--text);">/receipt/:tx</div></div>
       </div>
     </div>
 
-    <div class="tool-section">
+    <div class="tool-section" data-rail-label="FAQ">
       <h3>FAQ</h3>
       <details style="margin-bottom: 12px;"><summary style="cursor: pointer; color: var(--text); font-size: 14px; font-weight: 500;">How much does ${tool.name} cost?</summary><p style="color: var(--text-2); font-size: 14px; margin-top: 8px; padding-left: 16px;">$${tool.price_usd} per call in USDC on Base. No subscriptions or minimums.</p></details>
       <details style="margin-bottom: 12px;"><summary style="cursor: pointer; color: var(--text); font-size: 14px; font-weight: 500;">Do I need an API key?</summary><p style="color: var(--text-2); font-size: 14px; margin-top: 8px; padding-left: 16px;">No. Payment is handled by the x402 protocol. Your agent wallet sends USDC on Base, the server verifies the transfer, and returns the data.</p></details>
@@ -4884,8 +5030,7 @@ ${jsonLd}`;
       <a href="/tools" class="btn btn-ghost">Browse all ${TOOLS.length} tools</a>
     </div>
 
-    <div class="rail-card" data-rail-label="RELATED TOOL" style="margin-top: 48px; padding: 52px 22px 22px;">
-      <h3 style="font-size: 14px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-3); margin-bottom: 16px;">Related tools</h3>
+    <div class="rail-card" data-rail-label="RELATED TOOLS" style="margin-top: 48px; padding: 52px 22px 22px;">
       <div class="tools-grid" style="padding: 0;">
         ${relatedCards}
       </div>
