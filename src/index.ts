@@ -4544,7 +4544,7 @@ ${SHARED_CSS}
     <a href="/tools">Tools</a>
     <a href="/docs">Docs</a>
     <a href="/discovery">Discovery</a>
-    <a href="/blog/x402-protocol-explained">Blog</a>
+    <a href="/blog">Blog</a>
     <a href="/.well-known/agent.json">agent.json</a>
     <a href="/api/system/info">API</a>
     <a href="/mcp" class="cta">MCP Endpoint</a>
@@ -4734,7 +4734,7 @@ ${SHARED_CSS}
     <a href="/tools">Tools</a>
     <a href="/docs">Docs</a>
     <a href="/discovery">Discovery</a>
-    <a href="/blog/x402-protocol-explained">Blog</a>
+    <a href="/blog">Blog</a>
     <a href="/.well-known/agent.json">agent.json</a>
     <a href="/api/system/info">API</a>
     <a href="/mcp" class="cta">MCP Endpoint</a>
@@ -5536,10 +5536,6 @@ export default {
 
     if (url.pathname === "/api/x402/bazaar/search") {
       return proxyBazaarSearch(request);
-    }
-
-    if (url.pathname === "/blog" || url.pathname === "/blog/") {
-      return Response.redirect("https://agenttoll.dev/blog/x402-protocol-explained", 302);
     }
 
     if (url.pathname === "/docs") {
