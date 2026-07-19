@@ -86,7 +86,7 @@ paidHttp.use(paymentMiddleware({
     description: "Live USGS earthquake data (M2.5+, last 24h)",
     mimeType: "application/json",
     serviceName: SERVICE.name,
-    iconUrl: `${SERVICE.origin}/favicon.ico`,
+    iconUrl: `${SERVICE.origin}/favicon.svg`,
     unpaidResponseBody: () => ({
       contentType: "application/json",
       body: {

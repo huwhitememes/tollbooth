@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
+  <title id="title">agenttoll.dev icon</title>
+  <desc id="desc">Dark rounded square with a teal x402 payment node mark.</desc>
+  <defs>
+    <radialGradient id="glow" cx="50%" cy="46%" r="58%">
+      <stop offset="0" stop-color="#102b34"/>
+      <stop offset="0.58" stop-color="#071015"/>
+      <stop offset="1" stop-color="#06080c"/>
+    </radialGradient>
+    <linearGradient id="stroke" x1="12" y1="12" x2="52" y2="52" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#2dd4bf"/>
+      <stop offset="1" stop-color="#0ea5e9"/>
+    </linearGradient>
+    <filter id="softGlow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="1.6" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <rect x="3" y="3" width="58" height="58" rx="14" fill="url(#glow)"/>
+  <rect x="3.5" y="3.5" width="57" height="57" rx="13.5" fill="none" stroke="#213044"/>
+  <rect x="8.5" y="8.5" width="47" height="47" rx="10.5" fill="#081015" stroke="#24564f" opacity="0.9"/>
+
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round" filter="url(#softGlow)">
+    <path d="M16 32H48" stroke="url(#stroke)" stroke-width="4"/>
+    <path d="M32 16V48" stroke="url(#stroke)" stroke-width="4"/>
+    <circle cx="32" cy="32" r="6.5" fill="#7fd8ce" stroke="#7fd8ce" stroke-width="2"/>
+  </g>
+
+  <path d="M14 14h10M14 14v10M50 50H40M50 50V40" fill="none" stroke="#2dd4bf" stroke-width="2" stroke-linecap="round" opacity="0.42"/>
+</svg>
