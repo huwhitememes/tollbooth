@@ -4510,7 +4510,7 @@ ${SHARED_CSS}
     <a href="/tools">Tools</a>
     <a href="/docs">Docs</a>
     <a href="/discovery">Discovery</a>
-    <a href="/blog/x402-protocol-explained">Blog</a>
+    <a href="/blog">Blog</a>
     <a href="/.well-known/agent.json">agent.json</a>
     <a href="/api/system/info">API</a>
     <a href="/mcp" class="cta">MCP Endpoint</a>
@@ -4700,7 +4700,7 @@ ${SHARED_CSS}
     <a href="/tools">Tools</a>
     <a href="/docs">Docs</a>
     <a href="/discovery">Discovery</a>
-    <a href="/blog/x402-protocol-explained">Blog</a>
+    <a href="/blog">Blog</a>
     <a href="/.well-known/agent.json">agent.json</a>
     <a href="/api/system/info">API</a>
     <a href="/mcp" class="cta">MCP Endpoint</a>
@@ -5504,8 +5504,19 @@ export default {
       return proxyBazaarSearch(request);
     }
 
+    if (url.pathname === "/blog/x402-foundation-agent-payments" || url.pathname === "/blog/x402-foundation-agent-payments/") {
+      const assetUrl = new URL("/blog/x402-foundation-agent-payments.html", url.origin);
+      return (env as any).ASSETS.fetch(new Request(assetUrl.toString(), request));
+    }
+
+    if (url.pathname === "/blog/x402-protocol-explained" || url.pathname === "/blog/x402-protocol-explained/") {
+      const assetUrl = new URL("/blog/x402-protocol-explained.html", url.origin);
+      return (env as any).ASSETS.fetch(new Request(assetUrl.toString(), request));
+    }
+
     if (url.pathname === "/blog" || url.pathname === "/blog/") {
-      return Response.redirect("https://agenttoll.dev/blog/x402-protocol-explained", 302);
+      const assetUrl = new URL("/blog/index.html", url.origin);
+      return (env as any).ASSETS.fetch(new Request(assetUrl.toString(), request));
     }
 
     if (url.pathname === "/docs") {
