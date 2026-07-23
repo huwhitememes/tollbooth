@@ -1181,7 +1181,65 @@ const policiesDiscovery = declareDiscoveryExtension({
   output: { example: { policies: [{ id: "no-pii-in-logs" }] } },
 });
 
+const edgarFilingsDiscovery = declareDiscoveryExtension({
+  bodyType: "json",
+  input: { query: "Tesla", form_type: "10-K" },
+  inputSchema: { properties: {
+    query: { type: "string", maxLength: 200 },
+    form_type: { type: "string", enum: ["10-K", "10-Q", "8-K", "S-1"] },
+    ticker: { type: "string", maxLength: 10 },
+    limit: { type: "integer", minimum: 1, maximum: 50 },
+  } },
+  output: { example: { success: true, data: { filings: [] } } },
+});
+
+const cveSearchDiscovery = declareDiscoveryExtension({
+  bodyType: "json",
+  input: { keyword: "log4j", limit: 5 },
+  inputSchema: { properties: {
+    keyword: { type: "string", maxLength: 200 },
+    cve_id: { type: "string", maxLength: 32 },
+    severity: { type: "string", enum: ["LOW", "MEDIUM", "HIGH", "CRITICAL"] },
+    limit: { type: "integer", minimum: 1, maximum: 50 },
+  } },
+  output: { example: { success: true, data: { results: [] } } },
+});
+
+const genVideoDiscovery = declareDiscoveryExtension({
+  bodyType: "json",
+  input: { query: "text to video" },
+  inputSchema: { properties: {
+    query: { type: "string", maxLength: 200 },
+    model: { type: "string", maxLength: 80 },
+  } },
+  output: { example: { query: "text to video", model: "all", result_count: 0, recent_summaries: [] } },
+});
+
 const paidHttp = new Hono<{ Bindings: Env }>();
+
+paidHttp.get("/paid/*", (c) => {
+  const path = new URL(c.req.url).pathname;
+  const tool = TOOLS.find((candidate) => (candidate as any).http_path === path) as any;
+  if (!tool) return c.json({ error: "not_found", message: "Unknown paid endpoint." }, 404);
+  return c.json({
+    service: SERVICE.name,
+    endpoint: `${SERVICE.origin}${tool.http_path}`,
+    method: "POST",
+    protocol: "x402",
+    price_usd: tool.price_usd,
+    network: SERVICE.network,
+    facilitator: SERVICE.facilitator,
+    message: "This is an x402-paid API endpoint. Send a POST request with JSON to receive the 402 payment challenge, then retry with a signed payment.",
+    tool: {
+      name: tool.name,
+      description: tool.description,
+      input: tool.input,
+      example: tool.example,
+      docs: `${SERVICE.origin}/tools/${tool.name}`,
+    },
+  });
+});
+
 paidHttp.use(paymentMiddleware({
   "POST /paid/polymarket/event-scan": {
     accepts: { scheme: "exact", price: "$0.03", network: SERVICE.network, payTo: SERVICE.seller },
@@ -1425,6 +1483,39 @@ paidHttp.use(paymentMiddleware({
     iconUrl: `${SERVICE.origin}/favicon.ico`,
     extensions: sec8kVelocityDiscovery,
     unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "$0.03", network: SERVICE.network } }),
+  },
+  "POST /paid/finance/edgar": {
+    accepts: { scheme: "exact", price: "$0.03", network: SERVICE.network, payTo: SERVICE.seller },
+    resource: `${SERVICE.origin}/paid/finance/edgar`,
+    description: "Search SEC EDGAR filings by company, form type, or ticker — filing URLs, dates, descriptions, and public filing metadata",
+    mimeType: "application/json",
+    serviceName: "agenttoll.dev",
+    tags: ["finance", "sec", "edgar", "filings", "stocks", "x402"],
+    iconUrl: `${SERVICE.origin}/favicon.ico`,
+    extensions: edgarFilingsDiscovery,
+    unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "$0.03", network: SERVICE.network } }),
+  },
+  "POST /paid/security/cve-search": {
+    accepts: { scheme: "exact", price: "$0.02", network: SERVICE.network, payTo: SERVICE.seller },
+    resource: `${SERVICE.origin}/paid/security/cve-search`,
+    description: "Search NIST NVD CVEs by keyword, CVE ID, or severity — CVSS, affected products, references, and vulnerability metadata",
+    mimeType: "application/json",
+    serviceName: "agenttoll.dev",
+    tags: ["security", "cve", "nvd", "vulnerability", "threat-intel", "x402"],
+    iconUrl: `${SERVICE.origin}/favicon.ico`,
+    extensions: cveSearchDiscovery,
+    unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "$0.02", network: SERVICE.network } }),
+  },
+  "POST /paid/media/gen-video": {
+    accepts: { scheme: "exact", price: "$0.05", network: SERVICE.network, payTo: SERVICE.seller },
+    resource: `${SERVICE.origin}/paid/media/gen-video`,
+    description: "Generative video model intelligence — model capabilities, pricing, limits, API access, and recent community signals for Sora, Veo, Runway, Pika, and related tools",
+    mimeType: "application/json",
+    serviceName: "agenttoll.dev",
+    tags: ["media", "gen-video", "ai", "models", "creative-tools", "x402"],
+    iconUrl: `${SERVICE.origin}/favicon.ico`,
+    extensions: genVideoDiscovery,
+    unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "$0.05", network: SERVICE.network } }),
   },
   "POST /paid/osint/fred-surprises": {
     accepts: { scheme: "exact", price: "$0.02", network: SERVICE.network, payTo: SERVICE.seller },
