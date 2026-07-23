@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%2306080c'/%3E%3Ctext x='50' y='72' font-family='monospace' font-size='52' font-weight='bold' text-anchor='middle' fill='%232dd4bf'%3E@%3C/text%3E%3C/svg%3E">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <title>How AI Agents Pay for API Calls: The x402 Protocol Explained | agenttoll.dev</title>
 <meta name="description" content="The x402 protocol repurposes HTTP 402 into a payment system for AI agents.">
 <link rel="canonical" href="https://agenttoll.dev/blog/x402-protocol-explained">
@@ -1145,7 +1145,7 @@ paidHttp.use(paymentMiddleware({
     description: "Live USGS earthquake data (M2.5+, last 24h)",
     mimeType: "application/json",
     serviceName: SERVICE.name,
-    iconUrl: `${SERVICE.origin}/favicon.ico`,
+    iconUrl: `${SERVICE.origin}/favicon.svg`,
     unpaidResponseBody: () =&gt; ({
       contentType: "application/json",
       body: {
