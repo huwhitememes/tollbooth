@@ -1657,15 +1657,17 @@ paidHttp.post("/paid/polymarket/market-scan", async (c) => {
 
 paidHttp.post("/paid/markets/cross-platform-scan", async (c) => {
   const body = await c.req.json<Record<string, unknown>>().catch(() => ({} as Record<string, unknown>));
+  const scanParams = {
+    query: String(body.query ?? ""),
+    minSimilarity: optionalNumber(body.min_similarity),
+    minNetEdge: optionalNumber(body.min_net_edge),
+    polymarketLimit: optionalNumber(body.polymarket_limit),
+    kalshiMaxPages: optionalNumber(body.kalshi_max_pages),
+    maxMatches: optionalNumber(body.max_matches),
+  };
   try {
-    return c.json(await scanCrossPlatformMarkets({
-      query: String(body.query ?? ""),
-      minSimilarity: optionalNumber(body.min_similarity),
-      minNetEdge: optionalNumber(body.min_net_edge),
-      polymarketLimit: optionalNumber(body.polymarket_limit),
-      kalshiMaxPages: optionalNumber(body.kalshi_max_pages),
-      maxMatches: optionalNumber(body.max_matches),
-    }));
+    const wrapped = await getCachedOrLive(c.env as any, "cross-platform-scan", () => scanCrossPlatformMarkets(scanParams), { params: body, ttlSec: 900 });
+    return c.json(wrapped.data, 200, { "X-Cache": wrapped.cached ? "HIT" : "MISS", "X-Cache-Age": String(wrapped.age_ms ?? 0) } as any);
   } catch (error) {
     return c.json({ error: "cross_platform_scan_failed", message: error instanceof Error ? error.message : String(error) }, 502);
   }
