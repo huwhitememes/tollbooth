@@ -39,6 +39,7 @@ import { searchFederalContracts } from "./gov-products";
 import { getPaperDetails, getCitationGraph } from "./academic-products";
 import { genVideoIntel, modelSettingsLookup } from "./gen-video-products";
 import { getSpaceWeatherKp, getWeatherForecast, getWeatherCurrent, getAuroraForecast, getMarineConditions, getAirQualityIndex, getPostalLookup, getIpGeolocation, getTimezoneCurrent, getAirportStatus, getDnsRecords, getIsbnLookup, getCryptoPrice, getBtcBalance, getBtcFees, getFoodRecalls } from "./quick-tools";
+import { buildX402MarketRadar } from "./x402-market-radar";
 
 // Environment-driven config — production defaults, overridable via process.env vars
 // Base Sepolia testnet: chain 84532, USDC at 0x1a35EE5c47503e1B627338D2c1943774f2E50B6D
@@ -116,6 +117,14 @@ const TOOLS = [
     description: "Enrich a company domain with site metadata, tech stack, social links, DNS, platform cues, and contact links.",
     input: { domain: "string, example stripe.com" },
     example: { domain: "stripe.com" },
+  },
+  {
+    name: "x402_market_radar",
+    price_usd: "0.05",
+    description: "CDP Bazaar radar for x402 builders: live catalog size, AgentToll ranks, keyword gaps, vertical competition, price samples, and next actions.",
+    input: { query_limit: "optional integer 3-20; default 15" },
+    example: { query_limit: 15 },
+    http_path: "/paid/x402/market-radar",
   },
   {
     name: "polymarket_event_scan",
@@ -959,6 +968,23 @@ const crossPlatformDiscovery = declareDiscoveryExtension({
   output: { example: { source: ["Polymarket Gamma API", "Kalshi public Trade API"], query: "bitcoin", candidate_matches: [], opportunities: [] } },
 });
 
+const x402MarketRadarDiscovery = declareDiscoveryExtension({
+  bodyType: "json",
+  input: { query_limit: 15 },
+  inputSchema: {
+    properties: {
+      query_limit: { type: "integer", minimum: 3, maximum: 20 },
+    },
+  },
+  output: {
+    example: {
+      product: "x402 Market Radar",
+      catalog: { current_total: 14238, net_change_from_baseline: -10696 },
+      agenttoll: { merchant_count: 6, missing_rank_queries: ["x402 market radar"] },
+    },
+  },
+});
+
 const rebalanceDiscovery = declareDiscoveryExtension({
   bodyType: "json",
   input: { limit: 500, min_edge: 0.005, min_liquidity: 1000 },
@@ -1273,6 +1299,17 @@ paidHttp.use(paymentMiddleware({
     iconUrl: `${SERVICE.origin}/favicon.svg`,
     extensions: crossPlatformDiscovery,
     unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.10", network: SERVICE.network } }),
+  },
+  "POST /paid/x402/market-radar": {
+    accepts: { scheme: "exact", price: "$0.05", network: SERVICE.network, payTo: SERVICE.seller },
+    resource: `${SERVICE.origin}/paid/x402/market-radar`,
+    description: "CDP Bazaar market radar for x402 builders — catalog size, keyword ranks, AgentToll visibility, vertical competition, price samples, and next actions",
+    mimeType: "application/json",
+    serviceName: "agenttoll.dev",
+    tags: ["x402", "bazaar", "market-radar", "agent-payments", "mcp", "discovery"],
+    iconUrl: `${SERVICE.origin}/favicon.svg`,
+    extensions: x402MarketRadarDiscovery,
+    unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.05", network: SERVICE.network } }),
   },
   "POST /paid/polymarket/rebalance-scan": {
     accepts: { scheme: "exact", price: "$0.04", network: SERVICE.network, payTo: SERVICE.seller },
@@ -1626,6 +1663,20 @@ paidHttp.use(paymentMiddleware({
 function optionalNumber(value: unknown) {
   return typeof value === "number" && Number.isFinite(value) ? value : undefined;
 }
+
+paidHttp.post("/paid/x402/market-radar", async (c) => {
+  const body = await c.req.json<Record<string, unknown>>().catch(() => ({} as Record<string, unknown>));
+  try {
+    const wrapped = await getCachedOrLive(c.env as any, "x402-market-radar", () => buildX402MarketRadar({
+      queryLimit: optionalNumber(body.query_limit),
+      agenttollPayTo: SERVICE.seller,
+      network: SERVICE.network,
+    }), { params: { query_limit: body.query_limit ?? 15 }, ttlSec: 60 * 60 * 6 });
+    return c.json(wrapped.data, 200, { "X-Cache": wrapped.cached ? "HIT" : "MISS", "X-Cache-Age": String(wrapped.age_ms ?? 0) } as any);
+  } catch (error) {
+    return c.json({ error: "x402_market_radar_failed", message: error instanceof Error ? error.message : String(error) }, 502);
+  }
+});
 
 paidHttp.post("/paid/polymarket/event-scan", async (c) => {
   const body = await c.req.json<Record<string, unknown>>().catch(() => ({} as Record<string, unknown>));
@@ -2567,6 +2618,19 @@ export class TollboothMCP extends McpAgent<Env> {
     );
 
     this.server.paidTool(
+      "x402_market_radar",
+      "CDP Bazaar radar for x402 builders: live catalog size, AgentToll ranks, keyword gaps, vertical competition, price samples, and next actions.",
+      0.05,
+      {
+        query_limit: z.number().int().min(3).max(20).optional().describe("Search results per tracked query, default 15"),
+      },
+      {},
+      async ({ query_limit }) => ({
+        content: [{ type: "text", text: JSON.stringify(await buildX402MarketRadar({ queryLimit: query_limit, agenttollPayTo: SERVICE.seller, network: SERVICE.network })) }],
+      }),
+    );
+
+    this.server.paidTool(
       "polymarket_event_scan",
       "Scan one live Polymarket negRisk event for fee-adjusted outcome-sum violations. Intelligence only; verify CLOB depth and resolution rules before acting.",
       0.03,
@@ -3011,6 +3075,7 @@ function serviceInfo() {
       polymarket_event_scan: `${SERVICE.origin}/paid/polymarket/event-scan`,
       polymarket_market_scan: `${SERVICE.origin}/paid/polymarket/market-scan`,
       cross_platform_arb_scan: `${SERVICE.origin}/paid/markets/cross-platform-scan`,
+      x402_market_radar: `${SERVICE.origin}/paid/x402/market-radar`,
       agent_threat_intel: `${SERVICE.origin}/paid/security/threat-intel`,
       mcp_supply_chain_iocs: `${SERVICE.origin}/paid/security/mcp-iocs`,
       agent_trifecta_score: `${SERVICE.origin}/paid/security/trifecta-score`,
@@ -3296,6 +3361,7 @@ function x402WellKnownPlain() {
       `${SERVICE.origin}/paid/polymarket/event-scan`,
       `${SERVICE.origin}/paid/polymarket/market-scan`,
       `${SERVICE.origin}/paid/markets/cross-platform-scan`,
+      `${SERVICE.origin}/paid/x402/market-radar`,
     ],
     tools: TOOLS.map((t) => t.name),
   };
@@ -4865,6 +4931,7 @@ ${content}
 // ── Category definitions (single source of truth) ──────────────────
 const TOOL_CATEGORIES = [
   { name: "Prediction Markets", icon: "\u{1F4CA}", tools: ["polymarket_event_scan","polymarket_market_scan","cross_platform_arb_scan","rebalance_arb_scan","trending_markets","odds_feed","volume_analytics","resolution_history","kalshi_markets","combinatorial_arb","orderbook_imbalance","smart_money"] },
+  { name: "x402 Market Intel", icon: "\u{1F6E3}\u{FE0F}", tools: ["x402_market_radar"] },
   { name: "OSINT & Intelligence", icon: "\u{1F30D}", tools: ["geo_intervention_pulse","flight_intel","osint_research_pack","scenario_verdict","weather_bias_score","supply_chain_stress","regulatory_pulse","attention_momentum","sec_8k_velocity","fred_surprises","treasury_dts","openrouter_models","github_trending","github_repo_intel","hn_frontpage","reddit_search"] },
   { name: "Web Intel", icon: "\u{1F50D}", tools: ["scrape","detect_stack","extract_contacts","score_lead","enrich_lead","check_agent_policy","find_agent_resource","validate_agent_manifest"] },
   { name: "Legal & Regulatory", icon: "\u{2696}\u{FE0F}", tools: ["court_opinions","court_docket","federal_register","patents_search","regulations_search","judges_search","trademarks_search"] },
@@ -4888,6 +4955,7 @@ function categoryForTool(name: string): string {
 function categoryRailLabel(name: string): string {
   const labels: Record<string, string> = {
     "Prediction Markets": "MARKET",
+    "x402 Market Intel": "X402 RADAR",
     "OSINT & Intelligence": "OSINT",
     "Web Intel": "WEB INTEL",
     "Legal & Regulatory": "LEGAL",
@@ -5319,6 +5387,14 @@ function openApiSpec() {
           description: "Returns HTTP 402 until paid $0.10 in Base USDC through x402.",
           requestBody: { required: true, content: { "application/json": { schema: { type: "object", required: ["query"], properties: { query: { type: "string", minLength: 2, maxLength: 100 }, min_similarity: { type: "number" }, min_net_edge: { type: "number" }, kalshi_max_pages: { type: "integer", minimum: 1, maximum: 20 } } } } } },
           responses: { "200": { description: "Live cross-platform candidate and opportunity scan.", "content": { "application/json": { "schema": { "type": "object", "properties": { "success": { "type": "boolean" }, "data": { "oneOf": [ { "type": "array" }, { "type": "object" } ] }, "cached": { "type": "boolean" }, "meta": { "type": "object", "properties": { "count": { "type": "integer" }, "source": { "type": "string" }, "generated_at": { "type": "string", "format": "date-time" } } } } } } } }, "402": { description: "x402 payment requirements." } },
+        },
+      },
+      "/paid/x402/market-radar": {
+        post: {
+          summary: "Paid x402 Bazaar market radar",
+          description: "Returns HTTP 402 until paid $0.05 in Base USDC through x402. Tracks Bazaar catalog size, AgentToll ranks, vertical competition, and keyword gaps.",
+          requestBody: { content: { "application/json": { schema: { type: "object", properties: { query_limit: { type: "integer", minimum: 3, maximum: 20 } } } } } },
+          responses: { "200": { description: "x402 market radar report.", "content": { "application/json": { "schema": { "type": "object" } } } }, "402": { description: "x402 payment requirements." } },
         },
       },
       "/paid/polymarket/rebalance-scan": {

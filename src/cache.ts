@@ -38,6 +38,7 @@ export const FEED_TTLS: Record<string, number> = {
   "openaq-air": 60 * 60,
   "polymarket-resolution": 60 * 10,
   "polymarket-res": 60 * 10,
+  "x402-market-radar": 60 * 60 * 6,
 };
 
 export function cacheKey(feed: string, params?: unknown): string {
