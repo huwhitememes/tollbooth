@@ -40,6 +40,7 @@ import { getPaperDetails, getCitationGraph } from "./academic-products";
 import { genVideoIntel, modelSettingsLookup } from "./gen-video-products";
 import { getSpaceWeatherKp, getWeatherForecast, getWeatherCurrent, getAuroraForecast, getMarineConditions, getAirQualityIndex, getPostalLookup, getIpGeolocation, getTimezoneCurrent, getAirportStatus, getDnsRecords, getIsbnLookup, getCryptoPrice, getBtcBalance, getBtcFees, getFoodRecalls } from "./quick-tools";
 import { buildX402MarketRadar } from "./x402-market-radar";
+import { buildX402RankAudit, buildInsiderClusterBrief, buildGovContractFitBrief, buildRegulatoryImpactBrief } from "./decision-briefs";
 
 // Environment-driven config — production defaults, overridable via process.env vars
 // Base Sepolia testnet: chain 84532, USDC at 0x1a35EE5c47503e1B627338D2c1943774f2E50B6D
@@ -125,6 +126,38 @@ const TOOLS = [
     input: { query_limit: "optional integer 3-20; default 15" },
     example: { query_limit: 15 },
     http_path: "/paid/x402/market-radar",
+  },
+  {
+    name: "x402_rank_audit",
+    price_usd: "0.10",
+    description: "Audit one x402 resource across buyer keywords. Returns Bazaar rank, competitors above it, metadata defects, and fixes that can improve paid-resource discovery.",
+    input: { resource: "optional resource URL", keywords: "optional string array, max 8", limit: "optional integer 5-25" },
+    example: { resource: "https://agenttoll.dev/paid/x402/market-radar", keywords: ["x402 market radar", "CDP Bazaar ranking"] },
+    http_path: "/paid/x402/rank-audit",
+  },
+  {
+    name: "insider_cluster_brief",
+    price_usd: "0.10",
+    description: "Turn recent SEC Form 4 filings into an insider-activity brief: clustered companies, filing counts, source links, and watchlist verdict. Signal intel only.",
+    input: { ticker: "optional stock ticker", limit: "optional integer 5-80" },
+    example: { ticker: "AAPL", limit: 30 },
+    http_path: "/paid/finance/insider-cluster-brief",
+  },
+  {
+    name: "gov_contract_fit_brief",
+    price_usd: "0.15",
+    description: "Find federal contract awards that fit a service keyword, agency, or company domain. Returns scored incumbents, buyer agencies, dollar amounts, and pursuit notes.",
+    input: { keyword: "service or market keyword", agency: "optional agency", company_domain: "optional company domain", limit: "optional integer 5-50" },
+    example: { keyword: "cybersecurity training", agency: "Department of Defense" },
+    http_path: "/paid/gov/contract-fit-brief",
+  },
+  {
+    name: "regulatory_impact_brief",
+    price_usd: "0.12",
+    description: "Summarize fresh Federal Register and rulemaking signals for one sector. Returns severity, source links, agency context, and a plain action read.",
+    input: { sector: "crypto, ai, banking, healthcare, energy, privacy, or custom phrase", agency: "optional agency", hours: "optional integer 6-720" },
+    example: { sector: "crypto", hours: 72 },
+    http_path: "/paid/osint/regulatory-impact-brief",
   },
   {
     name: "polymarket_event_scan",
@@ -985,6 +1018,52 @@ const x402MarketRadarDiscovery = declareDiscoveryExtension({
   },
 });
 
+const x402RankAuditDiscovery = declareDiscoveryExtension({
+  bodyType: "json",
+  input: { resource: "https://agenttoll.dev/paid/x402/market-radar", keywords: ["x402 market radar", "CDP Bazaar ranking"], limit: 15 },
+  inputSchema: { properties: {
+    resource: { type: "string", maxLength: 500 },
+    keywords: { type: "array", items: { type: "string" }, maxItems: 8 },
+    limit: { type: "integer", minimum: 5, maximum: 25 },
+  } },
+  output: { example: { product: "x402 Rank Audit", summary: { verdict: "partially_visible", ranked_keywords: 2 }, recommendations: [] } },
+});
+
+const insiderClusterBriefDiscovery = declareDiscoveryExtension({
+  bodyType: "json",
+  input: { ticker: "AAPL", limit: 30 },
+  inputSchema: { properties: {
+    ticker: { type: "string", maxLength: 10 },
+    limit: { type: "integer", minimum: 5, maximum: 80 },
+  } },
+  output: { example: { product: "Insider Cluster Brief", summary: { verdict: "watch", filings_checked: 12 }, clusters: [] } },
+});
+
+const govContractFitBriefDiscovery = declareDiscoveryExtension({
+  bodyType: "json",
+  input: { keyword: "cybersecurity training", agency: "Department of Defense" },
+  inputSchema: { properties: {
+    keyword: { type: "string", maxLength: 120 },
+    agency: { type: "string", maxLength: 120 },
+    company_domain: { type: "string", maxLength: 160 },
+    limit: { type: "integer", minimum: 5, maximum: 50 },
+  } },
+  output: { example: { product: "Government Contract Fit Brief", summary: { verdict: "possible_fit", best_fit_score: 52 }, top_matches: [] } },
+});
+
+const regulatoryImpactBriefDiscovery = declareDiscoveryExtension({
+  bodyType: "json",
+  input: { sector: "crypto", hours: 72 },
+  inputSchema: { properties: {
+    sector: { type: "string", maxLength: 120 },
+    agency: { type: "string", maxLength: 120 },
+    jurisdiction: { type: "string", maxLength: 40 },
+    hours: { type: "integer", minimum: 6, maximum: 720 },
+    limit: { type: "integer", minimum: 5, maximum: 25 },
+  } },
+  output: { example: { product: "Regulatory Impact Brief", summary: { verdict: "monitor", items_checked: 6 }, items: [] } },
+});
+
 const rebalanceDiscovery = declareDiscoveryExtension({
   bodyType: "json",
   input: { limit: 500, min_edge: 0.005, min_liquidity: 1000 },
@@ -1310,6 +1389,50 @@ paidHttp.use(paymentMiddleware({
     iconUrl: `${SERVICE.origin}/favicon.svg`,
     extensions: x402MarketRadarDiscovery,
     unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.05", network: SERVICE.network } }),
+  },
+  "POST /paid/x402/rank-audit": {
+    accepts: { scheme: "exact", price: "$0.10", network: SERVICE.network, payTo: SERVICE.seller },
+    resource: `${SERVICE.origin}/paid/x402/rank-audit`,
+    description: "Buyer-keyword rank audit for one x402 resource: Bazaar position, competitors above it, metadata defects, and next fixes",
+    mimeType: "application/json",
+    serviceName: "agenttoll.dev",
+    tags: ["x402", "bazaar", "rank-audit", "discovery", "agent-payments"],
+    iconUrl: `${SERVICE.origin}/favicon.svg`,
+    extensions: x402RankAuditDiscovery,
+    unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.10", network: SERVICE.network } }),
+  },
+  "POST /paid/finance/insider-cluster-brief": {
+    accepts: { scheme: "exact", price: "$0.10", network: SERVICE.network, payTo: SERVICE.seller },
+    resource: `${SERVICE.origin}/paid/finance/insider-cluster-brief`,
+    description: "SEC Form 4 insider-activity cluster brief with filing counts, source links, and watchlist verdict",
+    mimeType: "application/json",
+    serviceName: "agenttoll.dev",
+    tags: ["finance", "sec", "insider-trades", "form-4", "x402"],
+    iconUrl: `${SERVICE.origin}/favicon.svg`,
+    extensions: insiderClusterBriefDiscovery,
+    unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.10", network: SERVICE.network } }),
+  },
+  "POST /paid/gov/contract-fit-brief": {
+    accepts: { scheme: "exact", price: "$0.15", network: SERVICE.network, payTo: SERVICE.seller },
+    resource: `${SERVICE.origin}/paid/gov/contract-fit-brief`,
+    description: "Federal contract-fit brief: scored incumbents, buyer agencies, award amounts, and pursuit notes for one service niche",
+    mimeType: "application/json",
+    serviceName: "agenttoll.dev",
+    tags: ["government", "contracts", "procurement", "lead-intel", "x402"],
+    iconUrl: `${SERVICE.origin}/favicon.svg`,
+    extensions: govContractFitBriefDiscovery,
+    unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.15", network: SERVICE.network } }),
+  },
+  "POST /paid/osint/regulatory-impact-brief": {
+    accepts: { scheme: "exact", price: "$0.12", network: SERVICE.network, payTo: SERVICE.seller },
+    resource: `${SERVICE.origin}/paid/osint/regulatory-impact-brief`,
+    description: "Regulatory impact brief for one sector: fresh rulemaking signals, severity, agency context, and action read",
+    mimeType: "application/json",
+    serviceName: "agenttoll.dev",
+    tags: ["osint", "regulatory", "federal-register", "rulemaking", "x402"],
+    iconUrl: `${SERVICE.origin}/favicon.svg`,
+    extensions: regulatoryImpactBriefDiscovery,
+    unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.12", network: SERVICE.network } }),
   },
   "POST /paid/polymarket/rebalance-scan": {
     accepts: { scheme: "exact", price: "$0.04", network: SERVICE.network, payTo: SERVICE.seller },
@@ -1675,6 +1798,47 @@ paidHttp.post("/paid/x402/market-radar", async (c) => {
     return c.json(wrapped.data, 200, { "X-Cache": wrapped.cached ? "HIT" : "MISS", "X-Cache-Age": String(wrapped.age_ms ?? 0) } as any);
   } catch (error) {
     return c.json({ error: "x402_market_radar_failed", message: error instanceof Error ? error.message : String(error) }, 502);
+  }
+});
+
+paidHttp.post("/paid/x402/rank-audit", async (c) => {
+  const body = await c.req.json<Record<string, unknown>>().catch(() => ({} as Record<string, unknown>));
+  try {
+    const keywords = Array.isArray(body.keywords) ? body.keywords.map((x) => String(x)).slice(0, 8) : undefined;
+    const wrapped = await getCachedOrLive(c.env as any, "x402-rank-audit", () => buildX402RankAudit({ resource: body.resource ? String(body.resource) : undefined, keywords, network: SERVICE.network, limit: optionalNumber(body.limit) }), { params: body, ttlSec: 60 * 30 });
+    return c.json(wrapped.data, 200, { "X-Cache": wrapped.cached ? "HIT" : "MISS", "X-Cache-Age": String(wrapped.age_ms ?? 0) } as any);
+  } catch (error) {
+    return c.json({ error: "x402_rank_audit_failed", message: error instanceof Error ? error.message : String(error) }, 502);
+  }
+});
+
+paidHttp.post("/paid/finance/insider-cluster-brief", async (c) => {
+  const body = await c.req.json<Record<string, unknown>>().catch(() => ({} as Record<string, unknown>));
+  try {
+    const wrapped = await getCachedOrLive(c.env as any, "insider-cluster-brief-v2", () => buildInsiderClusterBrief({ ticker: body.ticker ? String(body.ticker) : undefined, limit: optionalNumber(body.limit) }), { params: body, ttlSec: 60 * 30 });
+    return c.json(wrapped.data, 200, { "X-Cache": wrapped.cached ? "HIT" : "MISS", "X-Cache-Age": String(wrapped.age_ms ?? 0) } as any);
+  } catch (error) {
+    return c.json({ error: "insider_cluster_brief_failed", message: error instanceof Error ? error.message : String(error) }, 502);
+  }
+});
+
+paidHttp.post("/paid/gov/contract-fit-brief", async (c) => {
+  const body = await c.req.json<Record<string, unknown>>().catch(() => ({} as Record<string, unknown>));
+  try {
+    const wrapped = await getCachedOrLive(c.env as any, "gov-contract-fit-brief-v2", () => buildGovContractFitBrief({ keyword: body.keyword ? String(body.keyword) : undefined, agency: body.agency ? String(body.agency) : undefined, company_domain: body.company_domain ? String(body.company_domain) : undefined, limit: optionalNumber(body.limit) }), { params: body, ttlSec: 60 * 60 });
+    return c.json(wrapped.data, 200, { "X-Cache": wrapped.cached ? "HIT" : "MISS", "X-Cache-Age": String(wrapped.age_ms ?? 0) } as any);
+  } catch (error) {
+    return c.json({ error: "gov_contract_fit_brief_failed", message: error instanceof Error ? error.message : String(error) }, 502);
+  }
+});
+
+paidHttp.post("/paid/osint/regulatory-impact-brief", async (c) => {
+  const body = await c.req.json<Record<string, unknown>>().catch(() => ({} as Record<string, unknown>));
+  try {
+    const wrapped = await getCachedOrLive(c.env as any, "regulatory-impact-brief", () => buildRegulatoryImpactBrief({ sector: body.sector ? String(body.sector) : undefined, agency: body.agency ? String(body.agency) : undefined, jurisdiction: body.jurisdiction ? String(body.jurisdiction) : undefined, hours: optionalNumber(body.hours), limit: optionalNumber(body.limit) }), { params: body, ttlSec: 60 * 60 });
+    return c.json(wrapped.data, 200, { "X-Cache": wrapped.cached ? "HIT" : "MISS", "X-Cache-Age": String(wrapped.age_ms ?? 0) } as any);
+  } catch (error) {
+    return c.json({ error: "regulatory_impact_brief_failed", message: error instanceof Error ? error.message : String(error) }, 502);
   }
 });
 
@@ -2630,6 +2794,43 @@ export class TollboothMCP extends McpAgent<Env> {
       }),
     );
 
+
+    this.server.paidTool(
+      "x402_rank_audit",
+      "Audit one x402 resource across buyer keywords. Returns Bazaar rank, competitors above it, metadata defects, and fixes that can improve discovery.",
+      0.10,
+      { resource: z.string().optional(), keywords: z.array(z.string()).optional(), limit: z.number().int().min(5).max(25).optional() },
+      {},
+      async ({ resource, keywords, limit }) => ({ content: [{ type: "text", text: JSON.stringify(await buildX402RankAudit({ resource, keywords, network: SERVICE.network, limit })) }] }),
+    );
+
+    this.server.paidTool(
+      "insider_cluster_brief",
+      "Turn recent SEC Form 4 filings into an insider-activity cluster brief. Signal intel only.",
+      0.10,
+      { ticker: z.string().optional(), limit: z.number().int().min(5).max(80).optional() },
+      {},
+      async ({ ticker, limit }) => ({ content: [{ type: "text", text: JSON.stringify(await buildInsiderClusterBrief({ ticker, limit })) }] }),
+    );
+
+    this.server.paidTool(
+      "gov_contract_fit_brief",
+      "Score federal contract awards against a service keyword, agency, or company domain. Returns incumbents, agencies, amounts, and pursuit notes.",
+      0.15,
+      { keyword: z.string().optional(), agency: z.string().optional(), company_domain: z.string().optional(), limit: z.number().int().min(5).max(50).optional() },
+      {},
+      async ({ keyword, agency, company_domain, limit }) => ({ content: [{ type: "text", text: JSON.stringify(await buildGovContractFitBrief({ keyword, agency, company_domain, limit })) }] }),
+    );
+
+    this.server.paidTool(
+      "regulatory_impact_brief",
+      "Summarize fresh Federal Register and rulemaking signals for one sector with severity, source links, and action read.",
+      0.12,
+      { sector: z.string().optional(), agency: z.string().optional(), jurisdiction: z.string().optional(), hours: z.number().int().min(6).max(720).optional(), limit: z.number().int().min(5).max(25).optional() },
+      {},
+      async ({ sector, agency, jurisdiction, hours, limit }) => ({ content: [{ type: "text", text: JSON.stringify(await buildRegulatoryImpactBrief({ sector, agency, jurisdiction, hours, limit })) }] }),
+    );
+
     this.server.paidTool(
       "polymarket_event_scan",
       "Scan one live Polymarket negRisk event for fee-adjusted outcome-sum violations. Intelligence only; verify CLOB depth and resolution rules before acting.",
@@ -3076,6 +3277,10 @@ function serviceInfo() {
       polymarket_market_scan: `${SERVICE.origin}/paid/polymarket/market-scan`,
       cross_platform_arb_scan: `${SERVICE.origin}/paid/markets/cross-platform-scan`,
       x402_market_radar: `${SERVICE.origin}/paid/x402/market-radar`,
+      x402_rank_audit: `${SERVICE.origin}/paid/x402/rank-audit`,
+      insider_cluster_brief: `${SERVICE.origin}/paid/finance/insider-cluster-brief`,
+      gov_contract_fit_brief: `${SERVICE.origin}/paid/gov/contract-fit-brief`,
+      regulatory_impact_brief: `${SERVICE.origin}/paid/osint/regulatory-impact-brief`,
       agent_threat_intel: `${SERVICE.origin}/paid/security/threat-intel`,
       mcp_supply_chain_iocs: `${SERVICE.origin}/paid/security/mcp-iocs`,
       agent_trifecta_score: `${SERVICE.origin}/paid/security/trifecta-score`,
@@ -4931,15 +5136,15 @@ ${content}
 // ── Category definitions (single source of truth) ──────────────────
 const TOOL_CATEGORIES = [
   { name: "Prediction Markets", icon: "\u{1F4CA}", tools: ["polymarket_event_scan","polymarket_market_scan","cross_platform_arb_scan","rebalance_arb_scan","trending_markets","odds_feed","volume_analytics","resolution_history","kalshi_markets","combinatorial_arb","orderbook_imbalance","smart_money"] },
-  { name: "x402 Market Intel", icon: "\u{1F6E3}\u{FE0F}", tools: ["x402_market_radar"] },
-  { name: "OSINT & Intelligence", icon: "\u{1F30D}", tools: ["geo_intervention_pulse","flight_intel","osint_research_pack","scenario_verdict","weather_bias_score","supply_chain_stress","regulatory_pulse","attention_momentum","sec_8k_velocity","fred_surprises","treasury_dts","openrouter_models","github_trending","github_repo_intel","hn_frontpage","reddit_search"] },
+  { name: "x402 Market Intel", icon: "\u{1F6E3}\u{FE0F}", tools: ["x402_market_radar","x402_rank_audit"] },
+  { name: "OSINT & Intelligence", icon: "\u{1F30D}", tools: ["geo_intervention_pulse","flight_intel","osint_research_pack","scenario_verdict","weather_bias_score","supply_chain_stress","regulatory_pulse","regulatory_impact_brief","attention_momentum","sec_8k_velocity","fred_surprises","treasury_dts","openrouter_models","github_trending","github_repo_intel","hn_frontpage","reddit_search"] },
   { name: "Web Intel", icon: "\u{1F50D}", tools: ["scrape","detect_stack","extract_contacts","score_lead","enrich_lead","check_agent_policy","find_agent_resource","validate_agent_manifest"] },
   { name: "Legal & Regulatory", icon: "\u{2696}\u{FE0F}", tools: ["court_opinions","court_docket","federal_register","patents_search","regulations_search","judges_search","trademarks_search"] },
   { name: "Academic & Science", icon: "\u{1F52C}", tools: ["search_papers","search_arxiv","search_pubmed","clinical_trials","search_openalex","paper_details","citation_graph"] },
   { name: "Health & Safety", icon: "\u{1F48A}", tools: ["drug_recalls","adverse_events","product_recalls","vehicle_recalls","drug_labels","disease_outbreaks","food_safety","food_recall_check"] },
   { name: "Environmental", icon: "\u{1F525}", tools: ["wildfires","weather_alerts","tide_data","space_weather","water_levels","usgs_quake","openaq_air","space_weather_kp","weather_forecast_grid","weather_current_global","aurora_forecast","marine_conditions","air_quality_index"] },
-  { name: "Government", icon: "\u{1F3DB}\u{FE0F}", tools: ["federal_spending","national_debt","federal_grants","nonprofit_filings","economic_indicators","lobbying_records","federal_contracts"] },
-  { name: "Finance & Crypto", icon: "\u{1F4B0}", tools: ["edgar_filings","insider_trades","fred_series","currency_rates","business_days","crypto_price_simple","btc_address_balance","btc_mempool_fees"] },
+  { name: "Government", icon: "\u{1F3DB}\u{FE0F}", tools: ["federal_spending","national_debt","federal_grants","nonprofit_filings","economic_indicators","lobbying_records","federal_contracts","gov_contract_fit_brief"] },
+  { name: "Finance & Crypto", icon: "\u{1F4B0}", tools: ["edgar_filings","insider_trades","insider_cluster_brief","fred_series","currency_rates","business_days","crypto_price_simple","btc_address_balance","btc_mempool_fees"] },
   { name: "Security", icon: "\u{1F512}", tools: ["agent_threat_intel","mcp_supply_chain_iocs","agent_trifecta_score","agent_security_policies","cve_search","company_registry"] },
   { name: "Gen-Video Intel", icon: "\u{1F3AC}", tools: ["gen_video_intel","model_settings_lookup"] },
   { name: "Utility", icon: "\u{1F527}", tools: ["postal_code_lookup","ip_geolocation","timezone_current","airport_status","dns_records_lookup","isbn_book_lookup"] },
@@ -5397,6 +5602,10 @@ function openApiSpec() {
           responses: { "200": { description: "x402 market radar report.", "content": { "application/json": { "schema": { "type": "object" } } } }, "402": { description: "x402 payment requirements." } },
         },
       },
+      "/paid/x402/rank-audit": { post: { summary: "Paid x402 resource rank audit", description: "Returns HTTP 402 until paid $0.10 in Base USDC through x402. Checks Bazaar rank, competitors, and metadata defects for one resource.", requestBody: { content: { "application/json": { schema: { type: "object", properties: { resource: { type: "string" }, keywords: { type: "array", items: { type: "string" } }, limit: { type: "integer", minimum: 5, maximum: 25 } } } } } }, responses: { "200": { description: "Rank audit report.", "content": { "application/json": { "schema": { "type": "object" } } } }, "402": { description: "x402 payment requirements." } } } },
+      "/paid/finance/insider-cluster-brief": { post: { summary: "Paid insider cluster brief", description: "Returns HTTP 402 until paid $0.10 in Base USDC through x402. Converts recent SEC Form 4 filings into cluster and watchlist signals.", requestBody: { content: { "application/json": { schema: { type: "object", properties: { ticker: { type: "string" }, limit: { type: "integer", minimum: 5, maximum: 80 } } } } } }, responses: { "200": { description: "Insider cluster brief.", "content": { "application/json": { "schema": { "type": "object" } } } }, "402": { description: "x402 payment requirements." } } } },
+      "/paid/gov/contract-fit-brief": { post: { summary: "Paid government contract fit brief", description: "Returns HTTP 402 until paid $0.15 in Base USDC through x402. Scores federal contract awards against a service keyword, agency, or company domain.", requestBody: { content: { "application/json": { schema: { type: "object", properties: { keyword: { type: "string" }, agency: { type: "string" }, company_domain: { type: "string" }, limit: { type: "integer", minimum: 5, maximum: 50 } } } } } }, responses: { "200": { description: "Contract fit brief.", "content": { "application/json": { "schema": { "type": "object" } } } }, "402": { description: "x402 payment requirements." } } } },
+      "/paid/osint/regulatory-impact-brief": { post: { summary: "Paid regulatory impact brief", description: "Returns HTTP 402 until paid $0.12 in Base USDC through x402. Summarizes fresh rulemaking signals for one sector.", requestBody: { content: { "application/json": { schema: { type: "object", properties: { sector: { type: "string" }, agency: { type: "string" }, jurisdiction: { type: "string" }, hours: { type: "integer", minimum: 6, maximum: 720 }, limit: { type: "integer", minimum: 5, maximum: 25 } } } } } }, responses: { "200": { description: "Regulatory impact brief.", "content": { "application/json": { "schema": { "type": "object" } } } }, "402": { description: "x402 payment requirements." } } } },
       "/paid/polymarket/rebalance-scan": {
         post: {
           summary: "Paid Polymarket rebalance arbitrage scan",

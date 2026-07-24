@@ -39,6 +39,12 @@ export const FEED_TTLS: Record<string, number> = {
   "polymarket-resolution": 60 * 10,
   "polymarket-res": 60 * 10,
   "x402-market-radar": 60 * 60 * 6,
+  "x402-rank-audit": 60 * 30,
+  "insider-cluster-brief": 60 * 30,
+  "insider-cluster-brief-v2": 60 * 30,
+  "gov-contract-fit-brief": 60 * 60,
+  "gov-contract-fit-brief-v2": 60 * 60,
+  "regulatory-impact-brief": 60 * 60,
 };
 
 export function cacheKey(feed: string, params?: unknown): string {
