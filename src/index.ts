@@ -1338,14 +1338,51 @@ paidHttp.get("/paid/*", (c) => {
     tool: {
       name: tool.name,
       description: tool.description,
+      buyer_value: `Pay $${tool.price_usd} for ${tool.description}`,
       input: tool.input,
       example: tool.example,
+      sample_output: "JSON with source-backed fields, response metadata, and decision/readout fields where the endpoint is a brief.",
+      discovery_queries: [
+        String(tool.name).replace(/_/g, " "),
+        `${String(tool.name).replace(/_/g, " ")} x402`,
+        "paid MCP tool",
+        "paid data API for AI agents",
+      ],
       docs: `${SERVICE.origin}/tools/${tool.name}`,
     },
   });
 });
 
+
+function genericPaymentRoutes(): Record<string, any> {
+  const routes: Record<string, any> = {};
+  for (const tool of TOOLS as readonly any[]) {
+    if (!tool.http_path) continue;
+    const pathTags = String(tool.http_path)
+      .split("/")
+      .filter(Boolean)
+      .filter((part) => part !== "paid")
+      .flatMap((part) => part.split("-"))
+      .filter(Boolean);
+    routes[`POST ${tool.http_path}`] = {
+      accepts: { scheme: "exact", price: `$${tool.price_usd}`, network: SERVICE.network, payTo: SERVICE.seller },
+      resource: `${SERVICE.origin}${tool.http_path}`,
+      description: tool.description,
+      mimeType: "application/json",
+      serviceName: "agenttoll.dev",
+      tags: Array.from(new Set([...pathTags, String(tool.name), "x402", "paid-api", "ai-agents"])),
+      iconUrl: `${SERVICE.origin}/favicon.svg`,
+      unpaidResponseBody: () => ({
+        contentType: "application/json",
+        body: { error: "payment_required", price_usd: String(tool.price_usd), network: SERVICE.network },
+      }),
+    };
+  }
+  return routes;
+}
+
 paidHttp.use(paymentMiddleware({
+  ...genericPaymentRoutes(),
   "POST /paid/polymarket/event-scan": {
     accepts: { scheme: "exact", price: "$0.03", network: SERVICE.network, payTo: SERVICE.seller },
     resource: `${SERVICE.origin}/paid/polymarket/event-scan`,
@@ -1382,10 +1419,10 @@ paidHttp.use(paymentMiddleware({
   "POST /paid/x402/market-radar": {
     accepts: { scheme: "exact", price: "$0.05", network: SERVICE.network, payTo: SERVICE.seller },
     resource: `${SERVICE.origin}/paid/x402/market-radar`,
-    description: "CDP Bazaar market radar for x402 builders — catalog size, keyword ranks, AgentToll visibility, vertical competition, price samples, and next actions",
+    description: "CDP Bazaar market radar for x402 builders, paid MCP tools, and paid data APIs for AI agents — catalog size, keyword ranks, AgentToll visibility, vertical competition, price samples, and next actions",
     mimeType: "application/json",
     serviceName: "agenttoll.dev",
-    tags: ["x402", "bazaar", "market-radar", "agent-payments", "mcp", "discovery"],
+    tags: ["x402", "bazaar", "market-radar", "agent-payments", "mcp", "paid-mcp-tools", "paid-data-api", "x402-tools", "discovery"],
     iconUrl: `${SERVICE.origin}/favicon.svg`,
     extensions: x402MarketRadarDiscovery,
     unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.05", network: SERVICE.network } }),
@@ -1393,10 +1430,10 @@ paidHttp.use(paymentMiddleware({
   "POST /paid/x402/rank-audit": {
     accepts: { scheme: "exact", price: "$0.10", network: SERVICE.network, payTo: SERVICE.seller },
     resource: `${SERVICE.origin}/paid/x402/rank-audit`,
-    description: "Buyer-keyword rank audit for one x402 resource: Bazaar position, competitors above it, metadata defects, and next fixes",
+    description: "Buyer-keyword rank audit for one x402 resource, paid MCP tool, or paid data API: Bazaar position, competitors above it, metadata defects, and next fixes",
     mimeType: "application/json",
     serviceName: "agenttoll.dev",
-    tags: ["x402", "bazaar", "rank-audit", "discovery", "agent-payments"],
+    tags: ["x402", "bazaar", "rank-audit", "discovery", "agent-payments", "x402-tools", "paid-mcp-tools", "paid-data-api", "visibility-audit"],
     iconUrl: `${SERVICE.origin}/favicon.svg`,
     extensions: x402RankAuditDiscovery,
     unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.10", network: SERVICE.network } }),
@@ -5504,6 +5541,47 @@ Seller wallet: ${SERVICE.seller}</pre>
 
   return shellPage("Docs", content);
 }
+
+function inputHintToSchema(hint: unknown): Record<string, unknown> {
+  const text = String(hint ?? "").toLowerCase();
+  const schema: Record<string, unknown> = { type: "string", description: String(hint ?? "") };
+  if (/integer|int|limit|days|hours|pages|count/.test(text)) schema.type = "integer";
+  else if (/decimal|number|score|edge|volume|liquidity|similarity|price|lat|lon/.test(text)) schema.type = "number";
+  else if (/boolean|true|false/.test(text)) schema.type = "boolean";
+  else if (/array|list/.test(text)) {
+    schema.type = "array";
+    schema.items = { type: "string" };
+  }
+  return schema;
+}
+
+function openApiPaidPaths(): Record<string, unknown> {
+  const paths: Record<string, unknown> = {};
+  for (const tool of TOOLS as readonly any[]) {
+    if (!tool.http_path) continue;
+    const input = (tool.input ?? {}) as Record<string, unknown>;
+    const required = Object.entries(input)
+      .filter(([, hint]) => /required|string, include|url|string research query|string q|topic|slug/.test(String(hint ?? "").toLowerCase()) && !/optional/.test(String(hint ?? "").toLowerCase()))
+      .map(([key]) => key);
+    const properties = Object.fromEntries(Object.entries(input).map(([key, hint]) => [key, inputHintToSchema(hint)]));
+    paths[tool.http_path] = {
+      post: {
+        summary: `Paid ${String(tool.name).replace(/_/g, " ")}`,
+        description: `Returns HTTP 402 until paid $${tool.price_usd} in Base USDC through x402. ${tool.description}`,
+        requestBody: {
+          required: required.length > 0,
+          content: { "application/json": { schema: { type: "object", ...(required.length ? { required } : {}), properties } } },
+        },
+        responses: {
+          "200": { description: `Paid ${tool.name} JSON response.`, content: { "application/json": { schema: { type: "object" } } } },
+          "402": { description: "x402 payment requirements." },
+        },
+      },
+    };
+  }
+  return paths;
+}
+
 function openApiSpec() {
   const info = serviceInfo();
   return {
@@ -5516,6 +5594,7 @@ function openApiSpec() {
     jsonSchemaDialect: "https://json-schema.org/draft/2020-12/schema",
     servers: [{ url: SERVICE.origin }],
     paths: {
+      ...openApiPaidPaths(),
       "/api/info": {
         get: {
           summary: "Get agenttoll.dev service metadata",
