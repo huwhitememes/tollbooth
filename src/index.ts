@@ -21,7 +21,7 @@ import { searchFederalSpending, getNationalDebt, searchFederalGrants, searchLobb
 import { queryGeoPulse, queryFlightIntel, queryResearchPack, queryScenarioVerdict, queryWeatherBias, querySupplyStress, queryRegulatoryPulse, queryAttentionMomentum, querySec8kVelocity, queryFredSurprises, queryTreasuryDts, queryGithubTrending, queryHnFrontpage, queryUsgsQuakes, queryOpenAq } from "./osint-products";
 import { scrapeUrl, enrichDomain } from "./scraper";
 import { scrubContactPayload, scrubText } from "./pii-scrub";
-import { getCachedOrLive, kvListKeys, _PREFIX } from "./cache.js";
+import { getCachedOrLive, kvListKeys, routeAnalyticsIncrement, routeAnalyticsSnapshot, _PREFIX, type RouteAnalyticsEvent } from "./cache.js";
 import { runAllFeedWarms } from "./scheduler.js";
 import { mcpGetCachedOrLive } from "./mcp-cache.js";
 import { fetchGithubTrending } from "./feeds/github-trending.js";
@@ -1322,10 +1322,11 @@ const genVideoDiscovery = declareDiscoveryExtension({
 
 const paidHttp = new Hono<{ Bindings: Env }>();
 
-paidHttp.get("/paid/*", (c) => {
+paidHttp.get("/paid/*", async (c) => {
   const path = new URL(c.req.url).pathname;
   const tool = TOOLS.find((candidate) => (candidate as any).http_path === path) as any;
   if (!tool) return c.json({ error: "not_found", message: "Unknown paid endpoint." }, 404);
+  await routeAnalyticsIncrement(c.env as any, path, "metadata_views").catch(() => {});
   return c.json({
     service: SERVICE.name,
     endpoint: `${SERVICE.origin}${tool.http_path}`,
@@ -1380,6 +1381,22 @@ function genericPaymentRoutes(): Record<string, any> {
   }
   return routes;
 }
+
+
+paidHttp.use("/paid/*", async (c, next) => {
+  if (c.req.method !== "POST") {
+    await next();
+    return;
+  }
+  await next();
+  const path = new URL(c.req.url).pathname;
+  const status = c.res.status;
+  let event: RouteAnalyticsEvent = "post_other";
+  if (status === 402) event = "payment_challenges";
+  else if (status >= 200 && status < 300) event = "paid_successes";
+  else if (status >= 500) event = "upstream_failures";
+  await routeAnalyticsIncrement(c.env as any, path, event).catch(() => {});
+});
 
 paidHttp.use(paymentMiddleware({
   ...genericPaymentRoutes(),
@@ -5951,6 +5968,17 @@ function openApiSpec() {
           responses: { "200": { description: "Cache key list.", "content": { "application/json": { "schema": { "type": "object", "properties": { "success": { "type": "boolean" }, "data": { "oneOf": [ { "type": "array" }, { "type": "object" } ] }, "cached": { "type": "boolean" }, "meta": { "type": "object", "properties": { "count": { "type": "integer" }, "source": { "type": "string" }, "generated_at": { "type": "string", "format": "date-time" } } } } } } } }, "403": { description: "Forbidden — key mismatch." } },
         },
       },
+      "/admin/route-analytics": {
+        get: {
+          summary: "Route-level x402 funnel analytics (requires WARM_KEY or dev mode)",
+          description: "Shows GET metadata views, unpaid 402 payment challenges, paid 2xx successes, and upstream failures by paid endpoint. Protected by ?key= or x-warm-key header matching WARM_KEY.",
+          parameters: [
+            { name: "key", in: "query", required: false, schema: { type: "string" }, description: "WARM_KEY value" },
+            { name: "days", in: "query", required: false, schema: { type: "integer", minimum: 1, maximum: 35 }, description: "Number of UTC daily buckets to aggregate" },
+          ],
+          responses: { "200": { description: "Route analytics snapshot." }, "403": { description: "Forbidden — key mismatch." } },
+        },
+      },
     },
     "x-tollbooth-payments": info.payments,
     "x-tollbooth-tools": TOOLS.map((tool) => ({
@@ -6092,6 +6120,25 @@ export default {
         return jsonResponse({ ok: true, key_count: keys.length, keys: keys.map(k => ({ name: k.name.replace(_PREFIX, ""), expiration: k.expiration })), timestamp: new Date().toISOString() });
       } catch (error) {
         return jsonResponse({ error: "cache_status_failed", message: error instanceof Error ? error.message : String(error) }, 500);
+      }
+    }
+
+
+    if (url.pathname === "/admin/route-analytics") {
+      const warmKey = (env as any)?.WARM_KEY as string | undefined;
+      const providedKey = url.searchParams.get("key") ?? request.headers.get("x-warm-key");
+      const isDev = (env as any)?.NODE_ENV === "development" || !(env as any)?.WARM_KEY && process.env.NODE_ENV !== "production";
+      if (warmKey) {
+        if (providedKey !== warmKey) return jsonResponse({ error: "forbidden" }, 403);
+      } else if (!isDev) {
+        return jsonResponse({ error: "forbidden", message: "WARM_KEY not set and not in dev" }, 403);
+      }
+      try {
+        const days = Number(url.searchParams.get("days") ?? "1") || 1;
+        const snapshot = await routeAnalyticsSnapshot(env as any, days);
+        return jsonResponse({ ok: true, ...snapshot });
+      } catch (error) {
+        return jsonResponse({ error: "route_analytics_failed", message: error instanceof Error ? error.message : String(error) }, 500);
       }
     }
 
