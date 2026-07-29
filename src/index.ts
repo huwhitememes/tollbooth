@@ -4229,7 +4229,15 @@ footer code {
   font-size: 24px;
   cursor: pointer;
   padding: 4px 8px;
+  border-radius: 10px;
   z-index: 11;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition: transform var(--duration-fast) var(--ease-out), background-color var(--duration-fast) ease, box-shadow var(--duration-fast) ease;
+}
+.nav-toggle:active {
+  transform: scale(0.96);
+  background: var(--accent-dim);
 }
 /* Hero entrance animation */
 .hero .badge,
