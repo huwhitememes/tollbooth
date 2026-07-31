@@ -4,27 +4,27 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-<title>X402 Got Its Standards Body. Now Comes the Hard Part. | agenttoll.dev</title>
-<meta name="description" content="Linux Foundation governance, Visa and Artemis usage data, and what the x402 Foundation launch means for builders shipping paid agent tools.">
-<link rel="canonical" href="https://agenttoll.dev/blog/x402-foundation-agent-payments">
-<meta property="og:title" content="X402 Got Its Standards Body. Now Comes the Hard Part.">
-<meta property="og:description" content="Linux Foundation governance, Visa and Artemis usage data, and what the x402 Foundation launch means for builders shipping paid agent tools.">
+<title>Base MCP Turns AI Agents Into x402 Buyers | agenttoll.dev</title>
+<meta name="description" content="Base MCP gives agents a user-approved wallet path for x402 payments. AgentToll needs routes that agents can discover, explain, and buy safely.">
+<link rel="canonical" href="https://agenttoll.dev/blog/base-mcp-x402-agent-buyers">
+<meta property="og:title" content="Base MCP Turns AI Agents Into x402 Buyers">
+<meta property="og:description" content="Base MCP gives agents a user-approved wallet path for x402 payments. AgentToll needs routes that agents can discover, explain, and buy safely.">
 <meta property="og:type" content="article">
-<meta property="og:url" content="https://agenttoll.dev/blog/x402-foundation-agent-payments">
-<meta property="og:image" content="https://agenttoll.dev/blog/og-x402-foundation.png">
+<meta property="og:url" content="https://agenttoll.dev/blog/base-mcp-x402-agent-buyers">
+<meta property="og:image" content="https://agenttoll.dev/blog/og-base-mcp-x402-agent-buyers.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:type" content="image/png">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://agenttoll.dev/blog/og-x402-foundation.png">
+<meta name="twitter:image" content="https://agenttoll.dev/blog/og-base-mcp-x402-agent-buyers.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script type="application/ld+json">{
   "@context": "https://schema.org",
   "@type": "Article",
-  "headline": "X402 Got Its Standards Body. Now Comes the Hard Part.",
-  "description": "Linux Foundation governance, Visa and Artemis usage data, and what the x402 Foundation launch means for builders shipping paid agent tools.",
+  "headline": "Base MCP Turns AI Agents Into x402 Buyers",
+  "description": "Base MCP gives agents a user-approved wallet path for x402 payments. AgentToll needs routes that agents can discover, explain, and buy safely.",
   "author": {
     "@type": "Person",
     "name": "Hu White",
@@ -35,10 +35,10 @@
     "name": "agenttoll.dev",
     "url": "https://agenttoll.dev"
   },
-  "datePublished": "2026-07-17",
-  "dateModified": "2026-07-17",
-  "image": "https://agenttoll.dev/blog/og-x402-foundation.png",
-  "mainEntityOfPage": "https://agenttoll.dev/blog/x402-foundation-agent-payments"
+  "datePublished": "2026-07-30",
+  "dateModified": "2026-07-30",
+  "image": "https://agenttoll.dev/blog/og-base-mcp-x402-agent-buyers.png",
+  "mainEntityOfPage": "https://agenttoll.dev/blog/base-mcp-x402-agent-buyers"
 }</script>
 <style>
 :root {
@@ -1070,8 +1070,7 @@ article a,
 }
 
 </style>
-</head>
-<body>
+</head><body>
 <nav>
   <a href="/" class="logo" style="text-decoration:none;color:inherit;">agent<span>toll</span>.dev</a>
   <button class="nav-toggle" aria-label="Menu" onclick="document.querySelector('nav .links').classList.toggle('open')">≡</button>
@@ -1089,67 +1088,90 @@ article a,
   <div class="blog-frame">
     <div>
       <div class="back-link"><a href="/blog">← Back to blog</a></div>
-      <div class="blog-kicker">ARTICLE · X402 FOUNDATION</div>
-      <h1 class="blog-title">X402 Got Its Standards Body. Now Comes the Hard Part.</h1>
+      <div class="blog-kicker">ARTICLE · BASE MCP · X402</div>
+      <h1 class="blog-title">Base MCP Turns AI Agents Into x402 Buyers</h1>
       <article class="blog-article">
 
-<div class="tldr"><strong>TL;DR:</strong> x402 crossed a line this week. Linux Foundation governance gives the protocol a neutral home, and the member list now includes Visa, Mastercard, Stripe, AWS, Google, Cloudflare, Coinbase, Circle, Ripple, Shopify, Solana Foundation, Stellar, and more. That does not mean every AI agent will pay over x402 next month. It does mean builders can stop treating HTTP-native payments as a side experiment and start treating them like infrastructure.</div>
+<div class="tldr"><strong>TL;DR:</strong> x402 gives APIs and tools a payment standard. Base MCP gives agents a user controlled wallet path. Together, they make paid agent work feel less like crypto plumbing and more like a normal tool call with a spending cap and approval step. That matters for AgentToll because the next fight is not only adding more paid endpoints. It is making those endpoints easy for agents to discover, judge, explain, and buy.</div>
 <hr>
-<h2>The protocol just moved from Coinbase project to industry table</h2>
-<p>On July 14, 2026, the Linux Foundation announced the operational launch of the x402 Foundation. Coinbase completed its contribution of the protocol, and the Foundation became the formal governance home for x402.</p>
-<p>The headline number is 40 members. The more useful detail is who those members are. Premier members include Adyen, AWS, American Express, Circle, Cloudflare, Coinbase, Fiserv, Google, Mastercard, Monad Foundation, MoonPay, Ripple, Shopify, Solana Foundation, Stellar Development Foundation, Stripe, and Visa. General and associate members bring in Polygon Labs, NEAR Foundation, Fireblocks, LayerZero Labs, Cardano Foundation, and others.</p>
-<p>That mix matters because x402 is trying to sit in an awkward place. It is not just a crypto protocol. It is not just a payments-industry standard. It is a web protocol that touches wallets, stablecoins, card networks, cloud providers, agent platforms, API sellers, and compliance teams. Coinbase could build the first version alone. It probably could not make every one of those groups trust it alone.</p>
-<p>This is the same reason the governance move matters more than another SDK release. A payment standard only works if competitors are willing to build against it. Visa and Mastercard will not bet the agent economy on a Coinbase-owned spec. Stripe and Cloudflare will not want a rail that feels like a single-vendor funnel. Linux Foundation governance does not solve every trust problem, but it removes the obvious objection.</p>
-<h2>The usage data is small in dollars and big in shape</h2>
-<p>Visa and Artemis published a joint report this week that puts real numbers on the machine-payment market. Their adjusted figures show x402 has processed about $15.0 million across 109.6 million transactions since launching in May 2025. The same report says Machine Payments Protocol, built by Stripe and Tempo with Visa input, settled about $25,000 across roughly 115,000 transactions in its first weeks after launch.</p>
-<p>The gap is not the only point. The average x402 payment is tiny. That is exactly what makes the protocol interesting. A payment rail for agents does not need to look like checkout. It needs to handle small, frequent calls for data, search, compute, browser sessions, inference, market feeds, and whatever else an agent needs mid-task.</p>
-<p>Base gave a narrower window in May: 3.1 million x402 transactions in 30 days, $1.2 million moved, sellers up 23%, buyers up 37%. CoinDesk reported another live snapshot around the Foundation launch: about 75 million transactions and $24 million over 30 days, between roughly 94,000 buyers and 22,000 sellers.</p>
-<p>Those numbers can look contradictory if you read them too quickly. Some are adjusted. Some are raw. Some cover all chains, while others are Base-only or taken from a shorter window. The direction is clearer than the exact accounting: x402 activity is already shaped like machine commerce. Many transactions, small ticket sizes, and a seller side that looks more like APIs than stores.</p>
-<h2>Why card networks are at the table</h2>
-<p>Visa's framing is useful here because it does not pretend stablecoins replace cards. The report splits agent commerce into two buckets.</p>
-<p>Macro commerce is the familiar stuff: an agent books travel, renews a subscription, orders inventory, or buys something from a merchant. Card rails still make sense there because the payment size and dispute model look like normal commerce.</p>
-<p>Micro commerce is different. One program pays another program for a resource. The payment might be a few cents, or less than a cent. The agent might do it hundreds or thousands of times. A fixed card fee breaks that model before the first invoice. Stablecoins on cheap chains can make it work.</p>
-<p>That is why the card networks are showing up instead of ignoring it. If agents start buying software resources directly, card networks either become a bridge into that world or watch a new settlement layer grow around them. x402 gives them a seat in the part of commerce that cards were never built to handle.</p>
-<h2>For builders, the new question is discovery</h2>
-<p>I care about this from the seller side because agenttoll.dev is already what the Foundation press release is describing: paid tools over HTTP, priced per call, discovered by agents, settled in USDC on Base.</p>
-<p>The hard part is not making one endpoint return 402. That part is almost boring once the middleware works. The hard part is making the endpoint discoverable, priced correctly, safe to call, and worth paying for. A paid tool that no agent can find is just a private API with a toll booth in front of it.</p>
-<p>That is where x402 gets interesting after the Foundation launch. Governance can standardize the payment handshake. It cannot make your market-data endpoint rank when an agent searches for "Polymarket arbitrage scan" or "SEC 8-K velocity feed." Sellers still need machine-readable manifests, OpenAPI entries, clear tool pages, sane descriptions, and working 402 challenges that registries can crawl.</p>
-<p>This is the layer I think most teams will underestimate. They will wire the payment, ship one demo, and assume the buyer side appears. It will not. Agents need a reason to find your endpoint, understand the price, decide it is cheap enough, and trust the result format before they spend.</p>
-<h2>Governance does not remove the security work</h2>
-<p>A standards body makes x402 more credible. It does not make a bad implementation safe.</p>
-<p>The risk sits in the seam between HTTP and settlement. The server asks for payment, the client signs, a facilitator verifies, the server does work, and settlement lands later. If any part of that chain is loose, a buyer can get charged twice, a seller can deliver before payment is final, or a client can accept a receipt it never verified.</p>
-<p>The practical checklist is short enough to remember. Verify the receipt. Scope payments to the exact resource. Make settlement idempotent. Treat signed payment payloads like credentials. Put hard spending ceilings on agent wallets. Monitor the facilitator the same way you monitor your own API.</p>
-<p>I do not think this is a reason to avoid x402. It is a reason to stop shipping toy implementations and calling them production-ready.</p>
-<h2>The standards race is not winner-take-all</h2>
-<p>The agent payments space is already crowded. Stripe and Tempo have MPP. Google has AP2. OpenAI and Stripe have ACP for checkout-style commerce. Visa has its own agent commerce work. Mastercard has Agent Pay for Machines.</p>
-<p>That sounds like a standards war, but the edges are cleaner than the headlines suggest. x402 is strongest when one machine pays another machine for a digital resource over HTTP. AP2 is more about proving a human authorized an agent to spend. ACP is closer to merchant checkout. MPP leans toward an enterprise bridge between traditional payment systems and onchain settlement.</p>
-<p>Those can coexist. A travel agent might use a card-backed flow to book a hotel and x402 to buy a live fare feed. A research agent might use x402 for data sources and a different authorization layer for user budget controls. The market does not need one rail. It needs rails that know what job they do.</p>
-<h2>What I would watch next</h2>
-<p>The Foundation launch is not the finish line. It is the starting gun for the boring work that decides whether x402 becomes plumbing or press-release vapor.</p>
-<p>I would watch four things.</p>
-<p>First, conformance. Builders need tests that prove an implementation handles payment requirements, receipts, retries, idempotency, and scheme differences the same way every time.</p>
-<p>Second, facilitators. Most teams do not want to run blockchain settlement infrastructure. The facilitator market will decide whether x402 feels decentralized in practice or just routes through a few hosted vendors.</p>
-<p>Third, discovery. Registries like x402scan and the CDP Bazaar matter, but agent search behavior matters more. Paid resources need pages and manifests that agents can parse without a human sales funnel.</p>
-<p>Fourth, buyer wallets. Sellers can publish all day. Real volume needs agents with budgets, spend policies, receipts, and permission systems that their owners trust.</p>
-<h2>What this means for agenttoll.dev</h2>
-<p>For agenttoll.dev, the signal is simple: keep building the seller side.</p>
-<p>The Foundation launch makes the category easier to explain. Visa and Mastercard being in the room makes the conversation less weird. The Visa and Artemis data gives buyers a reason to believe this is already happening, not just a pitch deck. But the practical opportunity is still the same: useful paid tools, priced low enough for agents to call in loops, exposed through pages and manifests that machines can find.</p>
-<p>That is why the next useful work is not another abstract x402 explainer. It is more tools, better discovery pages, clean transaction specs, live settlement tests, and receipts that prove each paid call did what it said it did.</p>
-<p>The standards body is here. Now the market needs endpoints worth paying for.</p>
+<h2>What Base MCP changes</h2>
+<p>Base MCP connects AI clients to a Base Account smart wallet through <code>https://mcp.base.org</code>. Base describes it as a gateway between AI assistants and Base Account, with support for balance checks, sends, swaps, signatures, contract calls, transaction history, plugins, and x402 payments.</p>
+<p>The approval model matters. Base says agents do not receive wallet keys. Write actions create a request, and the user approves through Base Account. That keeps the agent in the loop without handing it the whole wallet.</p>
+<p>For x402, the Base docs are direct. Base MCP can pay x402 HTTPS API requests from a Base Account. The assistant sets a maximum USDC payment, Base MCP discovers the endpoint payment requirements, and the user signs before the request completes. The docs describe the flow with <code>initiate_x402_request</code> and <code>complete_x402_request</code>, and they tell builders to use tight <code>maxPayment</code> caps.</p>
+<p>That is the buyer side x402 needed.</p>
+<p>Before this, an x402 seller could expose a paid route and wait. The protocol worked, but the buyer still needed wallet setup, funding, signing logic, payment headers, retry handling, facilitator compatibility, and enough trust to approve the spend. Base MCP does not solve all of that, but it removes a lot of buyer friction from normal MCP environments.</p>
+<p>A user can ask an assistant to call a paid endpoint, cap the spend, approve the request, and get the result back. That is a different product surface than "install this SDK and wire your own wallet."</p>
+<h2>x402 already has the seller side</h2>
+<p>Coinbase describes x402 as an open payment protocol that revives HTTP <code>402 Payment Required</code>. A client requests a paid resource. The server replies with payment instructions. The client pays, retries with proof, and the server returns the resource after verification.</p>
+<p>Cloudflare is pushing the same pattern into web infrastructure with Monetization Gateway. Their framing is blunt: charge for web pages, datasets, APIs, and MCP tool calls. The unit of payment can be a request, token, or outcome instead of a seat or monthly plan.</p>
+<p>The Linux Foundation announcement gives the protocol a wider standards story. x402 is now under the x402 Foundation as an open, vendor neutral payment standard over HTTP, with Coinbase contributing the protocol and major infrastructure and payments companies joining the effort.</p>
+<p>So the seller side is getting real tooling. Sellers can add x402 middleware. Cloudflare wants to put enforcement at the edge. Coinbase has CDP docs and facilitators. Bazaar gives payable resources a discovery surface.</p>
+<p>The open question is whether enough real buyers show up.</p>
+<h2>Bazaar shows the opportunity and the mess</h2>
+<p>CDP Bazaar is the discovery layer for x402 services. Coinbase says it lets developers and AI agents browse and search x402 enabled services cataloged through the CDP Facilitator. Listings can include semantic descriptions, schemas, payment metadata, and trust signals from onchain activity. Bazaar also has an MCP path with tools like <code>search_resources</code> and <code>proxy_tool_call</code>.</p>
+<p>That is exactly what agents need. They need a way to find paid tools without a hardcoded list.</p>
+<p>But early marketplaces are ugly. An independent July 2026 analysis of Coinbase Bazaar pulled 25,443 resources and argued that only about 100 showed meaningful demand. The same analysis estimated roughly 262,000 paid calls and about $26,000 in confirmed 30 day volume. The author&apos;s main point was not that x402 is fake. It was that supply showed up before buyers did.</p>
+<p>That fits what we should expect. A seller can list a route with one successful payment. A real buyer needs a wallet, budget, client support, trust, and a reason to pay. That is a much heavier lift.</p>
+<p>A separate provenance report looked at the first 100 Bazaar listings and found weak pre payment evidence. Most descriptions did not link out to documentation or verification. That is a problem for agents. If the assistant cannot tell what a tool does before spending, it either refuses, guesses, or asks the user to approve a blind purchase.</p>
+<p>This is where AgentToll has room to be useful.</p>
+<h2>The AgentToll angle</h2>
+<p>AgentToll should not position itself as another pile of paid URLs.</p>
+<p>The better position is a buyer ready catalog for agent work. That means every route needs to answer four questions before the agent pays:</p>
+<p>Can I find it? Can I understand it? Can I justify the price to the user? Can I call it safely?</p>
+<p>That changes how we package endpoints.</p>
+<p>Discovery means route pages, OpenAPI, Bazaar metadata, <code>llms.txt</code>, and clear descriptions written for agents instead of only humans. An agent searching for "audit my x402 listing" or "summarize regulatory risk for this company" should land on a route that tells it what the call does, what it costs, what input it needs, and what output it returns.</p>
+<p>Evaluation means free metadata. Agents need enough unpaid information to decide whether a paid call is worth it. A route should show price, output shape, example response, use cases, limits, and freshness. If the paid result is a report, show a sample report. If the endpoint ranks something, show the ranking criteria. If it depends on external data, say what kind.</p>
+<p>Purchase means x402 compatibility with sane caps. Base MCP&apos;s x402 guide makes this concrete: the assistant sets <code>maxPayment</code>, the user approves, and the request completes only inside that cap. AgentToll copy should help the assistant form that approval prompt cleanly.</p>
+<p>Explanation is the underrated part. The agent has to tell the user why the spend is worth approving. A route description that says "premium API access" is dead weight. A route description that says "This call costs $0.10 and returns a ranked audit of your x402 listing, including discoverability, metadata gaps, and buyer trust issues" gives the assistant something it can repeat to the user.</p>
+<p>Workflow integration is where the money probably is. Raw data is easy to ignore. Paid work is harder to replace. Carbonmark is a good example outside our lane: discovery and quotes are free, and payment happens when the agent executes a carbon retirement and gets a public certificate. The product is not just JSON. It is an action with proof.</p>
+<p>AgentToll should lean into that same shape for decision products. Not "pay for data." Pay for a small, finished job.</p>
+<h2>What to build around this</h2>
+<p>The first move is content. Publish the Base MCP and x402 explanation, then point builders to AgentToll as a live place to see paid agent routes packaged for purchase.</p>
+<p>The second move is route packaging. Pick the strongest endpoints and make their free metadata pages impossible to misunderstand. Price. Input. Output. Sample. Why it is useful. When not to buy it. Payment cap language.</p>
+<p>The third move is agent approval copy. Every paid route should have a sentence an assistant can use before asking the user to approve payment.</p>
+<pre><code>"This call costs $0.10 and returns a ranked audit of your x402 listing with fixes for discovery, metadata, and buyer trust."
+
+"This call costs $0.12 and summarizes regulatory impact for the company or topic you provide."</code></pre>
+<p>That copy sounds small, but it is the bridge between a catalog listing and a wallet approval.</p>
+<p>The fourth move is trust. AWS AgentCore&apos;s payment security docs are useful here because they name the real enterprise concerns: least privilege, budget limits, short TTLs, audit logs, explicit end user consent, and verified <code>payTo</code> addresses. They also warn not to let the model generate payment addresses. For AgentToll, that means route metadata should make the seller address, accepted network, asset, and max price clear and machine readable.</p>
+<p>The fifth move is bundles. Agents do not want to buy five random API calls. They want to complete a task. Bundle routes around jobs:</p>
+<ul>
+<li>Audit my x402 listing</li>
+<li>Research this agent payments market</li>
+<li>Find government contract fit</li>
+<li>Summarize regulatory risk</li>
+<li>Triage a security issue</li>
+<li>Check if this route is worth listing or promoting</li>
+</ul>
+<p>Those are easier for an agent to explain than endpoint names.</p>
+<h2>The real thesis</h2>
+<p>Base MCP does not make x402 win by itself. That would be too easy.</p>
+<p>It does something more specific. It makes the buyer side more practical. It gives agents a wallet interface, a user approval path, and a way to pay x402 APIs from the same MCP world where agents already use tools.</p>
+<p>That is enough to change the next move.</p>
+<p>For x402 sellers, the question is no longer only "can this endpoint accept payment?" The better question is "can an agent find this, understand it, explain it, cap the spend, get approval, and return something the user values?"</p>
+<p>AgentToll should build for that question.</p>
+<p>Not just paid routes. Paid work an agent can sell to its user in one sentence.</p>
 <hr>
 <h2>Sources</h2>
 <ul>
+<li><a href="https://blog.base.org/base-mcp">Base: Introducing Base MCP</a></li>
+<li><a href="https://docs.base.org/agents">Base agents documentation</a></li>
+<li><a href="https://docs.base.org/agents/guides/x402-payments">Base MCP x402 payments guide</a></li>
+<li><a href="https://docs.cdp.coinbase.com/x402/welcome">Coinbase Developer Platform: x402 overview</a></li>
+<li><a href="https://docs.cdp.coinbase.com/x402/bazaar">Coinbase Developer Platform: x402 Bazaar</a></li>
+<li><a href="https://blog.cloudflare.com/monetization-gateway">Cloudflare: Monetization Gateway</a></li>
 <li><a href="https://www.linuxfoundation.org/press/linux-foundation-announces-operational-launch-of-x402-foundation-to-standardize-internet-native-payments-for-ai-agents-and-applications">Linux Foundation: x402 Foundation operational launch</a></li>
-<li><a href="https://www.visa.com/en-us/thought-leadership/innovation/agentic-payments-from-the-ground-up">Visa and Artemis: Agentic Payments from the Ground Up</a></li>
-<li><a href="https://www.coindesk.com/tech/2026/07/15/visa-mastercard-and-ripple-join-the-standard-letting-ai-agents-pay-in-stablecoins">CoinDesk: x402 launch and 30-day activity snapshot</a></li>
-<li><a href="https://cryptobriefing.com/agent-payments-growth-x402/">Crypto Briefing: Base x402 transaction activity</a></li>
+<li><a href="https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/payments-security-best-practices.html">AWS AgentCore payments security docs</a></li>
+<li><a href="https://philpher0x.dev/posts/x402-bazaar-market-state">Philpher0x: Where&apos;s the Money in x402</a></li>
+<li><a href="https://www.levelsofself.com/post/provenance-report-001-the-first-100-listings-on-the-x402-bazaar">LevelsOfSelf: Provenance Report 001</a></li>
+<li><a href="https://carbonmark.com/post/how-x402-turns-offsetting-into-a-callable-action-for-ai-agents">Carbonmark: x402 as a callable action for AI agents</a></li>
 </ul>
 
       </article>
     </div>
     <aside class="blog-side">
-      <div class="rail-card" data-rail-label="ARTICLE META"><div class="meta">Blog · July 17, 2026</div><p>Analysis of the x402 Foundation launch, Visa and Artemis usage data, and the practical work left for paid agent-tool builders.</p></div>
-      <div class="rail-card" data-rail-label="RELATED"><p><a href="/blog/x402-protocol-explained" style="color:var(--accent);">Read the builder guide to x402 API payments</a></p><p><a href="/tools" style="color:var(--accent);">Browse 100 paid MCP tools</a></p></div>
+      <div class="rail-card" data-rail-label="ARTICLE META"><div class="meta">Blog · July 30, 2026</div><p>Base MCP gives agents a user-approved wallet path for x402 payments. AgentToll needs routes that agents can discover, explain, and buy safely.</p></div>
+      <div class="rail-card" data-rail-label="RELATED"><p><a href="/agenttoll-base-mcp-skill.md" style="color:var(--accent);">Read the Base MCP buyer skill</a></p><p><a href="/blog/x402-protocol-explained" style="color:var(--accent);">Read the builder guide to x402 API payments</a></p><p><a href="/tools" style="color:var(--accent);">Browse 100 paid MCP tools</a></p></div>
       <div class="author-card"><div class="flex"><div class="avatar" style="overflow:hidden;"><img src="/hu-white-pfp.jpg" alt="Hu White" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"></div><div><div style="font-size:15px;font-weight:600;">Hu White</div><div style="font-size:13px;color:var(--text-3);">Generative-AI veteran &#183; x402 builder &#183; <a href="https://github.com/huwhitememes" style="color:var(--accent);">GitHub</a> &#183; <a href="https://www.linkedin.com/in/huwhitememes/" style="color:var(--accent);">LinkedIn</a> &#183; <a href="https://x.com/huwhitememes" style="color:var(--accent);">X</a></div></div></div><p style="font-size:13px;color:var(--text-2);margin-top:12px;line-height:1.6;">Built and operates agenttoll.dev, a marketplace of 100+ paid MCP tools settling on Base USDC.</p></div>
 <div class="cta-row"><a href="/tools" class="btn btn-primary">Browse 100 tools &#8594;</a><a href="/docs" class="btn btn-ghost">Documentation</a><a href="/mcp" class="btn btn-ghost">MCP Endpoint</a></div>
     </aside>

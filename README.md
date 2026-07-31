@@ -10,7 +10,7 @@
 [![Status](https://img.shields.io/badge/status-live-brightgreen)](https://agenttoll.dev)
 [![Price](https://img.shields.io/badge/min%20price-%240.01-success)](https://agenttoll.dev/tools)
 
-[🌐 Website](https://agenttoll.dev) · [📖 Docs](https://agenttoll.dev/docs) · [🔧 Tools](https://agenttoll.dev/tools) · [🤖 MCP Endpoint](https://agenttoll.dev/mcp) · [📋 agent.json](https://agenttoll.dev/.well-known/agent.json)
+[🌐 Website](https://agenttoll.dev) · [📖 Docs](https://agenttoll.dev/docs) · [🔧 Tools](https://agenttoll.dev/tools) · [📝 Blog](https://agenttoll.dev/blog) · [🤖 MCP Endpoint](https://agenttoll.dev/mcp) · [📋 agent.json](https://agenttoll.dev/.well-known/agent.json)
 
 </div>
 
@@ -68,6 +68,18 @@ Send a few dollars of USDC (Base mainnet) to a wallet your agent controls. That'
 ### 3. Call a tool
 
 Your MCP client handles the payment flow automatically. When you call a paid tool, the server responds with HTTP 402 and a payment challenge. Your client signs the payment, re-sends the request, and gets the data back. You don't write any payment code.
+
+### Using Base MCP
+
+Base MCP gives assistants a user-approved Base Account wallet path for x402 payments. AgentToll ships an Agent Skill that helps an MCP assistant inspect route metadata, verify the Base USDC seller address, cap the payment, explain the purchase, and refuse unsafe calls before asking the user to approve a spend.
+
+```bash
+npx skills add huwhitememes/tollbooth --skill agenttoll-base-mcp-buyer
+```
+
+- Skill source: [`skills/agenttoll-base-mcp-buyer/SKILL.md`](skills/agenttoll-base-mcp-buyer/SKILL.md)
+- Web copy: [agenttoll.dev/agenttoll-base-mcp-skill.md](https://agenttoll.dev/agenttoll-base-mcp-skill.md)
+- Builder article: [Base MCP Turns AI Agents Into x402 Buyers](https://agenttoll.dev/blog/base-mcp-x402-agent-buyers)
 
 ---
 
@@ -285,6 +297,8 @@ agenttoll.dev is live and functional, but it's not pretending to be something it
 | **MCP Endpoint** | `https://agenttoll.dev/mcp` |
 | **Tool Directory** | [agenttoll.dev/tools](https://agenttoll.dev/tools) |
 | **Documentation** | [agenttoll.dev/docs](https://agenttoll.dev/docs) |
+| **Blog** | [agenttoll.dev/blog](https://agenttoll.dev/blog) |
+| **Base MCP buyer skill** | [agenttoll.dev/agenttoll-base-mcp-skill.md](https://agenttoll.dev/agenttoll-base-mcp-skill.md) |
 | **agent.json** | [agenttoll.dev/.well-known/agent.json](https://agenttoll.dev/.well-known/agent.json) |
 | **GitHub** | [github.com/huwhitememes/tollbooth](https://github.com/huwhitememes/tollbooth) |
 | **x402 Protocol** | [x402.org](https://x402.org) |

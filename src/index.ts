@@ -3711,6 +3711,16 @@ function htmlResponse(html: string) {
   });
 }
 
+async function assetResponse(env: Env, request: Request, assetPath: string, contentType?: string) {
+  const assetUrl = new URL(request.url);
+  assetUrl.pathname = assetPath;
+  const response = await (env as any).ASSETS.fetch(new Request(assetUrl.toString(), request));
+  if (!contentType) return response;
+  const headers = new Headers(response.headers);
+  headers.set("Content-Type", contentType);
+  return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
+}
+
 function addressFromTopic(topic: string) {
   return `0x${topic.slice(-40)}`.toLowerCase();
 }
@@ -5484,6 +5494,7 @@ function discoveryPage() {
     { type: "MCP MANIFEST", label: "MCP manifest", href: "/.well-known/mcp.json", text: "Machine-readable MCP entrypoint, auth modes, payments, and tool roster." },
     { type: "SYSTEM API", label: "System info", href: "/api/system/info", text: "Network, seller wallet, asset contract, categories, and discovery URLs." },
     { type: "AGENT CONTEXT", label: "llms-full.txt", href: "/llms-full.txt", text: "Long-form agent context with every tool, price, quote URL, and endpoint." },
+    { type: "BASE MCP BUYER SKILL", label: "Base MCP buyer skill", href: "/agenttoll-base-mcp-skill.md", text: "Agent-facing guide for deciding, explaining, capping, and approving AgentToll x402 purchases through Base MCP." },
     { type: "PRICE QUOTE", label: "Quote API", href: "/api/quote?tool=trending_markets", text: "Free price lookup before an agent attempts a paid call." },
     { type: "OPENAPI SPEC", label: "OpenAPI", href: "/openapi.json", text: "OpenAPI 3.1 spec for public metadata and paid HTTP routes." },
     { type: "X402 DISCOVERY", label: "x402 resources", href: "/.well-known/x402", text: "x402 discovery surface used by paid-resource crawlers." },
@@ -5524,6 +5535,7 @@ function docsPage() {
         <a href="/.well-known/mcp.json" style="color: var(--accent); text-decoration: none;">MCP manifest</a><br>
         <a href="/api/system/info" style="color: var(--accent); text-decoration: none;">System info</a><br>
         <a href="/llms-full.txt" style="color: var(--accent); text-decoration: none;">llms-full.txt</a><br>
+        <a href="/agenttoll-base-mcp-skill.md" style="color: var(--accent); text-decoration: none;">Base MCP buyer skill</a><br>
         <a href="/api/quote?tool=trending_markets" style="color: var(--accent); text-decoration: none;">Quote API</a>
       </p>
     </div>
@@ -6013,6 +6025,26 @@ export default {
 
     if (url.pathname === "/" || url.pathname === "") {
       return htmlResponse(landingPage());
+    }
+
+    if (url.pathname === "/blog" || url.pathname === "/blog/" || url.pathname === "/blog/index.html") {
+      return assetResponse(env, request, "/_worker-assets/blog-index", "text/html; charset=utf-8");
+    }
+
+    if (url.pathname.startsWith("/blog/")) {
+      const blogHtmlAssets: Record<string, string> = {
+        "/blog/base-mcp-x402-agent-buyers": "/_worker-assets/base-mcp-x402-agent-buyers",
+        "/blog/x402-foundation-agent-payments": "/_worker-assets/x402-foundation-agent-payments",
+        "/blog/x402-protocol-explained": "/_worker-assets/x402-protocol-explained",
+      };
+      const normalizedPath = url.pathname.replace(/\.html$/i, "");
+      const htmlAsset = blogHtmlAssets[normalizedPath];
+      if (htmlAsset) return assetResponse(env, request, htmlAsset, "text/html; charset=utf-8");
+      return assetResponse(env, request, url.pathname);
+    }
+
+    if (url.pathname === "/agenttoll-base-mcp-skill.md" || url.pathname === "/llms.txt" || url.pathname === "/sitemap.xml") {
+      return assetResponse(env, request, url.pathname);
     }
 
     if (url.pathname === "/api/info") {

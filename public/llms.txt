@@ -17,6 +17,8 @@ x402 discovery manifest: /.well-known/x402
 MCP endpoint: /mcp
 Tools directory: /tools
 Blog: /blog/x402-protocol-explained
+Base MCP buyer skill: /agenttoll-base-mcp-skill.md
+Installable skill source: https://github.com/huwhitememes/tollbooth/tree/main/skills/agenttoll-base-mcp-buyer
 Codebase: https://github.com/huwhitememes/tollbooth (open source)
 
 MCP server: Connect any MCP-compatible agent to `https://agenttoll.dev/mcp`. Use `Accept: application/json, text/event-stream` with an `mcp-session-id` header. `initialize` → `notifications/initialized` → `tools/list` returns all 100 tools with pricing.
@@ -28,6 +30,7 @@ Free endpoints (no payment required):
 - GET /openapi.json — full OpenAPI spec
 - GET /.well-known/agent.json — agent discovery manifest (100 tools)
 - GET /.well-known/x402 — x402 resource listing
+- GET /agenttoll-base-mcp-skill.md — Base MCP buyer guide for deciding, explaining, capping, and approving AgentToll x402 purchases
 
 ## Quickstart (curl)
 
