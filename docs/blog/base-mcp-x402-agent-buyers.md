@@ -91,6 +91,8 @@ That copy sounds small, but it is the bridge between a catalog listing and a wal
 
 The fourth move is trust. AWS AgentCore's payment security docs are useful here because they name the real enterprise concerns: least privilege, budget limits, short TTLs, audit logs, explicit end user consent, and verified `payTo` addresses. They also warn not to let the model generate payment addresses. For AgentToll, that means route metadata should make the seller address, accepted network, asset, and max price clear and machine readable.
 
+For builders who want the executable version of this checklist, I published the [AgentToll Base MCP buyer skill](https://agenttoll.dev/agenttoll-base-mcp-skill.md). It gives an assistant the buyer-side rules: inspect route metadata, verify the Base USDC seller address, cap `maxPayment`, and explain the spend before asking the user to approve it.
+
 The fifth move is bundles. Agents do not want to buy five random API calls. They want to complete a task. Bundle routes around jobs:
 
 - Audit my x402 listing
