@@ -3,26 +3,30 @@
 ## X
 
 ```text
-Base MCP gives AI agents a real wallet path for x402.
+Base MCP changes the x402 pitch.
 
-That is the unlock.
+Agents no longer need a whole wallet/payment science project before buying a paid API call.
 
-The hard part is making paid agent tools discoverable, safe, priced clearly, and worth approving.
+Now sellers have to make the tool obvious, safe, capped, and worth approving.
 
-I wrote the builder-side read here:
+Builder-side read:
 https://agenttoll.dev/blog/base-mcp-x402-agent-buyers
 ```
 
-Character count: 264
+Character count: 278
 
 ## LinkedIn
 
 ```text
-Base MCP makes x402 more practical because agents finally get a user-approved wallet path instead of a pile of payment plumbing.
+Base MCP makes the x402 story a lot more practical.
 
-I wrote about what that changes for paid agent tools. The short version: x402 has the payment primitive, Base MCP improves the buyer flow, and builders still have to make their routes discoverable, safe, priced clearly, and worth approving.
+Before this, the seller side could be ready and the buyer side still felt awkward. Wallet setup, payment headers, signing flow, spend limits, user approval. Too much plumbing for a normal agent workflow.
 
-Article:
+Base MCP gives agents a cleaner path: request the x402 call, cap the spend, and let the user approve through Base Account.
+
+That shifts the work back to builders like us. A paid agent tool has to be easy to find, easy to explain, safe to approve, and useful enough to justify the spend.
+
+I wrote the builder-side read here:
 https://agenttoll.dev/blog/base-mcp-x402-agent-buyers
 
 AgentToll Base MCP buyer skill:
