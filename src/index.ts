@@ -21,7 +21,7 @@ import { searchFederalSpending, getNationalDebt, searchFederalGrants, searchLobb
 import { queryGeoPulse, queryFlightIntel, queryResearchPack, queryScenarioVerdict, queryWeatherBias, querySupplyStress, queryRegulatoryPulse, queryAttentionMomentum, querySec8kVelocity, queryFredSurprises, queryTreasuryDts, queryGithubTrending, queryHnFrontpage, queryUsgsQuakes, queryOpenAq } from "./osint-products";
 import { scrapeUrl, enrichDomain } from "./scraper";
 import { scrubContactPayload, scrubText } from "./pii-scrub";
-import { getCachedOrLive, kvListKeys, _PREFIX } from "./cache.js";
+import { getCachedOrLive, kvListKeys, routeAnalyticsIncrement, routeAnalyticsSnapshot, _PREFIX, type RouteAnalyticsEvent } from "./cache.js";
 import { runAllFeedWarms } from "./scheduler.js";
 import { mcpGetCachedOrLive } from "./mcp-cache.js";
 import { fetchGithubTrending } from "./feeds/github-trending.js";
@@ -39,6 +39,8 @@ import { searchFederalContracts } from "./gov-products";
 import { getPaperDetails, getCitationGraph } from "./academic-products";
 import { genVideoIntel, modelSettingsLookup } from "./gen-video-products";
 import { getSpaceWeatherKp, getWeatherForecast, getWeatherCurrent, getAuroraForecast, getMarineConditions, getAirQualityIndex, getPostalLookup, getIpGeolocation, getTimezoneCurrent, getAirportStatus, getDnsRecords, getIsbnLookup, getCryptoPrice, getBtcBalance, getBtcFees, getFoodRecalls } from "./quick-tools";
+import { buildX402MarketRadar } from "./x402-market-radar";
+import { buildX402RankAudit, buildInsiderClusterBrief, buildGovContractFitBrief, buildRegulatoryImpactBrief } from "./decision-briefs";
 
 // Environment-driven config — production defaults, overridable via process.env vars
 // Base Sepolia testnet: chain 84532, USDC at 0x1a35EE5c47503e1B627338D2c1943774f2E50B6D
@@ -116,6 +118,46 @@ const TOOLS = [
     description: "Enrich a company domain with site metadata, tech stack, social links, DNS, platform cues, and contact links.",
     input: { domain: "string, example stripe.com" },
     example: { domain: "stripe.com" },
+  },
+  {
+    name: "x402_market_radar",
+    price_usd: "0.05",
+    description: "CDP Bazaar radar for x402 builders: live catalog size, AgentToll ranks, keyword gaps, vertical competition, price samples, and next actions.",
+    input: { query_limit: "optional integer 3-20; default 15" },
+    example: { query_limit: 15 },
+    http_path: "/paid/x402/market-radar",
+  },
+  {
+    name: "x402_rank_audit",
+    price_usd: "0.10",
+    description: "Audit one x402 resource across buyer keywords. Returns Bazaar rank, competitors above it, metadata defects, and fixes that can improve paid-resource discovery.",
+    input: { resource: "optional resource URL", keywords: "optional string array, max 8", limit: "optional integer 5-25" },
+    example: { resource: "https://agenttoll.dev/paid/x402/market-radar", keywords: ["x402 market radar", "CDP Bazaar ranking"] },
+    http_path: "/paid/x402/rank-audit",
+  },
+  {
+    name: "insider_cluster_brief",
+    price_usd: "0.10",
+    description: "Turn recent SEC Form 4 filings into an insider-activity brief: clustered companies, filing counts, source links, and watchlist verdict. Signal intel only.",
+    input: { ticker: "optional stock ticker", limit: "optional integer 5-80" },
+    example: { ticker: "AAPL", limit: 30 },
+    http_path: "/paid/finance/insider-cluster-brief",
+  },
+  {
+    name: "gov_contract_fit_brief",
+    price_usd: "0.15",
+    description: "Find federal contract awards that fit a service keyword, agency, or company domain. Returns scored incumbents, buyer agencies, dollar amounts, and pursuit notes.",
+    input: { keyword: "service or market keyword", agency: "optional agency", company_domain: "optional company domain", limit: "optional integer 5-50" },
+    example: { keyword: "cybersecurity training", agency: "Department of Defense" },
+    http_path: "/paid/gov/contract-fit-brief",
+  },
+  {
+    name: "regulatory_impact_brief",
+    price_usd: "0.12",
+    description: "Summarize fresh Federal Register and rulemaking signals for one sector. Returns severity, source links, agency context, and a plain action read.",
+    input: { sector: "crypto, ai, banking, healthcare, energy, privacy, or custom phrase", agency: "optional agency", hours: "optional integer 6-720" },
+    example: { sector: "crypto", hours: 72 },
+    http_path: "/paid/osint/regulatory-impact-brief",
   },
   {
     name: "polymarket_event_scan",
@@ -959,6 +1001,69 @@ const crossPlatformDiscovery = declareDiscoveryExtension({
   output: { example: { source: ["Polymarket Gamma API", "Kalshi public Trade API"], query: "bitcoin", candidate_matches: [], opportunities: [] } },
 });
 
+const x402MarketRadarDiscovery = declareDiscoveryExtension({
+  bodyType: "json",
+  input: { query_limit: 15 },
+  inputSchema: {
+    properties: {
+      query_limit: { type: "integer", minimum: 3, maximum: 20 },
+    },
+  },
+  output: {
+    example: {
+      product: "x402 Market Radar",
+      catalog: { current_total: 14238, net_change_from_baseline: -10696 },
+      agenttoll: { merchant_count: 6, missing_rank_queries: ["x402 market radar"] },
+    },
+  },
+});
+
+const x402RankAuditDiscovery = declareDiscoveryExtension({
+  bodyType: "json",
+  input: { resource: "https://agenttoll.dev/paid/x402/market-radar", keywords: ["x402 market radar", "CDP Bazaar ranking"], limit: 15 },
+  inputSchema: { properties: {
+    resource: { type: "string", maxLength: 500 },
+    keywords: { type: "array", items: { type: "string" }, maxItems: 8 },
+    limit: { type: "integer", minimum: 5, maximum: 25 },
+  } },
+  output: { example: { product: "x402 Rank Audit", summary: { verdict: "partially_visible", ranked_keywords: 2 }, recommendations: [] } },
+});
+
+const insiderClusterBriefDiscovery = declareDiscoveryExtension({
+  bodyType: "json",
+  input: { ticker: "AAPL", limit: 30 },
+  inputSchema: { properties: {
+    ticker: { type: "string", maxLength: 10 },
+    limit: { type: "integer", minimum: 5, maximum: 80 },
+  } },
+  output: { example: { product: "Insider Cluster Brief", summary: { verdict: "watch", filings_checked: 12 }, clusters: [] } },
+});
+
+const govContractFitBriefDiscovery = declareDiscoveryExtension({
+  bodyType: "json",
+  input: { keyword: "cybersecurity training", agency: "Department of Defense" },
+  inputSchema: { properties: {
+    keyword: { type: "string", maxLength: 120 },
+    agency: { type: "string", maxLength: 120 },
+    company_domain: { type: "string", maxLength: 160 },
+    limit: { type: "integer", minimum: 5, maximum: 50 },
+  } },
+  output: { example: { product: "Government Contract Fit Brief", summary: { verdict: "possible_fit", best_fit_score: 52 }, top_matches: [] } },
+});
+
+const regulatoryImpactBriefDiscovery = declareDiscoveryExtension({
+  bodyType: "json",
+  input: { sector: "crypto", hours: 72 },
+  inputSchema: { properties: {
+    sector: { type: "string", maxLength: 120 },
+    agency: { type: "string", maxLength: 120 },
+    jurisdiction: { type: "string", maxLength: 40 },
+    hours: { type: "integer", minimum: 6, maximum: 720 },
+    limit: { type: "integer", minimum: 5, maximum: 25 },
+  } },
+  output: { example: { product: "Regulatory Impact Brief", summary: { verdict: "monitor", items_checked: 6 }, items: [] } },
+});
+
 const rebalanceDiscovery = declareDiscoveryExtension({
   bodyType: "json",
   input: { limit: 500, min_edge: 0.005, min_liquidity: 1000 },
@@ -1181,8 +1286,120 @@ const policiesDiscovery = declareDiscoveryExtension({
   output: { example: { policies: [{ id: "no-pii-in-logs" }] } },
 });
 
+const edgarFilingsDiscovery = declareDiscoveryExtension({
+  bodyType: "json",
+  input: { query: "Tesla", form_type: "10-K" },
+  inputSchema: { properties: {
+    query: { type: "string", maxLength: 200 },
+    form_type: { type: "string", enum: ["10-K", "10-Q", "8-K", "S-1"] },
+    ticker: { type: "string", maxLength: 10 },
+    limit: { type: "integer", minimum: 1, maximum: 50 },
+  } },
+  output: { example: { success: true, data: { filings: [] } } },
+});
+
+const cveSearchDiscovery = declareDiscoveryExtension({
+  bodyType: "json",
+  input: { keyword: "log4j", limit: 5 },
+  inputSchema: { properties: {
+    keyword: { type: "string", maxLength: 200 },
+    cve_id: { type: "string", maxLength: 32 },
+    severity: { type: "string", enum: ["LOW", "MEDIUM", "HIGH", "CRITICAL"] },
+    limit: { type: "integer", minimum: 1, maximum: 50 },
+  } },
+  output: { example: { success: true, data: { results: [] } } },
+});
+
+const genVideoDiscovery = declareDiscoveryExtension({
+  bodyType: "json",
+  input: { query: "text to video" },
+  inputSchema: { properties: {
+    query: { type: "string", maxLength: 200 },
+    model: { type: "string", maxLength: 80 },
+  } },
+  output: { example: { query: "text to video", model: "all", result_count: 0, recent_summaries: [] } },
+});
+
 const paidHttp = new Hono<{ Bindings: Env }>();
+
+paidHttp.get("/paid/*", async (c) => {
+  const path = new URL(c.req.url).pathname;
+  const tool = TOOLS.find((candidate) => (candidate as any).http_path === path) as any;
+  if (!tool) return c.json({ error: "not_found", message: "Unknown paid endpoint." }, 404);
+  await routeAnalyticsIncrement(c.env as any, path, "metadata_views").catch(() => {});
+  return c.json({
+    service: SERVICE.name,
+    endpoint: `${SERVICE.origin}${tool.http_path}`,
+    method: "POST",
+    protocol: "x402",
+    price_usd: tool.price_usd,
+    network: SERVICE.network,
+    facilitator: SERVICE.facilitator,
+    message: "This is an x402-paid API endpoint. Send a POST request with JSON to receive the 402 payment challenge, then retry with a signed payment.",
+    tool: {
+      name: tool.name,
+      description: tool.description,
+      buyer_value: `Pay $${tool.price_usd} for ${tool.description}`,
+      input: tool.input,
+      example: tool.example,
+      sample_output: "JSON with source-backed fields, response metadata, and decision/readout fields where the endpoint is a brief.",
+      discovery_queries: [
+        String(tool.name).replace(/_/g, " "),
+        `${String(tool.name).replace(/_/g, " ")} x402`,
+        "paid MCP tool",
+        "paid data API for AI agents",
+      ],
+      docs: `${SERVICE.origin}/tools/${tool.name}`,
+    },
+  });
+});
+
+
+function genericPaymentRoutes(): Record<string, any> {
+  const routes: Record<string, any> = {};
+  for (const tool of TOOLS as readonly any[]) {
+    if (!tool.http_path) continue;
+    const pathTags = String(tool.http_path)
+      .split("/")
+      .filter(Boolean)
+      .filter((part) => part !== "paid")
+      .flatMap((part) => part.split("-"))
+      .filter(Boolean);
+    routes[`POST ${tool.http_path}`] = {
+      accepts: { scheme: "exact", price: `$${tool.price_usd}`, network: SERVICE.network, payTo: SERVICE.seller },
+      resource: `${SERVICE.origin}${tool.http_path}`,
+      description: tool.description,
+      mimeType: "application/json",
+      serviceName: "agenttoll.dev",
+      tags: Array.from(new Set([...pathTags, String(tool.name), "x402", "paid-api", "ai-agents"])),
+      iconUrl: `${SERVICE.origin}/favicon.svg`,
+      unpaidResponseBody: () => ({
+        contentType: "application/json",
+        body: { error: "payment_required", price_usd: String(tool.price_usd), network: SERVICE.network },
+      }),
+    };
+  }
+  return routes;
+}
+
+
+paidHttp.use("/paid/*", async (c, next) => {
+  if (c.req.method !== "POST") {
+    await next();
+    return;
+  }
+  await next();
+  const path = new URL(c.req.url).pathname;
+  const status = c.res.status;
+  let event: RouteAnalyticsEvent = "post_other";
+  if (status === 402) event = "payment_challenges";
+  else if (status >= 200 && status < 300) event = "paid_successes";
+  else if (status >= 500) event = "upstream_failures";
+  await routeAnalyticsIncrement(c.env as any, path, event).catch(() => {});
+});
+
 paidHttp.use(paymentMiddleware({
+  ...genericPaymentRoutes(),
   "POST /paid/polymarket/event-scan": {
     accepts: { scheme: "exact", price: "$0.03", network: SERVICE.network, payTo: SERVICE.seller },
     resource: `${SERVICE.origin}/paid/polymarket/event-scan`,
@@ -1215,6 +1432,61 @@ paidHttp.use(paymentMiddleware({
     iconUrl: `${SERVICE.origin}/favicon.svg`,
     extensions: crossPlatformDiscovery,
     unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.10", network: SERVICE.network } }),
+  },
+  "POST /paid/x402/market-radar": {
+    accepts: { scheme: "exact", price: "$0.05", network: SERVICE.network, payTo: SERVICE.seller },
+    resource: `${SERVICE.origin}/paid/x402/market-radar`,
+    description: "CDP Bazaar market radar for x402 builders, paid MCP tools, and paid data APIs for AI agents — catalog size, keyword ranks, AgentToll visibility, vertical competition, price samples, and next actions",
+    mimeType: "application/json",
+    serviceName: "agenttoll.dev",
+    tags: ["x402", "bazaar", "market-radar", "agent-payments", "mcp", "paid-mcp-tools", "paid-data-api", "x402-tools", "discovery"],
+    iconUrl: `${SERVICE.origin}/favicon.svg`,
+    extensions: x402MarketRadarDiscovery,
+    unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.05", network: SERVICE.network } }),
+  },
+  "POST /paid/x402/rank-audit": {
+    accepts: { scheme: "exact", price: "$0.10", network: SERVICE.network, payTo: SERVICE.seller },
+    resource: `${SERVICE.origin}/paid/x402/rank-audit`,
+    description: "Buyer-keyword rank audit for one x402 resource, paid MCP tool, or paid data API: Bazaar position, competitors above it, metadata defects, and next fixes",
+    mimeType: "application/json",
+    serviceName: "agenttoll.dev",
+    tags: ["x402", "bazaar", "rank-audit", "discovery", "agent-payments", "x402-tools", "paid-mcp-tools", "paid-data-api", "visibility-audit"],
+    iconUrl: `${SERVICE.origin}/favicon.svg`,
+    extensions: x402RankAuditDiscovery,
+    unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.10", network: SERVICE.network } }),
+  },
+  "POST /paid/finance/insider-cluster-brief": {
+    accepts: { scheme: "exact", price: "$0.10", network: SERVICE.network, payTo: SERVICE.seller },
+    resource: `${SERVICE.origin}/paid/finance/insider-cluster-brief`,
+    description: "SEC Form 4 insider-activity cluster brief with filing counts, source links, and watchlist verdict",
+    mimeType: "application/json",
+    serviceName: "agenttoll.dev",
+    tags: ["finance", "sec", "insider-trades", "form-4", "x402"],
+    iconUrl: `${SERVICE.origin}/favicon.svg`,
+    extensions: insiderClusterBriefDiscovery,
+    unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.10", network: SERVICE.network } }),
+  },
+  "POST /paid/gov/contract-fit-brief": {
+    accepts: { scheme: "exact", price: "$0.15", network: SERVICE.network, payTo: SERVICE.seller },
+    resource: `${SERVICE.origin}/paid/gov/contract-fit-brief`,
+    description: "Federal contract-fit brief: scored incumbents, buyer agencies, award amounts, and pursuit notes for one service niche",
+    mimeType: "application/json",
+    serviceName: "agenttoll.dev",
+    tags: ["government", "contracts", "procurement", "lead-intel", "x402"],
+    iconUrl: `${SERVICE.origin}/favicon.svg`,
+    extensions: govContractFitBriefDiscovery,
+    unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.15", network: SERVICE.network } }),
+  },
+  "POST /paid/osint/regulatory-impact-brief": {
+    accepts: { scheme: "exact", price: "$0.12", network: SERVICE.network, payTo: SERVICE.seller },
+    resource: `${SERVICE.origin}/paid/osint/regulatory-impact-brief`,
+    description: "Regulatory impact brief for one sector: fresh rulemaking signals, severity, agency context, and action read",
+    mimeType: "application/json",
+    serviceName: "agenttoll.dev",
+    tags: ["osint", "regulatory", "federal-register", "rulemaking", "x402"],
+    iconUrl: `${SERVICE.origin}/favicon.svg`,
+    extensions: regulatoryImpactBriefDiscovery,
+    unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.12", network: SERVICE.network } }),
   },
   "POST /paid/polymarket/rebalance-scan": {
     accepts: { scheme: "exact", price: "$0.04", network: SERVICE.network, payTo: SERVICE.seller },
@@ -1426,6 +1698,39 @@ paidHttp.use(paymentMiddleware({
     extensions: sec8kVelocityDiscovery,
     unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "$0.03", network: SERVICE.network } }),
   },
+  "POST /paid/finance/edgar": {
+    accepts: { scheme: "exact", price: "$0.03", network: SERVICE.network, payTo: SERVICE.seller },
+    resource: `${SERVICE.origin}/paid/finance/edgar`,
+    description: "Search SEC EDGAR filings by company, form type, or ticker — filing URLs, dates, descriptions, and public filing metadata",
+    mimeType: "application/json",
+    serviceName: "agenttoll.dev",
+    tags: ["finance", "sec", "edgar", "filings", "stocks", "x402"],
+    iconUrl: `${SERVICE.origin}/favicon.svg`,
+    extensions: edgarFilingsDiscovery,
+    unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "$0.03", network: SERVICE.network } }),
+  },
+  "POST /paid/security/cve-search": {
+    accepts: { scheme: "exact", price: "$0.02", network: SERVICE.network, payTo: SERVICE.seller },
+    resource: `${SERVICE.origin}/paid/security/cve-search`,
+    description: "Search NIST NVD CVEs by keyword, CVE ID, or severity — CVSS, affected products, references, and vulnerability metadata",
+    mimeType: "application/json",
+    serviceName: "agenttoll.dev",
+    tags: ["security", "cve", "nvd", "vulnerability", "threat-intel", "x402"],
+    iconUrl: `${SERVICE.origin}/favicon.svg`,
+    extensions: cveSearchDiscovery,
+    unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "$0.02", network: SERVICE.network } }),
+  },
+  "POST /paid/media/gen-video": {
+    accepts: { scheme: "exact", price: "$0.05", network: SERVICE.network, payTo: SERVICE.seller },
+    resource: `${SERVICE.origin}/paid/media/gen-video`,
+    description: "Generative video model intelligence — model capabilities, pricing, limits, API access, and recent community signals for Sora, Veo, Runway, Pika, and related tools",
+    mimeType: "application/json",
+    serviceName: "agenttoll.dev",
+    tags: ["media", "gen-video", "ai", "models", "creative-tools", "x402"],
+    iconUrl: `${SERVICE.origin}/favicon.svg`,
+    extensions: genVideoDiscovery,
+    unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "$0.05", network: SERVICE.network } }),
+  },
   "POST /paid/osint/fred-surprises": {
     accepts: { scheme: "exact", price: "$0.02", network: SERVICE.network, payTo: SERVICE.seller },
     resource: `${SERVICE.origin}/paid/osint/fred-surprises`,
@@ -1536,6 +1841,61 @@ function optionalNumber(value: unknown) {
   return typeof value === "number" && Number.isFinite(value) ? value : undefined;
 }
 
+paidHttp.post("/paid/x402/market-radar", async (c) => {
+  const body = await c.req.json<Record<string, unknown>>().catch(() => ({} as Record<string, unknown>));
+  try {
+    const wrapped = await getCachedOrLive(c.env as any, "x402-market-radar", () => buildX402MarketRadar({
+      queryLimit: optionalNumber(body.query_limit),
+      agenttollPayTo: SERVICE.seller,
+      network: SERVICE.network,
+    }), { params: { query_limit: body.query_limit ?? 15 }, ttlSec: 60 * 60 * 6 });
+    return c.json(wrapped.data, 200, { "X-Cache": wrapped.cached ? "HIT" : "MISS", "X-Cache-Age": String(wrapped.age_ms ?? 0) } as any);
+  } catch (error) {
+    return c.json({ error: "x402_market_radar_failed", message: error instanceof Error ? error.message : String(error) }, 502);
+  }
+});
+
+paidHttp.post("/paid/x402/rank-audit", async (c) => {
+  const body = await c.req.json<Record<string, unknown>>().catch(() => ({} as Record<string, unknown>));
+  try {
+    const keywords = Array.isArray(body.keywords) ? body.keywords.map((x) => String(x)).slice(0, 8) : undefined;
+    const wrapped = await getCachedOrLive(c.env as any, "x402-rank-audit", () => buildX402RankAudit({ resource: body.resource ? String(body.resource) : undefined, keywords, network: SERVICE.network, limit: optionalNumber(body.limit) }), { params: body, ttlSec: 60 * 30 });
+    return c.json(wrapped.data, 200, { "X-Cache": wrapped.cached ? "HIT" : "MISS", "X-Cache-Age": String(wrapped.age_ms ?? 0) } as any);
+  } catch (error) {
+    return c.json({ error: "x402_rank_audit_failed", message: error instanceof Error ? error.message : String(error) }, 502);
+  }
+});
+
+paidHttp.post("/paid/finance/insider-cluster-brief", async (c) => {
+  const body = await c.req.json<Record<string, unknown>>().catch(() => ({} as Record<string, unknown>));
+  try {
+    const wrapped = await getCachedOrLive(c.env as any, "insider-cluster-brief-v2", () => buildInsiderClusterBrief({ ticker: body.ticker ? String(body.ticker) : undefined, limit: optionalNumber(body.limit) }), { params: body, ttlSec: 60 * 30 });
+    return c.json(wrapped.data, 200, { "X-Cache": wrapped.cached ? "HIT" : "MISS", "X-Cache-Age": String(wrapped.age_ms ?? 0) } as any);
+  } catch (error) {
+    return c.json({ error: "insider_cluster_brief_failed", message: error instanceof Error ? error.message : String(error) }, 502);
+  }
+});
+
+paidHttp.post("/paid/gov/contract-fit-brief", async (c) => {
+  const body = await c.req.json<Record<string, unknown>>().catch(() => ({} as Record<string, unknown>));
+  try {
+    const wrapped = await getCachedOrLive(c.env as any, "gov-contract-fit-brief-v2", () => buildGovContractFitBrief({ keyword: body.keyword ? String(body.keyword) : undefined, agency: body.agency ? String(body.agency) : undefined, company_domain: body.company_domain ? String(body.company_domain) : undefined, limit: optionalNumber(body.limit) }), { params: body, ttlSec: 60 * 60 });
+    return c.json(wrapped.data, 200, { "X-Cache": wrapped.cached ? "HIT" : "MISS", "X-Cache-Age": String(wrapped.age_ms ?? 0) } as any);
+  } catch (error) {
+    return c.json({ error: "gov_contract_fit_brief_failed", message: error instanceof Error ? error.message : String(error) }, 502);
+  }
+});
+
+paidHttp.post("/paid/osint/regulatory-impact-brief", async (c) => {
+  const body = await c.req.json<Record<string, unknown>>().catch(() => ({} as Record<string, unknown>));
+  try {
+    const wrapped = await getCachedOrLive(c.env as any, "regulatory-impact-brief", () => buildRegulatoryImpactBrief({ sector: body.sector ? String(body.sector) : undefined, agency: body.agency ? String(body.agency) : undefined, jurisdiction: body.jurisdiction ? String(body.jurisdiction) : undefined, hours: optionalNumber(body.hours), limit: optionalNumber(body.limit) }), { params: body, ttlSec: 60 * 60 });
+    return c.json(wrapped.data, 200, { "X-Cache": wrapped.cached ? "HIT" : "MISS", "X-Cache-Age": String(wrapped.age_ms ?? 0) } as any);
+  } catch (error) {
+    return c.json({ error: "regulatory_impact_brief_failed", message: error instanceof Error ? error.message : String(error) }, 502);
+  }
+});
+
 paidHttp.post("/paid/polymarket/event-scan", async (c) => {
   const body = await c.req.json<Record<string, unknown>>().catch(() => ({} as Record<string, unknown>));
   try {
@@ -1566,15 +1926,17 @@ paidHttp.post("/paid/polymarket/market-scan", async (c) => {
 
 paidHttp.post("/paid/markets/cross-platform-scan", async (c) => {
   const body = await c.req.json<Record<string, unknown>>().catch(() => ({} as Record<string, unknown>));
+  const scanParams = {
+    query: String(body.query ?? ""),
+    minSimilarity: optionalNumber(body.min_similarity),
+    minNetEdge: optionalNumber(body.min_net_edge),
+    polymarketLimit: optionalNumber(body.polymarket_limit),
+    kalshiMaxPages: optionalNumber(body.kalshi_max_pages),
+    maxMatches: optionalNumber(body.max_matches),
+  };
   try {
-    return c.json(await scanCrossPlatformMarkets({
-      query: String(body.query ?? ""),
-      minSimilarity: optionalNumber(body.min_similarity),
-      minNetEdge: optionalNumber(body.min_net_edge),
-      polymarketLimit: optionalNumber(body.polymarket_limit),
-      kalshiMaxPages: optionalNumber(body.kalshi_max_pages),
-      maxMatches: optionalNumber(body.max_matches),
-    }));
+    const wrapped = await getCachedOrLive(c.env as any, "cross-platform-scan", () => scanCrossPlatformMarkets(scanParams), { params: body, ttlSec: 900 });
+    return c.json(wrapped.data, 200, { "X-Cache": wrapped.cached ? "HIT" : "MISS", "X-Cache-Age": String(wrapped.age_ms ?? 0) } as any);
   } catch (error) {
     return c.json({ error: "cross_platform_scan_failed", message: error instanceof Error ? error.message : String(error) }, 502);
   }
@@ -2474,6 +2836,56 @@ export class TollboothMCP extends McpAgent<Env> {
     );
 
     this.server.paidTool(
+      "x402_market_radar",
+      "CDP Bazaar radar for x402 builders: live catalog size, AgentToll ranks, keyword gaps, vertical competition, price samples, and next actions.",
+      0.05,
+      {
+        query_limit: z.number().int().min(3).max(20).optional().describe("Search results per tracked query, default 15"),
+      },
+      {},
+      async ({ query_limit }) => ({
+        content: [{ type: "text", text: JSON.stringify(await buildX402MarketRadar({ queryLimit: query_limit, agenttollPayTo: SERVICE.seller, network: SERVICE.network })) }],
+      }),
+    );
+
+
+    this.server.paidTool(
+      "x402_rank_audit",
+      "Audit one x402 resource across buyer keywords. Returns Bazaar rank, competitors above it, metadata defects, and fixes that can improve discovery.",
+      0.10,
+      { resource: z.string().optional(), keywords: z.array(z.string()).optional(), limit: z.number().int().min(5).max(25).optional() },
+      {},
+      async ({ resource, keywords, limit }) => ({ content: [{ type: "text", text: JSON.stringify(await buildX402RankAudit({ resource, keywords, network: SERVICE.network, limit })) }] }),
+    );
+
+    this.server.paidTool(
+      "insider_cluster_brief",
+      "Turn recent SEC Form 4 filings into an insider-activity cluster brief. Signal intel only.",
+      0.10,
+      { ticker: z.string().optional(), limit: z.number().int().min(5).max(80).optional() },
+      {},
+      async ({ ticker, limit }) => ({ content: [{ type: "text", text: JSON.stringify(await buildInsiderClusterBrief({ ticker, limit })) }] }),
+    );
+
+    this.server.paidTool(
+      "gov_contract_fit_brief",
+      "Score federal contract awards against a service keyword, agency, or company domain. Returns incumbents, agencies, amounts, and pursuit notes.",
+      0.15,
+      { keyword: z.string().optional(), agency: z.string().optional(), company_domain: z.string().optional(), limit: z.number().int().min(5).max(50).optional() },
+      {},
+      async ({ keyword, agency, company_domain, limit }) => ({ content: [{ type: "text", text: JSON.stringify(await buildGovContractFitBrief({ keyword, agency, company_domain, limit })) }] }),
+    );
+
+    this.server.paidTool(
+      "regulatory_impact_brief",
+      "Summarize fresh Federal Register and rulemaking signals for one sector with severity, source links, and action read.",
+      0.12,
+      { sector: z.string().optional(), agency: z.string().optional(), jurisdiction: z.string().optional(), hours: z.number().int().min(6).max(720).optional(), limit: z.number().int().min(5).max(25).optional() },
+      {},
+      async ({ sector, agency, jurisdiction, hours, limit }) => ({ content: [{ type: "text", text: JSON.stringify(await buildRegulatoryImpactBrief({ sector, agency, jurisdiction, hours, limit })) }] }),
+    );
+
+    this.server.paidTool(
       "polymarket_event_scan",
       "Scan one live Polymarket negRisk event for fee-adjusted outcome-sum violations. Intelligence only; verify CLOB depth and resolution rules before acting.",
       0.03,
@@ -2918,6 +3330,11 @@ function serviceInfo() {
       polymarket_event_scan: `${SERVICE.origin}/paid/polymarket/event-scan`,
       polymarket_market_scan: `${SERVICE.origin}/paid/polymarket/market-scan`,
       cross_platform_arb_scan: `${SERVICE.origin}/paid/markets/cross-platform-scan`,
+      x402_market_radar: `${SERVICE.origin}/paid/x402/market-radar`,
+      x402_rank_audit: `${SERVICE.origin}/paid/x402/rank-audit`,
+      insider_cluster_brief: `${SERVICE.origin}/paid/finance/insider-cluster-brief`,
+      gov_contract_fit_brief: `${SERVICE.origin}/paid/gov/contract-fit-brief`,
+      regulatory_impact_brief: `${SERVICE.origin}/paid/osint/regulatory-impact-brief`,
       agent_threat_intel: `${SERVICE.origin}/paid/security/threat-intel`,
       mcp_supply_chain_iocs: `${SERVICE.origin}/paid/security/mcp-iocs`,
       agent_trifecta_score: `${SERVICE.origin}/paid/security/trifecta-score`,
@@ -3203,6 +3620,7 @@ function x402WellKnownPlain() {
       `${SERVICE.origin}/paid/polymarket/event-scan`,
       `${SERVICE.origin}/paid/polymarket/market-scan`,
       `${SERVICE.origin}/paid/markets/cross-platform-scan`,
+      `${SERVICE.origin}/paid/x402/market-radar`,
     ],
     tools: TOOLS.map((t) => t.name),
   };
@@ -3291,6 +3709,16 @@ function htmlResponse(html: string) {
       "Cache-Control": "public, max-age=300",
     },
   });
+}
+
+async function assetResponse(env: Env, request: Request, assetPath: string, contentType?: string) {
+  const assetUrl = new URL(request.url);
+  assetUrl.pathname = assetPath;
+  const response = await (env as any).ASSETS.fetch(new Request(assetUrl.toString(), request));
+  if (!contentType) return response;
+  const headers = new Headers(response.headers);
+  headers.set("Content-Type", contentType);
+  return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
 }
 
 function addressFromTopic(topic: string) {
@@ -3811,7 +4239,15 @@ footer code {
   font-size: 24px;
   cursor: pointer;
   padding: 4px 8px;
+  border-radius: 10px;
   z-index: 11;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition: transform var(--duration-fast) var(--ease-out), background-color var(--duration-fast) ease, box-shadow var(--duration-fast) ease;
+}
+.nav-toggle:active {
+  transform: scale(0.96);
+  background: var(--accent-dim);
 }
 /* Hero entrance animation */
 .hero .badge,
@@ -4565,7 +5001,7 @@ ${SHARED_CSS}
 
     <div class="stats">
       <div class="stat"><div class="num">${TOOLS.length}+</div><div class="label">Tools</div></div>
-      <div class="stat"><div class="num">10</div><div class="label">Categories</div></div>
+      <div class="stat"><div class="num">${TOOL_CATEGORIES.length}</div><div class="label">Categories</div></div>
       <div class="stat"><div class="num">$0.01</div><div class="label">Min price</div></div>
       <div class="stat"><div class="num">Base</div><div class="label">Network</div></div>
     </div>
@@ -4772,14 +5208,15 @@ ${content}
 // ── Category definitions (single source of truth) ──────────────────
 const TOOL_CATEGORIES = [
   { name: "Prediction Markets", icon: "\u{1F4CA}", tools: ["polymarket_event_scan","polymarket_market_scan","cross_platform_arb_scan","rebalance_arb_scan","trending_markets","odds_feed","volume_analytics","resolution_history","kalshi_markets","combinatorial_arb","orderbook_imbalance","smart_money"] },
-  { name: "OSINT & Intelligence", icon: "\u{1F30D}", tools: ["geo_intervention_pulse","flight_intel","osint_research_pack","scenario_verdict","weather_bias_score","supply_chain_stress","regulatory_pulse","attention_momentum","sec_8k_velocity","fred_surprises","treasury_dts","openrouter_models","github_trending","github_repo_intel","hn_frontpage","reddit_search"] },
+  { name: "x402 Market Intel", icon: "\u{1F6E3}\u{FE0F}", tools: ["x402_market_radar","x402_rank_audit"] },
+  { name: "OSINT & Intelligence", icon: "\u{1F30D}", tools: ["geo_intervention_pulse","flight_intel","osint_research_pack","scenario_verdict","weather_bias_score","supply_chain_stress","regulatory_pulse","regulatory_impact_brief","attention_momentum","sec_8k_velocity","fred_surprises","treasury_dts","openrouter_models","github_trending","github_repo_intel","hn_frontpage","reddit_search"] },
   { name: "Web Intel", icon: "\u{1F50D}", tools: ["scrape","detect_stack","extract_contacts","score_lead","enrich_lead","check_agent_policy","find_agent_resource","validate_agent_manifest"] },
   { name: "Legal & Regulatory", icon: "\u{2696}\u{FE0F}", tools: ["court_opinions","court_docket","federal_register","patents_search","regulations_search","judges_search","trademarks_search"] },
   { name: "Academic & Science", icon: "\u{1F52C}", tools: ["search_papers","search_arxiv","search_pubmed","clinical_trials","search_openalex","paper_details","citation_graph"] },
   { name: "Health & Safety", icon: "\u{1F48A}", tools: ["drug_recalls","adverse_events","product_recalls","vehicle_recalls","drug_labels","disease_outbreaks","food_safety","food_recall_check"] },
   { name: "Environmental", icon: "\u{1F525}", tools: ["wildfires","weather_alerts","tide_data","space_weather","water_levels","usgs_quake","openaq_air","space_weather_kp","weather_forecast_grid","weather_current_global","aurora_forecast","marine_conditions","air_quality_index"] },
-  { name: "Government", icon: "\u{1F3DB}\u{FE0F}", tools: ["federal_spending","national_debt","federal_grants","nonprofit_filings","economic_indicators","lobbying_records","federal_contracts"] },
-  { name: "Finance & Crypto", icon: "\u{1F4B0}", tools: ["edgar_filings","insider_trades","fred_series","currency_rates","business_days","crypto_price_simple","btc_address_balance","btc_mempool_fees"] },
+  { name: "Government", icon: "\u{1F3DB}\u{FE0F}", tools: ["federal_spending","national_debt","federal_grants","nonprofit_filings","economic_indicators","lobbying_records","federal_contracts","gov_contract_fit_brief"] },
+  { name: "Finance & Crypto", icon: "\u{1F4B0}", tools: ["edgar_filings","insider_trades","insider_cluster_brief","fred_series","currency_rates","business_days","crypto_price_simple","btc_address_balance","btc_mempool_fees"] },
   { name: "Security", icon: "\u{1F512}", tools: ["agent_threat_intel","mcp_supply_chain_iocs","agent_trifecta_score","agent_security_policies","cve_search","company_registry"] },
   { name: "Gen-Video Intel", icon: "\u{1F3AC}", tools: ["gen_video_intel","model_settings_lookup"] },
   { name: "Utility", icon: "\u{1F527}", tools: ["postal_code_lookup","ip_geolocation","timezone_current","airport_status","dns_records_lookup","isbn_book_lookup"] },
@@ -4795,6 +5232,7 @@ function categoryForTool(name: string): string {
 function categoryRailLabel(name: string): string {
   const labels: Record<string, string> = {
     "Prediction Markets": "MARKET",
+    "x402 Market Intel": "X402 RADAR",
     "OSINT & Intelligence": "OSINT",
     "Web Intel": "WEB INTEL",
     "Legal & Regulatory": "LEGAL",
@@ -5056,6 +5494,7 @@ function discoveryPage() {
     { type: "MCP MANIFEST", label: "MCP manifest", href: "/.well-known/mcp.json", text: "Machine-readable MCP entrypoint, auth modes, payments, and tool roster." },
     { type: "SYSTEM API", label: "System info", href: "/api/system/info", text: "Network, seller wallet, asset contract, categories, and discovery URLs." },
     { type: "AGENT CONTEXT", label: "llms-full.txt", href: "/llms-full.txt", text: "Long-form agent context with every tool, price, quote URL, and endpoint." },
+    { type: "BASE MCP BUYER SKILL", label: "Base MCP buyer skill", href: "/agenttoll-base-mcp-skill.md", text: "Agent-facing guide for deciding, explaining, capping, and approving AgentToll x402 purchases through Base MCP." },
     { type: "PRICE QUOTE", label: "Quote API", href: "/api/quote?tool=trending_markets", text: "Free price lookup before an agent attempts a paid call." },
     { type: "OPENAPI SPEC", label: "OpenAPI", href: "/openapi.json", text: "OpenAPI 3.1 spec for public metadata and paid HTTP routes." },
     { type: "X402 DISCOVERY", label: "x402 resources", href: "/.well-known/x402", text: "x402 discovery surface used by paid-resource crawlers." },
@@ -5096,6 +5535,7 @@ function docsPage() {
         <a href="/.well-known/mcp.json" style="color: var(--accent); text-decoration: none;">MCP manifest</a><br>
         <a href="/api/system/info" style="color: var(--accent); text-decoration: none;">System info</a><br>
         <a href="/llms-full.txt" style="color: var(--accent); text-decoration: none;">llms-full.txt</a><br>
+        <a href="/agenttoll-base-mcp-skill.md" style="color: var(--accent); text-decoration: none;">Base MCP buyer skill</a><br>
         <a href="/api/quote?tool=trending_markets" style="color: var(--accent); text-decoration: none;">Quote API</a>
       </p>
     </div>
@@ -5138,6 +5578,47 @@ Seller wallet: ${SERVICE.seller}</pre>
 
   return shellPage("Docs", content);
 }
+
+function inputHintToSchema(hint: unknown): Record<string, unknown> {
+  const text = String(hint ?? "").toLowerCase();
+  const schema: Record<string, unknown> = { type: "string", description: String(hint ?? "") };
+  if (/integer|int|limit|days|hours|pages|count/.test(text)) schema.type = "integer";
+  else if (/decimal|number|score|edge|volume|liquidity|similarity|price|lat|lon/.test(text)) schema.type = "number";
+  else if (/boolean|true|false/.test(text)) schema.type = "boolean";
+  else if (/array|list/.test(text)) {
+    schema.type = "array";
+    schema.items = { type: "string" };
+  }
+  return schema;
+}
+
+function openApiPaidPaths(): Record<string, unknown> {
+  const paths: Record<string, unknown> = {};
+  for (const tool of TOOLS as readonly any[]) {
+    if (!tool.http_path) continue;
+    const input = (tool.input ?? {}) as Record<string, unknown>;
+    const required = Object.entries(input)
+      .filter(([, hint]) => /required|string, include|url|string research query|string q|topic|slug/.test(String(hint ?? "").toLowerCase()) && !/optional/.test(String(hint ?? "").toLowerCase()))
+      .map(([key]) => key);
+    const properties = Object.fromEntries(Object.entries(input).map(([key, hint]) => [key, inputHintToSchema(hint)]));
+    paths[tool.http_path] = {
+      post: {
+        summary: `Paid ${String(tool.name).replace(/_/g, " ")}`,
+        description: `Returns HTTP 402 until paid $${tool.price_usd} in Base USDC through x402. ${tool.description}`,
+        requestBody: {
+          required: required.length > 0,
+          content: { "application/json": { schema: { type: "object", ...(required.length ? { required } : {}), properties } } },
+        },
+        responses: {
+          "200": { description: `Paid ${tool.name} JSON response.`, content: { "application/json": { schema: { type: "object" } } } },
+          "402": { description: "x402 payment requirements." },
+        },
+      },
+    };
+  }
+  return paths;
+}
+
 function openApiSpec() {
   const info = serviceInfo();
   return {
@@ -5150,6 +5631,7 @@ function openApiSpec() {
     jsonSchemaDialect: "https://json-schema.org/draft/2020-12/schema",
     servers: [{ url: SERVICE.origin }],
     paths: {
+      ...openApiPaidPaths(),
       "/api/info": {
         get: {
           summary: "Get agenttoll.dev service metadata",
@@ -5228,6 +5710,18 @@ function openApiSpec() {
           responses: { "200": { description: "Live cross-platform candidate and opportunity scan.", "content": { "application/json": { "schema": { "type": "object", "properties": { "success": { "type": "boolean" }, "data": { "oneOf": [ { "type": "array" }, { "type": "object" } ] }, "cached": { "type": "boolean" }, "meta": { "type": "object", "properties": { "count": { "type": "integer" }, "source": { "type": "string" }, "generated_at": { "type": "string", "format": "date-time" } } } } } } } }, "402": { description: "x402 payment requirements." } },
         },
       },
+      "/paid/x402/market-radar": {
+        post: {
+          summary: "Paid x402 Bazaar market radar",
+          description: "Returns HTTP 402 until paid $0.05 in Base USDC through x402. Tracks Bazaar catalog size, AgentToll ranks, vertical competition, and keyword gaps.",
+          requestBody: { content: { "application/json": { schema: { type: "object", properties: { query_limit: { type: "integer", minimum: 3, maximum: 20 } } } } } },
+          responses: { "200": { description: "x402 market radar report.", "content": { "application/json": { "schema": { "type": "object" } } } }, "402": { description: "x402 payment requirements." } },
+        },
+      },
+      "/paid/x402/rank-audit": { post: { summary: "Paid x402 resource rank audit", description: "Returns HTTP 402 until paid $0.10 in Base USDC through x402. Checks Bazaar rank, competitors, and metadata defects for one resource.", requestBody: { content: { "application/json": { schema: { type: "object", properties: { resource: { type: "string" }, keywords: { type: "array", items: { type: "string" } }, limit: { type: "integer", minimum: 5, maximum: 25 } } } } } }, responses: { "200": { description: "Rank audit report.", "content": { "application/json": { "schema": { "type": "object" } } } }, "402": { description: "x402 payment requirements." } } } },
+      "/paid/finance/insider-cluster-brief": { post: { summary: "Paid insider cluster brief", description: "Returns HTTP 402 until paid $0.10 in Base USDC through x402. Converts recent SEC Form 4 filings into cluster and watchlist signals.", requestBody: { content: { "application/json": { schema: { type: "object", properties: { ticker: { type: "string" }, limit: { type: "integer", minimum: 5, maximum: 80 } } } } } }, responses: { "200": { description: "Insider cluster brief.", "content": { "application/json": { "schema": { "type": "object" } } } }, "402": { description: "x402 payment requirements." } } } },
+      "/paid/gov/contract-fit-brief": { post: { summary: "Paid government contract fit brief", description: "Returns HTTP 402 until paid $0.15 in Base USDC through x402. Scores federal contract awards against a service keyword, agency, or company domain.", requestBody: { content: { "application/json": { schema: { type: "object", properties: { keyword: { type: "string" }, agency: { type: "string" }, company_domain: { type: "string" }, limit: { type: "integer", minimum: 5, maximum: 50 } } } } } }, responses: { "200": { description: "Contract fit brief.", "content": { "application/json": { "schema": { "type": "object" } } } }, "402": { description: "x402 payment requirements." } } } },
+      "/paid/osint/regulatory-impact-brief": { post: { summary: "Paid regulatory impact brief", description: "Returns HTTP 402 until paid $0.12 in Base USDC through x402. Summarizes fresh rulemaking signals for one sector.", requestBody: { content: { "application/json": { schema: { type: "object", properties: { sector: { type: "string" }, agency: { type: "string" }, jurisdiction: { type: "string" }, hours: { type: "integer", minimum: 6, maximum: 720 }, limit: { type: "integer", minimum: 5, maximum: 25 } } } } } }, responses: { "200": { description: "Regulatory impact brief.", "content": { "application/json": { "schema": { "type": "object" } } } }, "402": { description: "x402 payment requirements." } } } },
       "/paid/polymarket/rebalance-scan": {
         post: {
           summary: "Paid Polymarket rebalance arbitrage scan",
@@ -5494,6 +5988,17 @@ function openApiSpec() {
           responses: { "200": { description: "Cache key list.", "content": { "application/json": { "schema": { "type": "object", "properties": { "success": { "type": "boolean" }, "data": { "oneOf": [ { "type": "array" }, { "type": "object" } ] }, "cached": { "type": "boolean" }, "meta": { "type": "object", "properties": { "count": { "type": "integer" }, "source": { "type": "string" }, "generated_at": { "type": "string", "format": "date-time" } } } } } } } }, "403": { description: "Forbidden — key mismatch." } },
         },
       },
+      "/admin/route-analytics": {
+        get: {
+          summary: "Route-level x402 funnel analytics (requires WARM_KEY or dev mode)",
+          description: "Shows GET metadata views, unpaid 402 payment challenges, paid 2xx successes, and upstream failures by paid endpoint. Protected by ?key= or x-warm-key header matching WARM_KEY.",
+          parameters: [
+            { name: "key", in: "query", required: false, schema: { type: "string" }, description: "WARM_KEY value" },
+            { name: "days", in: "query", required: false, schema: { type: "integer", minimum: 1, maximum: 35 }, description: "Number of UTC daily buckets to aggregate" },
+          ],
+          responses: { "200": { description: "Route analytics snapshot." }, "403": { description: "Forbidden — key mismatch." } },
+        },
+      },
     },
     "x-tollbooth-payments": info.payments,
     "x-tollbooth-tools": TOOLS.map((tool) => ({
@@ -5522,6 +6027,26 @@ export default {
       return htmlResponse(landingPage());
     }
 
+    if (url.pathname === "/blog" || url.pathname === "/blog/" || url.pathname === "/blog/index.html") {
+      return assetResponse(env, request, "/_worker-assets/blog-index", "text/html; charset=utf-8");
+    }
+
+    if (url.pathname.startsWith("/blog/")) {
+      const blogHtmlAssets: Record<string, string> = {
+        "/blog/base-mcp-x402-agent-buyers": "/_worker-assets/base-mcp-x402-agent-buyers",
+        "/blog/x402-foundation-agent-payments": "/_worker-assets/x402-foundation-agent-payments",
+        "/blog/x402-protocol-explained": "/_worker-assets/x402-protocol-explained",
+      };
+      const normalizedPath = url.pathname.replace(/\.html$/i, "");
+      const htmlAsset = blogHtmlAssets[normalizedPath];
+      if (htmlAsset) return assetResponse(env, request, htmlAsset, "text/html; charset=utf-8");
+      return assetResponse(env, request, url.pathname);
+    }
+
+    if (url.pathname === "/agenttoll-base-mcp-skill.md" || url.pathname === "/llms.txt" || url.pathname === "/sitemap.xml") {
+      return assetResponse(env, request, url.pathname);
+    }
+
     if (url.pathname === "/api/info") {
       return jsonResponse(serviceInfo());
     }
@@ -5536,21 +6061,6 @@ export default {
 
     if (url.pathname === "/api/x402/bazaar/search") {
       return proxyBazaarSearch(request);
-    }
-
-    if (url.pathname === "/blog/x402-foundation-agent-payments" || url.pathname === "/blog/x402-foundation-agent-payments/") {
-      const assetUrl = new URL("/blog/x402-foundation-agent-payments.html", url.origin);
-      return (env as any).ASSETS.fetch(new Request(assetUrl.toString(), request));
-    }
-
-    if (url.pathname === "/blog/x402-protocol-explained" || url.pathname === "/blog/x402-protocol-explained/") {
-      const assetUrl = new URL("/blog/x402-protocol-explained.html", url.origin);
-      return (env as any).ASSETS.fetch(new Request(assetUrl.toString(), request));
-    }
-
-    if (url.pathname === "/blog" || url.pathname === "/blog/") {
-      const assetUrl = new URL("/blog/index.html", url.origin);
-      return (env as any).ASSETS.fetch(new Request(assetUrl.toString(), request));
     }
 
     if (url.pathname === "/docs") {
@@ -5650,6 +6160,25 @@ export default {
         return jsonResponse({ ok: true, key_count: keys.length, keys: keys.map(k => ({ name: k.name.replace(_PREFIX, ""), expiration: k.expiration })), timestamp: new Date().toISOString() });
       } catch (error) {
         return jsonResponse({ error: "cache_status_failed", message: error instanceof Error ? error.message : String(error) }, 500);
+      }
+    }
+
+
+    if (url.pathname === "/admin/route-analytics") {
+      const warmKey = (env as any)?.WARM_KEY as string | undefined;
+      const providedKey = url.searchParams.get("key") ?? request.headers.get("x-warm-key");
+      const isDev = (env as any)?.NODE_ENV === "development" || !(env as any)?.WARM_KEY && process.env.NODE_ENV !== "production";
+      if (warmKey) {
+        if (providedKey !== warmKey) return jsonResponse({ error: "forbidden" }, 403);
+      } else if (!isDev) {
+        return jsonResponse({ error: "forbidden", message: "WARM_KEY not set and not in dev" }, 403);
+      }
+      try {
+        const days = Number(url.searchParams.get("days") ?? "1") || 1;
+        const snapshot = await routeAnalyticsSnapshot(env as any, days);
+        return jsonResponse({ ok: true, ...snapshot });
+      } catch (error) {
+        return jsonResponse({ error: "route_analytics_failed", message: error instanceof Error ? error.message : String(error) }, 500);
       }
     }
 

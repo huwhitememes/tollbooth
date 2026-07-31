@@ -297,16 +297,28 @@ export async function scanCrossPlatformMarkets(options: CrossPlatformScanOptions
   if (query.length < 2 || query.length > 100) throw new Error("Query must be 2-100 characters");
   const polymarketLimit = Math.min(1000, Math.max(100, Math.trunc(options.polymarketLimit ?? 1000)));
   const kalshiMaxPages = Math.min(20, Math.max(1, Math.trunc(options.kalshiMaxPages ?? 12)));
-  const [polymarket, kalshi] = await Promise.all([
+  const [polymarketResult, kalshiResult] = await Promise.allSettled([
     fetchPolymarketCandidates(query, polymarketLimit, fetcher),
     fetchKalshiCandidates(query, kalshiMaxPages, fetcher),
   ]);
+  const polymarket = polymarketResult.status === "fulfilled" ? polymarketResult.value : [];
+  const kalshi = kalshiResult.status === "fulfilled" ? kalshiResult.value : { candidates: [], scanned: 0, pages: 0, truncated: false };
+  const upstreamErrors = [
+    polymarketResult.status === "rejected" ? { source: "Polymarket Gamma API", message: polymarketResult.reason instanceof Error ? polymarketResult.reason.message : String(polymarketResult.reason) } : null,
+    kalshiResult.status === "rejected" ? { source: "Kalshi public Trade API", message: kalshiResult.reason instanceof Error ? kalshiResult.reason.message : String(kalshiResult.reason) } : null,
+  ].filter(Boolean);
+  const degraded = upstreamErrors.length > 0;
+  const matched = analyzeCrossPlatformPairs(polymarket, kalshi.candidates, options);
   return {
     source: ["Polymarket Gamma API", "Kalshi public Trade API"],
     generated_at: new Date().toISOString(),
     query,
+    degraded,
+    upstream_errors: upstreamErrors,
     methodology: "Query-filtered title matching with number and directional guards. Prices use current top-of-book asks; Polymarket NO ask is proxied as 1 minus the YES bid. Net edge deducts a 2% Polymarket estimate and Kalshi's 7% × price × (1-price) taker formula.",
-    warning: "Candidate matches are not proof that settlement rules are identical. Read both rulebooks before treating any spread as guaranteed. This endpoint does not trade.",
+    warning: degraded
+      ? "One or more upstream market APIs failed or rate-limited, so this response may contain partial coverage and no arbitrage conclusion. Retry later for full cross-platform coverage. This endpoint does not trade."
+      : "Candidate matches are not proof that settlement rules are identical. Read both rulebooks before treating any spread as guaranteed. This endpoint does not trade.",
     config: {
       min_similarity: options.minSimilarity ?? 0.62,
       min_net_edge: options.minNetEdge ?? 0.015,
@@ -321,6 +333,6 @@ export async function scanCrossPlatformMarkets(options: CrossPlatformScanOptions
       kalshi_pages: kalshi.pages,
       kalshi_truncated: kalshi.truncated,
     },
-    ...analyzeCrossPlatformPairs(polymarket, kalshi.candidates, options),
+    ...matched,
   };
 }
