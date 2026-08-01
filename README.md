@@ -2,7 +2,7 @@
 
 # 🪙 Tollbooth
 
-### 100 paid MCP tools for AI agents. Pay per call in USDC on Base. No accounts, no API keys, no credit cards.
+### Receipt-backed paid work products for AI agents. Pay per task in USDC on Base. No accounts, no API keys, no credit cards.
 
 [![Tools](https://img.shields.io/badge/tools-100-blue)](https://agenttoll.dev/tools)
 [![Network](https://img.shields.io/badge/network-Base%20mainnet-blue)](https://base.org)
@@ -18,9 +18,9 @@
 
 ## What is agenttoll.dev?
 
-agenttoll.dev is a marketplace of **100 paid tools** exposed through the [Model Context Protocol](https://modelcontextprotocol.io). Any MCP-compatible agent — Claude, Cursor, custom builds — can discover and call these tools. Payment happens automatically via the [x402 protocol](https://x402.org): the agent attaches a USDC micropayment to each request, the server verifies it on-chain, and returns the data. Pennies per call. No signup, no billing dashboard, no API key management.
+agenttoll.dev is a marketplace of **receipt-backed paid work products** exposed through the [Model Context Protocol](https://modelcontextprotocol.io). Any MCP-compatible agent — Claude, Cursor, custom builds — can discover a task, inspect the price and seller metadata, cap the spend, call the tool, and receive structured JSON with a receipt envelope. Payment happens through the [x402 protocol](https://x402.org): the agent attaches a USDC micropayment to the request, the server verifies it on-chain, and returns the finished work. Pennies per task. No signup, no billing dashboard, no API key management.
 
-**One-line pitch:** Stripe for agent tool calls, except the checkout is a 402 response with a payment challenge instead of a credit card form.
+**One-line pitch:** checkout infrastructure for agent-bought work, except the checkout is a 402 response with a payment challenge instead of a credit card form.
 
 ### What's actually here
 
@@ -232,7 +232,7 @@ Claude will discover all 100 tools automatically. (Note: Claude Desktop needs an
 
 **Stack:** TypeScript · Hono · Cloudflare Workers · Durable Objects · KV · `@modelcontextprotocol/sdk` · `@x402/core` · `@x402/hono`
 
-All 100 tools are backed by **free, keyless public APIs** — USAspending.gov, SEC EDGAR, CourtListener, PubMed, NASA FIRMS, NOAA, USGS, Polymarket, Kalshi, Reddit, GitHub, and others. agenttoll.dev wraps them with caching, normalization, structured output, and the payment layer. You pay for the aggregation, reliability, and agent-ready formatting — not for the raw data itself.
+Many current tools use free, keyless public sources — USAspending.gov, SEC EDGAR, CourtListener, PubMed, NASA FIRMS, NOAA, USGS, Polymarket, Kalshi, Reddit, GitHub, and others. That is the supply layer, not the product. agenttoll.dev packages sources into agent-buyable work: task-shaped outputs, buyer metadata, spend caps, structured results, and receipts. You pay for the finished work and payment-safe packaging, not for raw public data.
 
 ---
 

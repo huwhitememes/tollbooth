@@ -5,9 +5,9 @@
 ```text
 Base MCP changes the x402 pitch.
 
-Agents no longer need a whole wallet/payment science project before buying a paid API call.
+Agents no longer need a whole wallet/payment science project before buying a small piece of paid work.
 
-Now sellers have to make the tool obvious, safe, capped, and worth approving.
+Now sellers have to make the work obvious, safe, capped, and worth approving.
 
 Builder-side read:
 https://agenttoll.dev/blog/base-mcp-x402-agent-buyers

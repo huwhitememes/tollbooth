@@ -5,10 +5,10 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <title>Base MCP Turns AI Agents Into x402 Buyers | agenttoll.dev</title>
-<meta name="description" content="Base MCP gives agents a user-approved wallet path for x402 payments. AgentToll needs routes that agents can discover, explain, and buy safely.">
+<meta name="description" content="Base MCP gives agents a wallet path. AgentToll packages x402 work products agents can inspect, cap, approve, and receipt.">
 <link rel="canonical" href="https://agenttoll.dev/blog/base-mcp-x402-agent-buyers">
 <meta property="og:title" content="Base MCP Turns AI Agents Into x402 Buyers">
-<meta property="og:description" content="Base MCP gives agents a user-approved wallet path for x402 payments. AgentToll needs routes that agents can discover, explain, and buy safely.">
+<meta property="og:description" content="Base MCP gives agents a wallet path. AgentToll packages x402 work products agents can inspect, cap, approve, and receipt.">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://agenttoll.dev/blog/base-mcp-x402-agent-buyers">
 <meta property="og:image" content="https://agenttoll.dev/blog/og-base-mcp-x402-agent-buyers.png">
@@ -24,7 +24,7 @@
   "@context": "https://schema.org",
   "@type": "Article",
   "headline": "Base MCP Turns AI Agents Into x402 Buyers",
-  "description": "Base MCP gives agents a user-approved wallet path for x402 payments. AgentToll needs routes that agents can discover, explain, and buy safely.",
+  "description": "Base MCP gives agents a wallet path. AgentToll packages x402 work products agents can inspect, cap, approve, and receipt.",
   "author": {
     "@type": "Person",
     "name": "Hu White",
@@ -1092,7 +1092,7 @@ article a,
       <h1 class="blog-title">Base MCP Turns AI Agents Into x402 Buyers</h1>
       <article class="blog-article">
 
-<div class="tldr"><strong>TL;DR:</strong> x402 gives APIs and tools a payment standard. Base MCP gives agents a user controlled wallet path. Together, they make paid agent work feel less like crypto plumbing and more like a normal tool call with a spending cap and approval step. That matters for AgentToll because the next fight is not only adding more paid endpoints. It is making those endpoints easy for agents to discover, judge, explain, and buy.</div>
+<div class="tldr"><strong>TL;DR:</strong> x402 gives paid work a payment standard. Base MCP gives agents a user controlled wallet path. Together, they make agent purchases feel less like crypto plumbing and more like a normal task with a spending cap, approval step, and receipt. That matters for AgentToll because the next fight is not adding more routes. It is turning small agent purchases into work products an assistant can discover, judge, explain, buy, and audit.</div>
 <hr>
 <h2>What Base MCP changes</h2>
 <p>Base MCP connects AI clients to a Base Account smart wallet through <code>https://mcp.base.org</code>. Base describes it as a gateway between AI assistants and Base Account, with support for balance checks, sends, swaps, signatures, contract calls, transaction history, plugins, and x402 payments.</p>
@@ -1100,7 +1100,7 @@ article a,
 <p>For x402, the Base docs are direct. Base MCP can pay x402 HTTPS API requests from a Base Account. The assistant sets a maximum USDC payment, Base MCP discovers the endpoint payment requirements, and the user signs before the request completes. The docs describe the flow with <code>initiate_x402_request</code> and <code>complete_x402_request</code>, and they tell builders to use tight <code>maxPayment</code> caps.</p>
 <p>That is the buyer side x402 needed.</p>
 <p>Before this, an x402 seller could expose a paid route and wait. The protocol worked, but the buyer still needed wallet setup, funding, signing logic, payment headers, retry handling, facilitator compatibility, and enough trust to approve the spend. Base MCP does not solve all of that, but it removes a lot of buyer friction from normal MCP environments.</p>
-<p>A user can ask an assistant to call a paid endpoint, cap the spend, approve the request, and get the result back. That is a different product surface than "install this SDK and wire your own wallet."</p>
+<p>A user can ask an assistant to buy a small piece of work, cap the spend, approve the request, and get the result back with a receipt. That is a different product surface than "install this SDK and wire your own wallet."</p>
 <h2>x402 already has the seller side</h2>
 <p>Coinbase describes x402 as an open payment protocol that revives HTTP <code>402 Payment Required</code>. A client requests a paid resource. The server replies with payment instructions. The client pays, retries with proof, and the server returns the resource after verification.</p>
 <p>Cloudflare is pushing the same pattern into web infrastructure with Monetization Gateway. Their framing is blunt: charge for web pages, datasets, APIs, and MCP tool calls. The unit of payment can be a request, token, or outcome instead of a seat or monthly plan.</p>
@@ -1116,18 +1116,19 @@ article a,
 <p>This is where AgentToll has room to be useful.</p>
 <h2>The AgentToll angle</h2>
 <p>AgentToll should not position itself as another pile of paid URLs.</p>
-<p>The better position is a buyer ready catalog for agent work. That means every route needs to answer four questions before the agent pays:</p>
-<p>Can I find it? Can I understand it? Can I justify the price to the user? Can I call it safely?</p>
-<p>That changes how we package endpoints.</p>
+<p>The better position is the paid work layer for agents. Agents should not be approving mystery API charges. They should be buying task-shaped work with a clear price, a bounded payment, an expected result, and a receipt they can inspect later.</p>
+<p>That means every route needs to answer four questions before the agent pays:</p>
+<p>Can I find it? Can I understand what work comes back? Can I justify the price to the user? Can I call it safely?</p>
+<p>That changes how we package the product.</p>
 <p>Discovery means route pages, OpenAPI, Bazaar metadata, <code>llms.txt</code>, and clear descriptions written for agents instead of only humans. An agent searching for "audit my x402 listing" or "summarize regulatory risk for this company" should land on a route that tells it what the call does, what it costs, what input it needs, and what output it returns.</p>
-<p>Evaluation means free metadata. Agents need enough unpaid information to decide whether a paid call is worth it. A route should show price, output shape, example response, use cases, limits, and freshness. If the paid result is a report, show a sample report. If the endpoint ranks something, show the ranking criteria. If it depends on external data, say what kind.</p>
+<p>Evaluation means free metadata. Agents need enough unpaid information to decide whether a paid work product is worth buying. A route should show price, output shape, example response, use cases, limits, freshness, and the receipt schema. If the paid result is a report, show a sample report. If it ranks something, show the ranking criteria. If it depends on external data, say what kind.</p>
 <p>Purchase means x402 compatibility with sane caps. Base MCP&apos;s x402 guide makes this concrete: the assistant sets <code>maxPayment</code>, the user approves, and the request completes only inside that cap. AgentToll copy should help the assistant form that approval prompt cleanly.</p>
 <p>Explanation is the underrated part. The agent has to tell the user why the spend is worth approving. A route description that says "premium API access" is dead weight. A route description that says "This call costs $0.10 and returns a ranked audit of your x402 listing, including discoverability, metadata gaps, and buyer trust issues" gives the assistant something it can repeat to the user.</p>
 <p>Workflow integration is where the money probably is. Raw data is easy to ignore. Paid work is harder to replace. Carbonmark is a good example outside our lane: discovery and quotes are free, and payment happens when the agent executes a carbon retirement and gets a public certificate. The product is not just JSON. It is an action with proof.</p>
 <p>AgentToll should lean into that same shape for decision products. Not "pay for data." Pay for a small, finished job.</p>
 <h2>What to build around this</h2>
-<p>The first move is content. Publish the Base MCP and x402 explanation, then point builders to AgentToll as a live place to see paid agent routes packaged for purchase.</p>
-<p>The second move is route packaging. Pick the strongest endpoints and make their free metadata pages impossible to misunderstand. Price. Input. Output. Sample. Why it is useful. When not to buy it. Payment cap language.</p>
+<p>The first move is content. Publish the Base MCP and x402 explanation, then point builders to AgentToll as a live place to see paid agent work packaged for purchase.</p>
+<p>The second move is work packaging. Pick the strongest routes and make their free metadata pages impossible to misunderstand. Price. Input. Output. Sample. Why it is useful. When not to buy it. Payment cap language. Receipt shape.</p>
 <p>The third move is agent approval copy. Every paid route should have a sentence an assistant can use before asking the user to approve payment.</p>
 <pre><code>"This call costs $0.10 and returns a ranked audit of your x402 listing with fixes for discovery, metadata, and buyer trust."
 
@@ -1135,7 +1136,7 @@ article a,
 <p>That copy sounds small, but it is the bridge between a catalog listing and a wallet approval.</p>
 <p>The fourth move is trust. AWS AgentCore&apos;s payment security docs are useful here because they name the real enterprise concerns: least privilege, budget limits, short TTLs, audit logs, explicit end user consent, and verified <code>payTo</code> addresses. They also warn not to let the model generate payment addresses. For AgentToll, that means route metadata should make the seller address, accepted network, asset, and max price clear and machine readable.</p>
 <p>For builders who want the executable version of this checklist, I published the <a href="/agenttoll-base-mcp-skill.md">AgentToll Base MCP buyer skill</a>. It gives an assistant the buyer-side rules: inspect route metadata, verify the Base USDC seller address, cap <code>maxPayment</code>, and explain the spend before asking the user to approve it.</p>
-<p>The fifth move is bundles. Agents do not want to buy five random API calls. They want to complete a task. Bundle routes around jobs:</p>
+<p>The fifth move is bundles. Agents do not want to buy five random calls. They want to complete a task. Bundle routes around jobs:</p>
 <ul>
 <li>Audit my x402 listing</li>
 <li>Research this agent payments market</li>
@@ -1151,7 +1152,7 @@ article a,
 <p>That is enough to change the next move.</p>
 <p>For x402 sellers, the question is no longer only "can this endpoint accept payment?" The better question is "can an agent find this, understand it, explain it, cap the spend, get approval, and return something the user values?"</p>
 <p>AgentToll should build for that question.</p>
-<p>Not just paid routes. Paid work an agent can sell to its user in one sentence.</p>
+<p>Not just paid routes. Receipt-backed work an agent can explain to its user in one sentence.</p>
 <hr>
 <h2>Sources</h2>
 <ul>
@@ -1171,9 +1172,9 @@ article a,
       </article>
     </div>
     <aside class="blog-side">
-      <div class="rail-card" data-rail-label="ARTICLE META"><div class="meta">Blog · July 30, 2026</div><p>Base MCP gives agents a user-approved wallet path for x402 payments. AgentToll needs routes that agents can discover, explain, and buy safely.</p></div>
-      <div class="rail-card" data-rail-label="RELATED"><p><a href="/agenttoll-base-mcp-skill.md" style="color:var(--accent);">Read the Base MCP buyer skill</a></p><p><a href="/blog/x402-protocol-explained" style="color:var(--accent);">Read the builder guide to x402 API payments</a></p><p><a href="/tools" style="color:var(--accent);">Browse 100 paid MCP tools</a></p></div>
-      <div class="author-card"><div class="flex"><div class="avatar" style="overflow:hidden;"><img src="/hu-white-pfp.jpg" alt="Hu White" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"></div><div><div style="font-size:15px;font-weight:600;">Hu White</div><div style="font-size:13px;color:var(--text-3);">Generative-AI veteran &#183; x402 builder &#183; <a href="https://github.com/huwhitememes" style="color:var(--accent);">GitHub</a> &#183; <a href="https://www.linkedin.com/in/huwhitememes/" style="color:var(--accent);">LinkedIn</a> &#183; <a href="https://x.com/huwhitememes" style="color:var(--accent);">X</a></div></div></div><p style="font-size:13px;color:var(--text-2);margin-top:12px;line-height:1.6;">Built and operates agenttoll.dev, a marketplace of 100+ paid MCP tools settling on Base USDC.</p></div>
+      <div class="rail-card" data-rail-label="ARTICLE META"><div class="meta">Blog · July 30, 2026</div><p>Base MCP gives agents a wallet path. AgentToll packages x402 work products agents can inspect, cap, approve, and receipt.</p></div>
+      <div class="rail-card" data-rail-label="RELATED"><p><a href="/agenttoll-base-mcp-skill.md" style="color:var(--accent);">Read the Base MCP buyer skill</a></p><p><a href="/blog/x402-protocol-explained" style="color:var(--accent);">Read the builder guide to x402 agent payments</a></p><p><a href="/tools" style="color:var(--accent);">Browse 100 paid work products</a></p></div>
+      <div class="author-card"><div class="flex"><div class="avatar" style="overflow:hidden;"><img src="/hu-white-pfp.jpg" alt="Hu White" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"></div><div><div style="font-size:15px;font-weight:600;">Hu White</div><div style="font-size:13px;color:var(--text-3);">Generative-AI veteran &#183; x402 builder &#183; <a href="https://github.com/huwhitememes" style="color:var(--accent);">GitHub</a> &#183; <a href="https://www.linkedin.com/in/huwhitememes/" style="color:var(--accent);">LinkedIn</a> &#183; <a href="https://x.com/huwhitememes" style="color:var(--accent);">X</a></div></div></div><p style="font-size:13px;color:var(--text-2);margin-top:12px;line-height:1.6;">Built and operates agenttoll.dev, a marketplace of receipt-backed paid work products settling on Base USDC.</p></div>
 <div class="cta-row"><a href="/tools" class="btn btn-primary">Browse 100 tools &#8594;</a><a href="/docs" class="btn btn-ghost">Documentation</a><a href="/mcp" class="btn btn-ghost">MCP Endpoint</a></div>
     </aside>
   </div>

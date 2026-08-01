@@ -54,7 +54,7 @@ const SERVICE = {
   version: "0.12.0",
   origin: process.env.X402_ORIGIN ?? "https://agenttoll.dev",
   mcpPath: "/mcp",
-  description: "Paid MCP and HTTP tools for prediction market intelligence, OSINT feeds, legal/regulatory data, academic research, public health, environmental data, and government spending — all on Base USDC.",
+  description: "Receipt-backed paid work products for AI agents: market intelligence, OSINT briefs, legal/regulatory checks, research tasks, public-data monitoring, and spend-capped x402 calls on Base USDC.",
   seller: (process.env.X402_SELLER as `0x${string}`) ?? "0x62a0D3d9DF0dE8804983009949c714EaeAFd87F1",
   network: (process.env.X402_NETWORK as `${string}:${string}`) ?? "eip155:8453",
   networkName: process.env.X402_NETWORK_NAME ?? "Base mainnet",
@@ -1325,7 +1325,7 @@ const paidHttp = new Hono<{ Bindings: Env }>();
 paidHttp.get("/paid/*", async (c) => {
   const path = new URL(c.req.url).pathname;
   const tool = TOOLS.find((candidate) => (candidate as any).http_path === path) as any;
-  if (!tool) return c.json({ error: "not_found", message: "Unknown paid endpoint." }, 404);
+  if (!tool) return c.json({ error: "not_found", message: "Unknown paid work product." }, 404);
   await routeAnalyticsIncrement(c.env as any, path, "metadata_views").catch(() => {});
   return c.json({
     service: SERVICE.name,
@@ -1335,7 +1335,7 @@ paidHttp.get("/paid/*", async (c) => {
     price_usd: tool.price_usd,
     network: SERVICE.network,
     facilitator: SERVICE.facilitator,
-    message: "This is free buyer metadata for an x402-paid endpoint. POST JSON to receive the 402 payment challenge, then retry with a signed payment.",
+    message: "This is free buyer metadata for an x402 paid work product. POST JSON to receive the 402 payment challenge, then retry with a signed payment.",
     buyer_contract: toolBuyerContract(tool),
     approval_prompt: toolApprovalPrompt(tool),
     receipt_schema: `${SERVICE.origin}/agenttoll-receipt-v1.md`,
@@ -5086,10 +5086,10 @@ function landingPage() {
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-<title>agenttoll.dev — Paid data tools for AI agents</title>
-<meta name="description" content="${TOOLS.length}+ paid x402 MCP tools for AI agents. Prediction markets, SEC filings, federal data, OSINT, academic research, health, environmental. Pay per call in USDC on Base.">
-<meta property="og:title" content="agenttoll.dev — Paid data tools for AI agents">
-<meta property="og:description" content="100+ paid x402 MCP tools for AI agents. Prediction markets, SEC filings, OSINT, legal, academic, health, environmental. Pay per call in USDC on Base.">
+<title>agenttoll.dev — Paid work products for AI agents</title>
+<meta name="description" content="${TOOLS.length}+ receipt-backed x402 work products for AI agents. Clear prices, spend caps, buyer metadata, and structured results over Base USDC.">
+<meta property="og:title" content="agenttoll.dev — Paid work products for AI agents">
+<meta property="og:description" content="Receipt-backed x402 work products for AI agents. Clear prices, spend caps, buyer metadata, and structured results over Base USDC.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://agenttoll.dev/">
 <meta property="og:site_name" content="agenttoll.dev">
@@ -5098,8 +5098,8 @@ function landingPage() {
 <meta property="og:image:height" content="630">
 <meta property="og:image:type" content="image/png">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="agenttoll.dev — Paid data tools for AI agents">
-<meta name="twitter:description" content="100+ paid x402 MCP tools. Pay per call in USDC on Base.">
+<meta name="twitter:title" content="agenttoll.dev — Paid work products for AI agents">
+<meta name="twitter:description" content="Receipt-backed x402 work products. Clear prices, spend caps, and Base USDC settlement.">
 <meta name="twitter:image" content="https://agenttoll.dev/og-card-v2.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -5114,7 +5114,7 @@ ${SHARED_CSS}
   "@type": "Organization",
   "name": "agenttoll.dev",
   "url": "https://agenttoll.dev",
-  "description": "Paid x402 MCP tools for AI agents — prediction markets, SEC filings, OSINT, legal, academic, health, environmental, government, finance, security data.",
+  "description": "Receipt-backed x402 work products for AI agents: task-shaped intelligence, clear prices, spend caps, buyer metadata, and Base USDC settlement.",
   "founder": {
     "@type": "Person",
     "name": "Hu White"
@@ -5136,19 +5136,18 @@ ${SHARED_CSS}
     "@type": "Offer",
     "price": "0.01",
     "priceCurrency": "USD",
-    "description": "Pay per API call in USDC on Base. No accounts, no subscriptions."
+    "description": "Pay per work product in USDC on Base. No accounts or subscriptions."
   },
   "featureList": [
-    "100+ paid MCP tools",
+    "Receipt-backed paid work products",
     "x402 payment protocol",
     "USDC on Base mainnet",
+    "Spend-capped buyer metadata",
+    "Agent approval prompts",
     "Prediction market intelligence",
-    "SEC EDGAR filings",
-    "OSINT feeds",
-    "Federal court records",
-    "Academic paper search",
-    "FDA drug data",
-    "Environmental sensors"
+    "Regulatory and contract briefs",
+    "OSINT research tasks",
+    "Public-data monitoring"
   ]
 }
 </script>
@@ -5190,8 +5189,8 @@ ${SHARED_CSS}
 <main>
   <section class="hero">
     <div class="badge">x402 · USDC on Base · No account needed</div>
-    <h1>Paid data tools<br>for AI agents.</h1>
-    <p class="sub">Prediction markets, SEC filings, federal contracts, court records, academic research, OSINT, health data, environmental feeds. ${TOOLS.length}+ tools. $0.01–$0.10 per call. Pay in USDC over x402.</p>
+    <h1>Paid work products<br>for AI agents.</h1>
+    <p class="sub">Task-shaped intelligence with clear prices, spend caps, buyer metadata, and receipt-backed results. ${TOOLS.length}+ work products across markets, contracts, OSINT, research, security, and public-data monitoring. Pay in USDC over x402.</p>
     <div class="actions">
       <a href="/tools" class="btn btn-primary">Browse ${TOOLS.length} tools →</a>
       <a href="/discovery" class="btn btn-ghost">Discovery hub</a>
@@ -5199,7 +5198,7 @@ ${SHARED_CSS}
     </div>
 
     <div class="stats">
-      <div class="stat"><div class="num">${TOOLS.length}+</div><div class="label">Tools</div></div>
+      <div class="stat"><div class="num">${TOOLS.length}+</div><div class="label">Work products</div></div>
       <div class="stat"><div class="num">${TOOL_CATEGORIES.length}</div><div class="label">Categories</div></div>
       <div class="stat"><div class="num">$0.01</div><div class="label">Min price</div></div>
       <div class="stat"><div class="num">Base</div><div class="label">Network</div></div>
@@ -5621,7 +5620,7 @@ ${jsonLd}`;
 
     <div class="tool-section" data-rail-label="TOOL OVERVIEW">
       <h3>What is ${tool.name}?</h3>
-      <p style="color: var(--text-2); font-size: 15px; line-height: 1.7;">${tool.name} is a paid MCP tool in the ${catLabel} category on agenttoll.dev. It costs $${tool.price_usd} per call, settled in USDC on Base via the x402 payment protocol. No API keys, no accounts — your agent discovers it via <code>/.well-known/agent.json</code>, calls it, pays the $${tool.price_usd} fee, and receives structured JSON.</p>
+      <p style="color: var(--text-2); font-size: 15px; line-height: 1.7;">${tool.name} is a paid work product in the ${catLabel} category on agenttoll.dev. It costs $${tool.price_usd} per call, settled in USDC on Base via the x402 payment protocol. No API keys or accounts: your agent inspects the metadata, explains the expected result, caps the spend, calls the tool, and receives structured JSON with a receipt envelope.</p>
     </div>
 
     <div class="tool-section" data-rail-label="INPUT SCHEMA">
@@ -5665,7 +5664,7 @@ ${jsonLd}`;
         <div><div style="font-size: 13px; color: var(--text-3);">Protocol</div><div style="font-family: 'JetBrains Mono', monospace; font-size: 16px; color: var(--text);">x402 exact</div></div>
         <div><div style="font-size: 13px; color: var(--text-3);">Receipt schema</div><div style="font-family: 'JetBrains Mono', monospace; font-size: 16px; color: var(--text);">agenttoll.receipt.v1</div></div>
       </div>
-      <p style="color: var(--text-3); font-size: 13px; margin-top: 12px;">Paid JSON responses include <code>agenttoll_receipt</code> with request, result, and payment-term hashes. If your buyer runtime exposes a settlement transaction hash, verify it at <code>/receipt/&lt;tx&gt;</code>.</p>
+      <p style="color: var(--text-3); font-size: 13px; margin-top: 12px;">Paid JSON responses include <code>agenttoll_receipt</code> with request, result, and payment-term hashes. The receipt lets a user audit what the agent bought after the call. If your buyer runtime exposes a settlement transaction hash, verify it at <code>/receipt/&lt;tx&gt;</code>.</p>
     </div>
 
     <div class="tool-section" data-rail-label="FAQ">
@@ -5696,7 +5695,7 @@ ${jsonLd}`;
           <div style="font-size: 13px; color: var(--text-3);">Generative-AI veteran · x402 protocol contributor · <a href="https://github.com/huwhitememes" style="color: var(--accent); text-decoration: none;">GitHub</a> · <a href="https://www.linkedin.com/in/huwhitememes/" style="color: var(--accent); text-decoration: none;">LinkedIn</a> · <a href="https://x.com/huwhitememes" style="color: var(--accent); text-decoration: none;">X</a></div>
         </div>
       </div>
-      <p style="font-size: 13px; color: var(--text-2); margin-top: 12px; line-height: 1.6;">Built and operates agenttoll.dev — a marketplace of 100+ paid MCP tools settling on Base USDC. Every tool is tested against live APIs before listing.</p>
+      <p style="font-size: 13px; color: var(--text-2); margin-top: 12px; line-height: 1.6;">Built and operates agenttoll.dev, a marketplace of receipt-backed x402 work products settling on Base USDC. Every listing is packaged with price, buyer metadata, and an expected result before payment.</p>
     </div>
   </section>`;
 
@@ -5715,12 +5714,12 @@ function discoveryPage() {
     { type: "OPENAPI SPEC", label: "OpenAPI", href: "/openapi.json", text: "OpenAPI 3.1 spec for public metadata and paid HTTP routes." },
     { type: "X402 DISCOVERY", label: "x402 resources", href: "/.well-known/x402", text: "x402 discovery surface used by paid-resource crawlers." },
     { type: "AGENT MANIFEST", label: "agent.json", href: "/.well-known/agent.json", text: "Agent-facing manifest with MCP URL, payment data, and tool list." },
-    { type: "HUMAN CATALOG", label: "Tools", href: "/tools", text: "Human-readable catalog with pages for each paid tool." },
+    { type: "HUMAN CATALOG", label: "Tools", href: "/tools", text: "Human-readable catalog with pages for each paid work product." },
   ];
 
   const content = `<section style="padding: 60px 0;">
     <h2 style="font-size: clamp(28px, 5vw, 48px); font-weight: 700; letter-spacing: -0.03em; margin-bottom: 8px;">Discovery hub</h2>
-    <p style="color: var(--text-2); font-size: 16px; margin-bottom: 32px; max-width: 760px;">These are the public entrypoints agents and humans can use to inspect agenttoll.dev before paying for a call. The JSON and text routes are crawler-friendly. The tool pages stay readable for people.</p>
+    <p style="color: var(--text-2); font-size: 16px; margin-bottom: 32px; max-width: 760px;">These are the public entrypoints agents and humans can use to inspect agenttoll.dev before buying work. The JSON and text routes expose prices, seller details, spend caps, approval prompts, and receipts before payment.</p>
     <div class="tools-grid">
       ${surfaces.map((surface) => `<a href="${surface.href}" class="tool-card" data-rail-label="${surface.type}">
         <div class="tool-name">${surface.label}</div>
@@ -5730,7 +5729,7 @@ function discoveryPage() {
     </div>
     <div class="cat-card" data-rail-label="FREE QUOTE" style="margin-top: 32px;">
       <h3 style="font-size: 15px; font-weight: 600; margin-bottom: 8px;">Quote a tool</h3>
-      <p style="font-size: 14px; color: var(--text-2); margin-bottom: 12px;">Use the free quote endpoint to check price, network, asset, seller wallet, and endpoints before a paid x402 call.</p>
+      <p style="font-size: 14px; color: var(--text-2); margin-bottom: 12px;">Use the free quote endpoint to check price, network, asset, seller wallet, expected result, and approval language before a paid x402 call.</p>
       <pre style="background: rgba(6,8,12,0.6); border: 1px solid var(--border); border-radius: 12px; padding: 16px; font-family: 'JetBrains Mono', monospace; font-size: 13px; overflow-x: auto;">curl ${SERVICE.origin}/api/quote?tool=trending_markets</pre>
     </div>
   </section>`;
@@ -5741,7 +5740,7 @@ function discoveryPage() {
 function docsPage() {
   const content = `<section style="padding: 60px 0;">
     <h2 style="font-size: clamp(28px, 5vw, 48px); font-weight: 700; letter-spacing: -0.03em; margin-bottom: 8px;">Documentation</h2>
-    <p style="color: var(--text-2); font-size: 16px; margin-bottom: 32px; max-width: 620px;">agenttoll.dev is a paid MCP service. Agents buy data calls one at a time in USDC on Base. No accounts, no subscriptions.</p>
+    <p style="color: var(--text-2); font-size: 16px; margin-bottom: 32px; max-width: 700px;">agenttoll.dev is a paid work layer for AI agents. Agents inspect the task, price, seller wallet, spend cap, and expected result before buying with USDC on Base. No accounts or subscriptions.</p>
 
     <div class="cat-card" style="margin-bottom: 16px;">
       <h3 style="font-size: 15px; font-weight: 600; margin-bottom: 8px;">Agent discovery surfaces</h3>
@@ -5765,7 +5764,7 @@ function docsPage() {
 
     <div class="cat-card" style="margin-bottom: 16px;">
       <h3 style="font-size: 15px; font-weight: 600; margin-bottom: 8px;">Payment rail</h3>
-      <p style="font-size: 14px; color: var(--text-2); margin-bottom: 12px;">Paid tools settle in Base USDC through x402. A buyer wallet needs USDC on Base mainnet.</p>
+      <p style="font-size: 14px; color: var(--text-2); margin-bottom: 12px;">Paid work products settle in Base USDC through x402. A buyer wallet needs USDC on Base mainnet.</p>
       <pre style="background: rgba(6,8,12,0.6); border: 1px solid var(--border); border-radius: 12px; padding: 16px; font-family: 'JetBrains Mono', monospace; font-size: 13px; overflow-x: auto;">Network: ${SERVICE.networkName}
 USDC token contract: ${SERVICE.usdc}
 Seller wallet: ${SERVICE.seller}</pre>
@@ -5774,17 +5773,17 @@ Seller wallet: ${SERVICE.seller}</pre>
     <div class="cat-card" style="margin-bottom: 16px;">
       <h3 style="font-size: 15px; font-weight: 600; margin-bottom: 8px;">Paid call flow</h3>
       <p style="font-size: 14px; color: var(--text-2); line-height: 1.8;">
-        1. Agent fetches <code>/.well-known/agent.json</code> for tool names and prices.<br>
-        2. Agent calls the MCP tool or HTTP endpoint.<br>
+        1. Agent fetches <code>/.well-known/agent.json</code> for work products, prices, and buyer metadata.<br>
+        2. Agent explains the expected result and spend cap to the user.<br>
         3. Server responds with HTTP 402 and an x402 payment challenge.<br>
         4. Agent pays in USDC on Base, retries with payment header.<br>
-        5. Agent receives structured JSON result.
+        5. Agent receives structured JSON with an <code>agenttoll_receipt</code> envelope.
       </p>
     </div>
 
     <div class="cat-card" style="margin-bottom: 16px;">
       <h3 style="font-size: 15px; font-weight: 600; margin-bottom: 8px;">Receipts</h3>
-      <p style="font-size: 14px; color: var(--text-2);">Paid JSON responses include an <code>agenttoll_receipt</code> envelope with request, result, and payment-term hashes. If your buyer runtime exposes the settlement transaction hash, verify it on Base with <code>/receipt/&lt;tx&gt;</code>. Schema: <a href="/agenttoll-receipt-v1.md" style="color: var(--accent); text-decoration: none;">agenttoll.receipt.v1</a>.</p>
+      <p style="font-size: 14px; color: var(--text-2);">Paid JSON responses include an <code>agenttoll_receipt</code> envelope with request, result, and payment-term hashes. The receipt turns a tiny agent purchase into something the user can inspect later. If your buyer runtime exposes the settlement transaction hash, verify it on Base with <code>/receipt/&lt;tx&gt;</code>. Schema: <a href="/agenttoll-receipt-v1.md" style="color: var(--accent); text-decoration: none;">agenttoll.receipt.v1</a>.</p>
     </div>
 
     <div class="rail-card" data-rail-label="ACTION RAIL" style="margin-top: 32px; padding: 52px 22px 22px; display: flex; gap: 12px; flex-wrap: wrap;">
@@ -5822,7 +5821,7 @@ function openApiPaidPaths(): Record<string, unknown> {
     paths[tool.http_path] = {
       post: {
         summary: `Paid ${String(tool.name).replace(/_/g, " ")}`,
-        description: `Returns HTTP 402 until paid $${tool.price_usd} in Base USDC through x402. ${tool.description}`,
+        description: `Returns HTTP 402 until paid $${tool.price_usd} in Base USDC through x402. Includes buyer metadata and receipt-backed JSON after payment. ${tool.description}`,
         requestBody: {
           required: required.length > 0,
           content: { "application/json": { schema: { type: "object", ...(required.length ? { required } : {}), properties } } },
@@ -5844,7 +5843,7 @@ function openApiSpec() {
     info: {
       title: SERVICE.name,
       version: SERVICE.version,
-      description: "Public metadata endpoints for agenttoll.dev, an x402-paid MCP service on Base USDC.",
+      description: "Public metadata endpoints for agenttoll.dev, an x402 paid-work service on Base USDC.",
     },
     jsonSchemaDialect: "https://json-schema.org/draft/2020-12/schema",
     servers: [{ url: SERVICE.origin }],
@@ -6225,7 +6224,7 @@ function openApiSpec() {
       "/admin/route-analytics": {
         get: {
           summary: "Route-level x402 funnel analytics (requires WARM_KEY or dev mode)",
-          description: "Shows GET metadata views, unpaid 402 payment challenges, paid 2xx successes, and upstream failures by paid endpoint. Protected by ?key= or x-warm-key header matching WARM_KEY.",
+          description: "Shows GET metadata views, unpaid 402 payment challenges, paid 2xx successes, and upstream failures by paid route. Protected by ?key= or x-warm-key header matching WARM_KEY.",
           parameters: [
             { name: "key", in: "query", required: false, schema: { type: "string" }, description: "WARM_KEY value" },
             { name: "days", in: "query", required: false, schema: { type: "integer", minimum: 1, maximum: 35 }, description: "Number of UTC daily buckets to aggregate" },
@@ -6252,6 +6251,10 @@ export default {
   },
   async fetch(request: Request, env: Env, ctx: ExecutionContext) {
     const url = new URL(request.url);
+
+    if (url.pathname === "/favicon.ico") {
+      return Response.redirect(new URL("/favicon.svg", url.origin).toString(), 301);
+    }
 
     if (url.pathname.startsWith("/paid/")) {
       return paidHttp.fetch(request, env, ctx);

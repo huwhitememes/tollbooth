@@ -3,11 +3,11 @@
 Operator: Hu White (@huwhitememes)
 Contact: memerhuwhite@gmail.com
 
-Lead: Pay-per-call AI agent data tools. 100 tools across 10 categories. Agents pay $0.01-$0.10/call via x402 micropayments in USDC on Base. No API keys, no accounts, no subscriptions.
+Lead: Receipt-backed paid work products for AI agents. 100 tools across 10 categories. Agents inspect the task, price, seller wallet, spend cap, and expected result before paying $0.01-$0.10 via x402 in USDC on Base. No API keys, no accounts, no subscriptions.
 
-Buyer-agent summary: agenttoll.dev gives agents one entry point for callable OSINT, market intelligence, web intel, legal, academic, health, environmental, government, finance, and utility data tools. Every tool is paid via x402 — an agent requests data, gets HTTP 402 with a payment challenge, pays cents of USDC on Base, retries with proof, gets JSON back. No keys, no OAuth, no billing dashboard.
+Buyer-agent summary: agenttoll.dev gives agents one entry point for callable work products across OSINT, market intelligence, web intel, legal, academic, health, environmental, government, finance, and utility tasks. Every tool is paid via x402: an agent inspects buyer metadata, requests the work, gets HTTP 402 with a payment challenge, pays cents of USDC on Base, retries with proof, and gets structured JSON with an agenttoll receipt. No keys, no OAuth, no billing dashboard.
 
-Start with `POST /paid/osint/usgs-quake` ($0.02), `POST /paid/osint/hn-frontpage` ($0.02), or `POST /paid/utility/crypto-price-simple` ($0.02). Then explore `/tools` for the full catalog.
+Start with `POST /paid/x402/rank-audit` ($0.10), `POST /paid/gov/contract-fit-brief` ($0.15), or `POST /paid/osint/regulatory-impact-brief` ($0.12) for decision-shaped work. Then explore `/tools` for the full catalog.
 
 Live payment protocol: x402. Chain: Base mainnet (eip155:8453). Facilitator: https://facilitator.payai.network (free, no-auth). Seller wallet: 0x62a0D3d9DF0dE8804983009949c714EaeAFd87F1.
 
@@ -26,7 +26,7 @@ MCP server: Connect any MCP-compatible agent to `https://agenttoll.dev/mcp`. Use
 Free endpoints (no payment required):
 - GET /api/info — service info and capabilities
 - GET /tools — full tools directory (HTML)
-- GET /tools/{tool-name} — individual tool detail page with pricing, inputs, example
+- GET /tools/{tool-name} — individual work-product page with pricing, inputs, expected result, buyer contract, and receipt details
 - GET /openapi.json — full OpenAPI spec
 - GET /.well-known/agent.json — agent discovery manifest (100 tools)
 - GET /.well-known/x402 — x402 resource listing
@@ -44,7 +44,7 @@ Unpaid request returns HTTP 402:
 Response:
   {"error":"payment_required","price_usd":"0.02","network":"eip155:8453","accepts":{"scheme":"exact","price":"$0.02","network":"eip155:8453","payTo":"0x62a0D3d9DF0dE8804983009949c714EaeAFd87F1"}}
 
-Agent pays 0.02 USDC on Base to the payTo address, retries with X-Payment header, gets JSON data.
+Agent pays the quoted USDC amount on Base to the payTo address, retries with X-Payment header, and gets structured JSON with the paid result.
 
 Quickstart (x402-fetch client):
 

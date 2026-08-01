@@ -1,14 +1,14 @@
 ---
-title: "How AI Agents Pay for API Calls: The x402 Protocol Explained"
+title: "How AI Agents Pay for Work: The x402 Protocol Explained"
 published: true
-description: "A builder's guide to the x402 payment protocol for AI agents, with real code from a 100-tool production marketplace running on Base USDC micropayments."
-tags: ai, web3, api, tutorial
+description: "A builder's guide to x402 payments for AI agents, with real code from a marketplace of receipt-backed work products settling on Base USDC."
+tags: ai, web3, agents, tutorial
 date: "2026-07-12T10:00:00Z"
 cover_image: https://agenttoll.dev/blog/og-x402-article.png
 canonical_url: https://agenttoll.dev/blog/x402-protocol-explained
 ---
 
-**TL;DR:** The x402 protocol repurposes HTTP status code 402 into a payment system for AI agents. An agent requests data, gets a payment challenge for a few cents of USDC on Base, pays on-chain, and retries with proof. No API keys, no accounts, no subscriptions. I run 100 paid MCP tools on this and will show how with real code.
+**TL;DR:** The x402 protocol repurposes HTTP status code 402 into a payment system for AI agents. An agent requests a small work product, gets a payment challenge for a few cents of USDC on Base, pays on-chain, and retries with proof. No API keys, no accounts, no subscriptions. I run receipt-backed paid MCP tools on this and will show how with real code.
 
 ---
 
@@ -20,11 +20,11 @@ Coinbase's developer platform team released the protocol in 2025, and it has sin
 
 What makes x402 different from earlier micropayment proposals is that it rides on top of standard HTTP. There is no new transport layer. An agent can interact with an x402 endpoint using any HTTP client. The payment happens through a facilitator service that verifies the on-chain transaction and settles it, so the resource server does not need to run its own blockchain node or manage wallets.
 
-## How does HTTP 402 work for AI agent payments?
+## How does HTTP 402 work for paid agent work?
 
-The flow has four steps. When I built the first Tollbooth endpoints, I was surprised by how little code sits between a normal API handler and a paid one. The x402 middleware handles everything.
+The flow has four steps. When I built the first Tollbooth endpoints, I was surprised by how little code sits between a normal handler and a paid work product. The x402 middleware handles the payment exchange.
 
-Step 1: The agent sends a normal HTTP POST to a paid endpoint.
+Step 1: The agent sends a normal HTTP POST to a paid work route.
 
 ```bash
 curl -X POST https://agenttoll.dev/paid/osint/usgs-quake \
@@ -63,9 +63,9 @@ curl -X POST https://agenttoll.dev/paid/osint/usgs-quake \
 
 Payment middleware on the server intercepts this header, sends it to a facilitator for verification, and if the payment is valid, lets the request through to the handler. The facilitator then settles the payment on-chain. From the agent's perspective, it made two HTTP calls. From the seller's perspective, the money landed in their wallet without ever seeing a credit card form.
 
-## How do you build a paid API endpoint with x402?
+## How do you build a paid work route with x402?
 
-I will show you the actual wiring from Tollbooth. The codebase runs on Cloudflare Workers with TypeScript, using the `@modelcontextprotocol/sdk` and the `x402` payment package. Every paid tool touches five layers. Miss one, and the tool breaks in a subtle way that only surfaces in production.
+I will show you the actual wiring from Tollbooth. The codebase runs on Cloudflare Workers with TypeScript, using the `@modelcontextprotocol/sdk` and the `x402` payment package. Every paid work product touches five layers. Miss one, and the route breaks in a subtle way that only surfaces in production.
 
 The five layers are: a payment middleware configuration, an HTTP route handler, an MCP tool registration, a discovery manifest entry, and an OpenAPI spec path. Here is what each one looks like in practice.
 
@@ -211,11 +211,11 @@ This was the biggest insight from building Tollbooth. The x402 ecosystem has dir
 
 Three discovery surfaces matter:
 
-The `/.well-known/agent.json` manifest is the machine-readable catalog. Agents that already know about your marketplace fetch this to discover available tools and pricing.
+The `/.well-known/agent.json` manifest is the machine-readable catalog. Agents that already know about your marketplace fetch this to discover available work products, prices, and buyer metadata.
 
 The `/.well-known/x402` endpoint (and its `.json` variant) provides the protocol-level resource listing. x402scan crawls this to build its directory. A subtlety I hit: x402scan tries the no-extension version first (`/.well-known/x402`), and some setups only serve the `.json` variant. Serve both.
 
-Individual tool pages at `/tools/{tool-name}` with SEO-optimized descriptions are what agents find through web search. Each page describes the tool, its price, its inputs, and includes an example request. This is the discovery layer that drives traffic.
+Individual tool pages at `/tools/{tool-name}` with SEO-optimized descriptions are what agents find through web search. Each page describes the work product, its price, its inputs, the expected result, and an example request. This is the discovery layer that drives traffic.
 
 The CDP Bazaar, Coinbase's x402 marketplace, has an additional requirement that caught me off guard. You do not get listed just by serving the right manifests. The Bazaar requires at least one real paid settlement through Coinbase's facilitator before it indexes your resources. The buyer wallet I was using for self-testing was frozen for 72 hours after funding, which blocked the settlement test. This is a cold-start catch-22 worth knowing about: you need a real transaction to get listed, but getting that first transaction through requires a funded wallet and patience.
 
@@ -247,7 +247,7 @@ I spent 15 minutes chasing a non-existent deploy failure before learning this.
 
 The infrastructure cost is close to zero. Cloudflare Workers free tier handles 100,000 requests per day. Durable Objects, which run the MCP server, cost $0.15 per million requests. KV reads are $0.50 per million, writes are $5 per million. For a marketplace doing a few thousand paid calls per day, the total infrastructure bill is under $5 per month.
 
-Development time is the real cost. Each tool requires the five-layer wiring, upstream API research, pricing decisions, and testing. A straightforward tool that wraps a free public API takes about 45 minutes from research to deployed. A composite tool that aggregates multiple sources and does computation takes 2 to 3 hours.
+Development time is the real cost. Each work product requires the five-layer wiring, source research, pricing decisions, buyer metadata, receipt shape, and testing. A straightforward public-source monitor can ship quickly. A composite brief or audit that aggregates multiple sources and gives the agent a useful answer takes longer, but that is where the value is.
 
 On the revenue side, at $0.02 to $0.10 per call, volume is everything. A tool that gets 100 calls per day at $0.02 generates $2 per day, or about $60 per month. To build a sustainable marketplace, you need tools that agents call repeatedly. The polymarket arbitrage tools, at $0.08 to $0.10 per call, are the highest-margin tools in Tollbooth because agents call them in loops during active trading sessions.
 
@@ -269,12 +269,14 @@ The facilitator handles three things: verifying that the agent's payment is vali
 
 This creates a dependency. If the facilitator goes down, paid calls stop working, even though the resource server and the agent are both fine. I have not hit an outage yet, but the architecture assumes the facilitator is reliable. For production deployments, monitoring the facilitator's health is as important as monitoring your own server.
 
-## Building your first paid endpoint
+## Building your first paid work product
 
-If you want to try x402, start with one tool. Pick a free public API, wrap it in a Cloudflare Worker, add the payment middleware, and deploy. The whole thing should take under an hour. Test it with the `x402-fetch` client using a funded wallet on Base Sepolia (testnet, free money). Once you have one paid call working end to end, scaling to 10 or 100 is a matter of repeating the five-layer pattern.
+If you want to try x402, start with one small job. Pick a result an agent can explain before payment: a ranked audit, a market scan, a source-backed brief, or a monitoring check. You can still use a public data source under the hood, but do not sell the source. Sell the finished task. Wrap it in a Cloudflare Worker, add the payment middleware, expose the buyer metadata, and deploy.
 
-You can find the full codebase at [github.com/huwhitememes/tollbooth](https://github.com/huwhitememes/tollbooth) — it is open source. The five-layer checklist and the facilitator configuration are the parts worth studying. Everything else is just data fetching.
+Test it with the `x402-fetch` client using a funded wallet on Base Sepolia (testnet, free money). Once one paid call works end to end, scaling to 10 or 100 is a matter of repeating the five-layer pattern and improving the work product each time.
+
+You can find the full codebase at [github.com/huwhitememes/tollbooth](https://github.com/huwhitememes/tollbooth) — it is open source. The parts worth studying are the five-layer checklist, facilitator configuration, buyer metadata, and receipt envelope. The business is not raw data access. The business is agent-buyable work.
 
 ---
 
-*Hu White is a generative-AI veteran who builds agenttoll.dev, a paid MCP tool marketplace with 100 tools running on the x402 protocol. Find his work at [github.com/huwhitememes/tollbooth](https://github.com/huwhitememes/tollbooth) and [LinkedIn](https://www.linkedin.com/in/huwhitememes/).*
+*Hu White is a generative-AI veteran who builds agenttoll.dev, a marketplace of receipt-backed paid work products for AI agents running on the x402 protocol. Find his work at [github.com/huwhitememes/tollbooth](https://github.com/huwhitememes/tollbooth) and [LinkedIn](https://www.linkedin.com/in/huwhitememes/).*

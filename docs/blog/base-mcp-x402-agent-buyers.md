@@ -1,13 +1,13 @@
 ---
 title: "Base MCP Turns AI Agents Into x402 Buyers"
 published: false
-description: "Base MCP gives agents a user-approved wallet path for x402 payments. AgentToll needs routes that agents can discover, explain, and buy safely."
+description: "Base MCP gives agents a wallet path. AgentToll packages x402 work products agents can inspect, cap, approve, and receipt."
 tags: ai, web3, base, api
 date: "2026-07-30T10:00:00Z"
 cover_image: https://agenttoll.dev/blog/og-base-mcp-x402-agent-buyers.png
 canonical_url: https://agenttoll.dev/blog/base-mcp-x402-agent-buyers
 ---
-**TL;DR:** x402 gives APIs and tools a payment standard. Base MCP gives agents a user controlled wallet path. Together, they make paid agent work feel less like crypto plumbing and more like a normal tool call with a spending cap and approval step. That matters for AgentToll because the next fight is not only adding more paid endpoints. It is making those endpoints easy for agents to discover, judge, explain, and buy.
+**TL;DR:** x402 gives paid work a payment standard. Base MCP gives agents a user controlled wallet path. Together, they make agent purchases feel less like crypto plumbing and more like a normal task with a spending cap, approval step, and receipt. That matters for AgentToll because the next fight is not adding more routes. It is turning small agent purchases into work products an assistant can discover, judge, explain, buy, and audit.
 
 ---
 
@@ -23,7 +23,7 @@ That is the buyer side x402 needed.
 
 Before this, an x402 seller could expose a paid route and wait. The protocol worked, but the buyer still needed wallet setup, funding, signing logic, payment headers, retry handling, facilitator compatibility, and enough trust to approve the spend. Base MCP does not solve all of that, but it removes a lot of buyer friction from normal MCP environments.
 
-A user can ask an assistant to call a paid endpoint, cap the spend, approve the request, and get the result back. That is a different product surface than "install this SDK and wire your own wallet."
+A user can ask an assistant to buy a small piece of work, cap the spend, approve the request, and get the result back with a receipt. That is a different product surface than "install this SDK and wire your own wallet."
 
 ## x402 already has the seller side
 
@@ -55,15 +55,17 @@ This is where AgentToll has room to be useful.
 
 AgentToll should not position itself as another pile of paid URLs.
 
-The better position is a buyer ready catalog for agent work. That means every route needs to answer four questions before the agent pays:
+The better position is the paid work layer for agents. Agents should not be approving mystery API charges. They should be buying task-shaped work with a clear price, a bounded payment, an expected result, and a receipt they can inspect later.
 
-Can I find it? Can I understand it? Can I justify the price to the user? Can I call it safely?
+That means every route needs to answer four questions before the agent pays:
 
-That changes how we package endpoints.
+Can I find it? Can I understand what work comes back? Can I justify the price to the user? Can I call it safely?
+
+That changes how we package the product.
 
 Discovery means route pages, OpenAPI, Bazaar metadata, `llms.txt`, and clear descriptions written for agents instead of only humans. An agent searching for "audit my x402 listing" or "summarize regulatory risk for this company" should land on a route that tells it what the call does, what it costs, what input it needs, and what output it returns.
 
-Evaluation means free metadata. Agents need enough unpaid information to decide whether a paid call is worth it. A route should show price, output shape, example response, use cases, limits, and freshness. If the paid result is a report, show a sample report. If the endpoint ranks something, show the ranking criteria. If it depends on external data, say what kind.
+Evaluation means free metadata. Agents need enough unpaid information to decide whether a paid work product is worth buying. A route should show price, output shape, example response, use cases, limits, freshness, and the receipt schema. If the paid result is a report, show a sample report. If it ranks something, show the ranking criteria. If it depends on external data, say what kind.
 
 Purchase means x402 compatibility with sane caps. Base MCP's x402 guide makes this concrete: the assistant sets `maxPayment`, the user approves, and the request completes only inside that cap. AgentToll copy should help the assistant form that approval prompt cleanly.
 
@@ -75,9 +77,9 @@ AgentToll should lean into that same shape for decision products. Not "pay for d
 
 ## What to build around this
 
-The first move is content. Publish the Base MCP and x402 explanation, then point builders to AgentToll as a live place to see paid agent routes packaged for purchase.
+The first move is content. Publish the Base MCP and x402 explanation, then point builders to AgentToll as a live place to see paid agent work packaged for purchase.
 
-The second move is route packaging. Pick the strongest endpoints and make their free metadata pages impossible to misunderstand. Price. Input. Output. Sample. Why it is useful. When not to buy it. Payment cap language.
+The second move is work packaging. Pick the strongest routes and make their free metadata pages impossible to misunderstand. Price. Input. Output. Sample. Why it is useful. When not to buy it. Payment cap language. Receipt shape.
 
 The third move is agent approval copy. Every paid route should have a sentence an assistant can use before asking the user to approve payment.
 
@@ -93,7 +95,7 @@ The fourth move is trust. AWS AgentCore's payment security docs are useful here 
 
 For builders who want the executable version of this checklist, I published the [AgentToll Base MCP buyer skill](https://agenttoll.dev/agenttoll-base-mcp-skill.md). It gives an assistant the buyer-side rules: inspect route metadata, verify the Base USDC seller address, cap `maxPayment`, and explain the spend before asking the user to approve it.
 
-The fifth move is bundles. Agents do not want to buy five random API calls. They want to complete a task. Bundle routes around jobs:
+The fifth move is bundles. Agents do not want to buy five random calls. They want to complete a task. Bundle routes around jobs:
 
 - Audit my x402 listing
 - Research this agent payments market
@@ -116,7 +118,7 @@ For x402 sellers, the question is no longer only "can this endpoint accept payme
 
 AgentToll should build for that question.
 
-Not just paid routes. Paid work an agent can sell to its user in one sentence.
+Not just paid routes. Receipt-backed work an agent can explain to its user in one sentence.
 
 ---
 
