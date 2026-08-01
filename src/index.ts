@@ -774,17 +774,17 @@ const TOOLS = [
   {
     name: "gen_video_intel",
     price_usd: "0.05",
-    description: "Generative video model intelligence — model names, capabilities, pricing, max duration, resolution, API access for Sora, Veo, Runway, Pika.",
-    input: { query: "optional model name or capability", model: "optional specific model" },
-    example: { query: "text to video" },
+    description: "Live generative video and image workflow intel from the Banodoco practitioner feed. Search current community discussion around Wan, VACE, LTX, ComfyUI, FLUX 3, Seedance, Kling, Hunyuan, Qwen Image, and related model stacks. This is intelligence, not API resale.",
+    input: { query: "optional topic, model, workflow, capability, or gotcha", model: "optional model family e.g. wan, vace, ltx, flux3, seedance, kling, hunyuan, qwen-image" },
+    example: { query: "best open source image to video workflow", model: "wan" },
     http_path: "/paid/media/gen-video",
   },
   {
     name: "model_settings_lookup",
     price_usd: "0.02",
-    description: "Look up recommended settings for generative AI models — temperature, top_p, max tokens, system prompt templates, best practices.",
-    input: { model: "string model name e.g. gpt-4o, claude-3.5-sonnet", task: "optional: coding, writing, analysis" },
-    example: { model: "gpt-4o", task: "coding" },
+    description: "Look up community-tested settings for generative video and image models: CFG, steps, denoise, fps, resolution, LoRA rank, quantization, sampler choices, ComfyUI nodes, and training notes. Built for video/image agents, not generic LLM temperature settings.",
+    input: { model: "string model family e.g. wan, vace, ltx, flux3, seedance, kling, hunyuan, qwen-image", task: "optional task e.g. image-to-video, face consistency, LoRA training, fp8, ComfyUI workflow" },
+    example: { model: "wan", task: "face consistency settings" },
     http_path: "/paid/media/model-settings",
   },
 
@@ -1312,12 +1312,12 @@ const cveSearchDiscovery = declareDiscoveryExtension({
 
 const genVideoDiscovery = declareDiscoveryExtension({
   bodyType: "json",
-  input: { query: "text to video" },
+  input: { query: "best open source image to video workflow", model: "wan" },
   inputSchema: { properties: {
     query: { type: "string", maxLength: 200 },
     model: { type: "string", maxLength: 80 },
   } },
-  output: { example: { query: "text to video", model: "all", result_count: 0, recent_summaries: [] } },
+  output: { example: { query: "best open source image to video workflow", model: "wan", result_count: 0, recent_summaries: [], community_knowledge: [], source: "Community practitioners via public PostgREST feed" } },
 });
 
 const paidHttp = new Hono<{ Bindings: Env }>();
@@ -1335,21 +1335,20 @@ paidHttp.get("/paid/*", async (c) => {
     price_usd: tool.price_usd,
     network: SERVICE.network,
     facilitator: SERVICE.facilitator,
-    message: "This is an x402-paid API endpoint. Send a POST request with JSON to receive the 402 payment challenge, then retry with a signed payment.",
+    message: "This is free buyer metadata for an x402-paid endpoint. POST JSON to receive the 402 payment challenge, then retry with a signed payment.",
+    buyer_contract: toolBuyerContract(tool),
+    approval_prompt: toolApprovalPrompt(tool),
+    receipt_schema: `${SERVICE.origin}/agenttoll-receipt-v1.md`,
     tool: {
       name: tool.name,
       description: tool.description,
       buyer_value: `Pay $${tool.price_usd} for ${tool.description}`,
       input: tool.input,
       example: tool.example,
-      sample_output: "JSON with source-backed fields, response metadata, and decision/readout fields where the endpoint is a brief.",
-      discovery_queries: [
-        String(tool.name).replace(/_/g, " "),
-        `${String(tool.name).replace(/_/g, " ")} x402`,
-        "paid MCP tool",
-        "paid data API for AI agents",
-      ],
+      sample_output: expectedResultForTool(tool),
+      discovery_queries: discoveryQueriesForTool(tool),
       docs: `${SERVICE.origin}/tools/${tool.name}`,
+      ...(tool.name === "gen_video_intel" || tool.name === "model_settings_lookup" ? { boundary: "Returns current community intelligence and settings excerpts. It does not provide direct access to Sora, Veo, Runway, Pika, FLUX 3, Seedance, Kling, Wan, LTX, or any other model API." } : {}),
     },
   });
 });
@@ -1388,6 +1387,7 @@ paidHttp.use("/paid/*", async (c, next) => {
     await next();
     return;
   }
+  const requestBodyPromise = c.req.raw.clone().json().catch(() => ({})) as Promise<Record<string, unknown>>;
   await next();
   const path = new URL(c.req.url).pathname;
   const status = c.res.status;
@@ -1396,6 +1396,20 @@ paidHttp.use("/paid/*", async (c, next) => {
   else if (status >= 200 && status < 300) event = "paid_successes";
   else if (status >= 500) event = "upstream_failures";
   await routeAnalyticsIncrement(c.env as any, path, event).catch(() => {});
+  if (status >= 200 && status < 300 && c.res.headers.get("content-type")?.includes("application/json")) {
+    const tool = TOOLS.find((candidate) => (candidate as any).http_path === path) as any;
+    if (!tool) return;
+    const body = await c.res.clone().json().catch(() => null);
+    if (body && typeof body === "object" && !Array.isArray(body) && !("agenttoll_receipt" in body)) {
+      const requestBody = await requestBodyPromise;
+      const originalHeaders = new Headers(c.res.headers);
+      const nextResponse = jsonResponse(await withReceiptEnvelope(tool.name, requestBody, body, c.res.headers.get("x-payment-response")), status);
+      originalHeaders.forEach((value, key) => {
+        if (key !== "content-length" && key !== "content-type") nextResponse.headers.set(key, value);
+      });
+      c.res = nextResponse;
+    }
+  }
 });
 
 paidHttp.use(paymentMiddleware({
@@ -1723,7 +1737,7 @@ paidHttp.use(paymentMiddleware({
   "POST /paid/media/gen-video": {
     accepts: { scheme: "exact", price: "$0.05", network: SERVICE.network, payTo: SERVICE.seller },
     resource: `${SERVICE.origin}/paid/media/gen-video`,
-    description: "Generative video model intelligence — model capabilities, pricing, limits, API access, and recent community signals for Sora, Veo, Runway, Pika, and related tools",
+    description: "Live Banodoco practitioner-feed intelligence for generative video and image workflows: Wan, VACE, LTX, ComfyUI, FLUX 3, Seedance, Kling, Hunyuan, Qwen Image, settings, comparisons, and gotchas. Intelligence only; no direct model API resale.",
     mimeType: "application/json",
     serviceName: "agenttoll.dev",
     tags: ["media", "gen-video", "ai", "models", "creative-tools", "x402"],
@@ -3280,8 +3294,8 @@ export class TollboothMCP extends McpAgent<Env> {
     this.server.paidTool("federal_contracts", "Federal contracts via USAspending.gov.", 0.04, { query: z.string().optional(), agency: z.string().optional() }, {}, async (args: any) => ({ content: [{ type: "text" as const, text: JSON.stringify(await searchFederalContracts(args.query, args.agency)) }] }) );
     this.server.paidTool("paper_details", "Paper metadata via Semantic Scholar.", 0.02, { paperId: z.string() }, {}, async (args: any) => ({ content: [{ type: "text" as const, text: JSON.stringify(await getPaperDetails(args.paperId)) }] }) );
     this.server.paidTool("citation_graph", "Citation graph via Semantic Scholar.", 0.03, { paperId: z.string(), direction: z.string().optional() }, {}, async (args: any) => ({ content: [{ type: "text" as const, text: JSON.stringify(await getCitationGraph(args.paperId, args.direction === "backward" ? "backward" : "forward")) }] }) );
-    this.server.paidTool("gen_video_intel", "Generative video model intelligence.", 0.05, { query: z.string().optional(), model: z.string().optional() }, {}, async (args: any) => ({ content: [{ type: "text" as const, text: JSON.stringify(await genVideoIntel(args.query ?? "", args.model)) }] }) );
-    this.server.paidTool("model_settings_lookup", "AI model recommended settings.", 0.02, { model: z.string(), task: z.string().optional() }, {}, async (args: any) => ({ content: [{ type: "text" as const, text: JSON.stringify(await modelSettingsLookup(args.model, args.task)) }] }) );
+    this.server.paidTool("gen_video_intel", "Live Banodoco practitioner-feed intelligence for generative video and image workflows: Wan, VACE, LTX, ComfyUI, FLUX 3, Seedance, Kling, Hunyuan, Qwen Image, settings, comparisons, and gotchas. Intelligence only; no direct model API resale.", 0.05, { query: z.string().optional(), model: z.string().optional() }, {}, async (args: any) => { const result = await genVideoIntel(args.query ?? "", args.model); return { content: [{ type: "text" as const, text: JSON.stringify(await withReceiptEnvelope("gen_video_intel", args, result)) }] }; } );
+    this.server.paidTool("model_settings_lookup", "Community-tested settings for generative video and image models: CFG, steps, denoise, fps, resolution, sampler, LoRA, ComfyUI, fp8/quantization, and training notes.", 0.02, { model: z.string(), task: z.string().optional() }, {}, async (args: any) => { const result = await modelSettingsLookup(args.model, args.task); return { content: [{ type: "text" as const, text: JSON.stringify(await withReceiptEnvelope("model_settings_lookup", args, result)) }] }; } );
 
     // ── Quick Tools (v0.14) ──
     this.server.paidTool("space_weather_kp", "Current planetary K-index and geomagnetic storm conditions.", 0.03, {}, {}, async () => ({ content: [{ type: "text" as const, text: JSON.stringify(await getSpaceWeatherKp()) }] }) );
@@ -3318,7 +3332,9 @@ function serviceInfo() {
       x402: `${SERVICE.origin}/.well-known/x402`,
       x402_json: `${SERVICE.origin}/.well-known/x402.json`,
       quote: `${SERVICE.origin}/api/quote?tool=trending_markets`,
+      route_finder: `${SERVICE.origin}/api/routes/find?q=video%20model%20settings`,
       receipt: `${SERVICE.origin}/receipt/{tx}`,
+      receipt_schema: `${SERVICE.origin}/agenttoll-receipt-v1.md`,
       docs: `${SERVICE.origin}/docs`,
       discovery: `${SERVICE.origin}/discovery`,
       llms: `${SERVICE.origin}/llms.txt`,
@@ -3406,6 +3422,129 @@ function toolHttpUrl(tool: (typeof TOOLS)[number]) {
   return "http_path" in tool ? `${SERVICE.origin}${tool.http_path}` : null;
 }
 
+function stableJson(value: unknown): string {
+  if (value === null || typeof value !== "object") return JSON.stringify(value);
+  if (Array.isArray(value)) return `[${value.map((item) => stableJson(item)).join(",")}]`;
+  const record = value as Record<string, unknown>;
+  return `{${Object.keys(record).sort().map((key) => `${JSON.stringify(key)}:${stableJson(record[key])}`).join(",")}}`;
+}
+
+async function sha256Hex(value: unknown): Promise<string> {
+  const bytes = new TextEncoder().encode(typeof value === "string" ? value : stableJson(value));
+  const digest = await crypto.subtle.digest("SHA-256", bytes);
+  return `sha256:${Array.from(new Uint8Array(digest)).map((byte) => byte.toString(16).padStart(2, "0")).join("")}`;
+}
+
+function discoveryQueriesForTool(tool: any): string[] {
+  const base = String(tool.name).replace(/_/g, " ");
+  const category = categoryForTool(tool.name).toLowerCase();
+  return Array.from(new Set([
+    base,
+    `${base} x402`,
+    `${base} paid MCP tool`,
+    `${category} paid data API for AI agents`,
+    ...(tool.name === "gen_video_intel" ? ["Wan VACE LTX ComfyUI Flux 3 settings", "generative video model community intel"] : []),
+    ...(tool.name === "model_settings_lookup" ? ["Wan settings lookup", "ComfyUI video model settings"] : []),
+  ])).slice(0, 8);
+}
+
+function expectedResultForTool(tool: any): string {
+  if (tool.name === "gen_video_intel") {
+    return "JSON with recent community summaries, practitioner excerpts, channels, dates, source notes, and an agenttoll_receipt envelope. No upstream model API access is included.";
+  }
+  if (tool.name === "model_settings_lookup") {
+    return "JSON with scored settings discussions for video/image models, including CFG, steps, denoise, fps, resolution, LoRA/training and ComfyUI notes where found.";
+  }
+  return "JSON with source-backed fields, response metadata, and decision/readout fields where the endpoint is a brief.";
+}
+
+function toolBuyerContract(tool: any) {
+  const endpoint = tool.http_path ? `${SERVICE.origin}${tool.http_path}` : `${SERVICE.origin}${SERVICE.mcpPath}`;
+  return {
+    schemaVersion: "agenttoll.buyer_contract.v1",
+    service: SERVICE.name,
+    tool: tool.name,
+    category: categoryForTool(tool.name),
+    method: tool.http_path ? "POST" : "MCP tools/call",
+    endpoint,
+    priceUsd: tool.price_usd,
+    maxPaymentUsd: tool.price_usd,
+    protocol: "x402",
+    scheme: "exact",
+    network: SERVICE.network,
+    networkName: SERVICE.networkName,
+    asset: "USDC",
+    assetContract: SERVICE.usdc,
+    payTo: SERVICE.seller,
+    facilitator: SERVICE.facilitator,
+    requestBody: tool.example,
+    input: tool.input,
+    expectedResult: expectedResultForTool(tool),
+    verifyBeforePaying: [
+      `network must equal ${SERVICE.network}`,
+      `asset contract must equal ${SERVICE.usdc}`,
+      `payTo must equal ${SERVICE.seller}`,
+      `maxPayment must be no more than $${tool.price_usd}`,
+      "resource path must match this endpoint",
+    ],
+    receiptSchema: `${SERVICE.origin}/agenttoll-receipt-v1.md`,
+  };
+}
+
+function toolApprovalPrompt(tool: any): string {
+  return `This AgentToll call costs $${tool.price_usd} on ${SERVICE.networkName}. Verify payTo ${SERVICE.seller}, asset ${SERVICE.usdc}, and maxPayment $${tool.price_usd} before approving. It returns ${expectedResultForTool(tool)}`;
+}
+
+function settlementTxFromPaymentResponse(header?: string | null): string | null {
+  if (!header) return null;
+  const candidates = [header];
+  try { candidates.push(atob(header)); } catch {}
+  for (const candidate of candidates) {
+    try {
+      const parsed = JSON.parse(candidate) as Record<string, any>;
+      const tx = parsed.transaction ?? parsed.transactionHash ?? parsed.txHash ?? parsed.settlementTx;
+      if (typeof tx === "string" && /^0x[0-9a-fA-F]{64}$/.test(tx)) return tx;
+    } catch {}
+  }
+  const match = header.match(/0x[0-9a-fA-F]{64}/);
+  return match ? match[0] : null;
+}
+
+async function withReceiptEnvelope(toolName: string, requestBody: Record<string, unknown>, result: unknown, paymentResponseHeader?: string | null) {
+  const tool = TOOLS.find((candidate) => candidate.name === toolName) as any;
+  if (!tool || result === null || typeof result !== "object" || Array.isArray(result)) {
+    return { result, agenttoll_receipt: null };
+  }
+  const paymentTerms = toolBuyerContract(tool);
+  const receipt = {
+    schemaVersion: "agenttoll.receipt.v1",
+    service: SERVICE.name,
+    tool: tool.name,
+    route: tool.http_path ?? null,
+    requestId: crypto.randomUUID(),
+    issuedAt: new Date().toISOString(),
+    payment: {
+      protocol: "x402",
+      scheme: "exact",
+      network: SERVICE.network,
+      asset: "USDC",
+      assetContract: SERVICE.usdc,
+      amountUsd: tool.price_usd,
+      payTo: SERVICE.seller,
+      settlementTx: settlementTxFromPaymentResponse(paymentResponseHeader),
+      settlementNote: "The x402 middleware verifies payment before this handler runs. If the buyer runtime exposes an x-payment-response transaction hash, verify it at /receipt/<tx>.",
+    },
+    hashes: {
+      requestHash: await sha256Hex(requestBody),
+      resultHash: await sha256Hex(result),
+      paymentTermsHash: await sha256Hex(paymentTerms),
+    },
+    verifier: `${SERVICE.origin}/receipt/{settlementTx}`,
+    receiptSchema: `${SERVICE.origin}/agenttoll-receipt-v1.md`,
+  };
+  return { ...(result as Record<string, unknown>), agenttoll_receipt: receipt };
+}
+
 function toolQuotePayload(tool: (typeof TOOLS)[number]) {
   const httpEndpoint = toolHttpUrl(tool);
   return {
@@ -3415,6 +3554,9 @@ function toolQuotePayload(tool: (typeof TOOLS)[number]) {
     description: tool.description,
     price_usd: tool.price_usd,
     amount: `$${tool.price_usd}`,
+    maxPaymentUsd: tool.price_usd,
+    buyer_contract: toolBuyerContract(tool),
+    approval_prompt: toolApprovalPrompt(tool),
     payment: {
       protocol: "x402",
       scheme: "exact",
@@ -3430,9 +3572,12 @@ function toolQuotePayload(tool: (typeof TOOLS)[number]) {
       ...(httpEndpoint ? { http: httpEndpoint } : {}),
       quote: `${SERVICE.origin}/api/quote?tool=${encodeURIComponent(tool.name)}`,
       tool_page: `${SERVICE.origin}/tools/${tool.name}`,
+      route_finder: `${SERVICE.origin}/api/routes/find?q=${encodeURIComponent(String(tool.name).replace(/_/g, " "))}`,
+      receipt_schema: `${SERVICE.origin}/agenttoll-receipt-v1.md`,
     },
     input: tool.input,
     example: tool.example,
+    expected_result: expectedResultForTool(tool),
   };
 }
 
@@ -3458,6 +3603,60 @@ function quoteTool(url: URL) {
   }
 
   return jsonResponse(toolQuotePayload(tool));
+}
+
+function routeFind(url: URL) {
+  const query = (url.searchParams.get("q") ?? url.searchParams.get("task") ?? "").trim().toLowerCase();
+  const limit = Math.max(1, Math.min(10, Number(url.searchParams.get("limit") ?? "5") || 5));
+  const terms = query.split(/[^a-z0-9]+/).filter((term) => term.length >= 2);
+  const scoreTool = (tool: any) => {
+    const haystack = [
+      tool.name,
+      tool.description,
+      categoryForTool(tool.name),
+      JSON.stringify(tool.input),
+      JSON.stringify(tool.example),
+      ...discoveryQueriesForTool(tool),
+    ].join(" ").toLowerCase();
+    if (!terms.length) return ["x402_market_radar", "gen_video_intel", "model_settings_lookup", "x402_rank_audit", "gov_contract_fit_brief"].includes(tool.name) ? 5 : 0;
+    let score = 0;
+    for (const term of terms) {
+      if (tool.name.toLowerCase().includes(term)) score += 6;
+      if (haystack.includes(term)) score += 2;
+    }
+    if (query && haystack.includes(query)) score += 10;
+    return score;
+  };
+  const matches = (TOOLS as readonly any[])
+    .map((tool) => ({ tool, score: scoreTool(tool) }))
+    .filter((row) => row.score > 0)
+    .sort((a, b) => b.score - a.score || Number(b.tool.price_usd) - Number(a.tool.price_usd))
+    .slice(0, limit)
+    .map(({ tool, score }) => ({
+      score,
+      name: tool.name,
+      category: categoryForTool(tool.name),
+      description: tool.description,
+      price_usd: tool.price_usd,
+      endpoint: tool.http_path ? `${SERVICE.origin}${tool.http_path}` : `${SERVICE.origin}${SERVICE.mcpPath}`,
+      quote: `${SERVICE.origin}/api/quote?tool=${encodeURIComponent(tool.name)}`,
+      tool_page: `${SERVICE.origin}/tools/${tool.name}`,
+      buyer_contract: toolBuyerContract(tool),
+      approval_prompt: toolApprovalPrompt(tool),
+      expected_result: expectedResultForTool(tool),
+    }));
+  return jsonResponse({
+    service: SERVICE.name,
+    query,
+    count: matches.length,
+    matches,
+    payment_boundary: {
+      network: SERVICE.network,
+      asset_contract: SERVICE.usdc,
+      pay_to: SERVICE.seller,
+      receipt_schema: `${SERVICE.origin}/agenttoll-receipt-v1.md`,
+    },
+  });
 }
 
 function systemInfo() {
@@ -5341,6 +5540,9 @@ function toolDetailPage(toolName: string) {
   const html = (value: string) => value.replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch] as string));
   const inputDoc = hasInput ? JSON.stringify(tool.input, null, 2) : "{}";
   const exampleDoc = JSON.stringify(requestBody, null, 2);
+  const buyerContractDoc = JSON.stringify(toolBuyerContract(tool), null, 2);
+  const approvalPrompt = toolApprovalPrompt(tool);
+  const expectedResult = expectedResultForTool(tool);
   const transactionSpec = JSON.stringify({
     mcp: {
       endpoint: `${SERVICE.origin}${SERVICE.mcpPath}`,
@@ -5359,13 +5561,17 @@ function toolDetailPage(toolName: string) {
       protocol: "x402",
       scheme: "exact",
       price_usd: tool.price_usd,
+      max_payment_usd: tool.price_usd,
       network: SERVICE.network,
       network_name: SERVICE.networkName,
       asset: "USDC",
       asset_address: SERVICE.usdc,
       pay_to: SERVICE.seller,
     },
+    expected_result: expectedResult,
+    approval_prompt: approvalPrompt,
     receipt: `${SERVICE.origin}/receipt/:tx`,
+    receipt_schema: `${SERVICE.origin}/agenttoll-receipt-v1.md`,
   }, null, 2);
 
   // JSON-LD structured data for this specific tool
@@ -5443,6 +5649,13 @@ ${jsonLd}`;
       <pre>${html(transactionSpec)}</pre>
     </div>
 
+    <div class="tool-section" data-rail-label="APPROVAL METADATA">
+      <h3>Agent approval metadata</h3>
+      <p style="color: var(--text-2); font-size: 14px; margin-bottom: 12px;">Use this before asking a user to approve payment. It states the cap, seller wallet, asset, route, and expected result in one buyer contract.</p>
+      <p style="color: var(--text-2); font-size: 14px; margin-bottom: 12px;"><strong style="color: var(--text);">Suggested approval line:</strong> ${html(approvalPrompt)}</p>
+      <pre>${html(buyerContractDoc)}</pre>
+    </div>
+
     <div class="tool-section" data-rail-label="PAYMENT RAIL">
       <h3>Pricing & payment</h3>
       <div style="display: flex; gap: 24px; flex-wrap: wrap; margin-top: 8px;">
@@ -5450,8 +5663,9 @@ ${jsonLd}`;
         <div><div style="font-size: 13px; color: var(--text-3);">Network</div><div style="font-family: 'JetBrains Mono', monospace; font-size: 16px; color: var(--text);">${SERVICE.networkName}</div></div>
         <div><div style="font-size: 13px; color: var(--text-3);">Asset</div><div style="font-family: 'JetBrains Mono', monospace; font-size: 16px; color: var(--text);">USDC</div></div>
         <div><div style="font-size: 13px; color: var(--text-3);">Protocol</div><div style="font-family: 'JetBrains Mono', monospace; font-size: 16px; color: var(--text);">x402 exact</div></div>
-        <div><div style="font-size: 13px; color: var(--text-3);">Receipts</div><div style="font-family: 'JetBrains Mono', monospace; font-size: 16px; color: var(--text);">/receipt/:tx</div></div>
+        <div><div style="font-size: 13px; color: var(--text-3);">Receipt schema</div><div style="font-family: 'JetBrains Mono', monospace; font-size: 16px; color: var(--text);">agenttoll.receipt.v1</div></div>
       </div>
+      <p style="color: var(--text-3); font-size: 13px; margin-top: 12px;">Paid JSON responses include <code>agenttoll_receipt</code> with request, result, and payment-term hashes. If your buyer runtime exposes a settlement transaction hash, verify it at <code>/receipt/&lt;tx&gt;</code>.</p>
     </div>
 
     <div class="tool-section" data-rail-label="FAQ">
@@ -5495,6 +5709,8 @@ function discoveryPage() {
     { type: "SYSTEM API", label: "System info", href: "/api/system/info", text: "Network, seller wallet, asset contract, categories, and discovery URLs." },
     { type: "AGENT CONTEXT", label: "llms-full.txt", href: "/llms-full.txt", text: "Long-form agent context with every tool, price, quote URL, and endpoint." },
     { type: "BASE MCP BUYER SKILL", label: "Base MCP buyer skill", href: "/agenttoll-base-mcp-skill.md", text: "Agent-facing guide for deciding, explaining, capping, and approving AgentToll x402 purchases through Base MCP." },
+    { type: "ROUTE FINDER", label: "Route finder", href: "/api/routes/find?q=video%20model%20settings", text: "Free task-to-route lookup with price, buyer contract, approval prompt, and expected result." },
+    { type: "RECEIPT SCHEMA", label: "agenttoll.receipt.v1", href: "/agenttoll-receipt-v1.md", text: "Receipt envelope for request hash, result hash, payment terms hash, network, asset, seller, amount, and settlement verification." },
     { type: "PRICE QUOTE", label: "Quote API", href: "/api/quote?tool=trending_markets", text: "Free price lookup before an agent attempts a paid call." },
     { type: "OPENAPI SPEC", label: "OpenAPI", href: "/openapi.json", text: "OpenAPI 3.1 spec for public metadata and paid HTTP routes." },
     { type: "X402 DISCOVERY", label: "x402 resources", href: "/.well-known/x402", text: "x402 discovery surface used by paid-resource crawlers." },
@@ -5536,6 +5752,8 @@ function docsPage() {
         <a href="/api/system/info" style="color: var(--accent); text-decoration: none;">System info</a><br>
         <a href="/llms-full.txt" style="color: var(--accent); text-decoration: none;">llms-full.txt</a><br>
         <a href="/agenttoll-base-mcp-skill.md" style="color: var(--accent); text-decoration: none;">Base MCP buyer skill</a><br>
+        <a href="/api/routes/find?q=video%20model%20settings" style="color: var(--accent); text-decoration: none;">Route finder</a><br>
+        <a href="/agenttoll-receipt-v1.md" style="color: var(--accent); text-decoration: none;">Receipt schema</a><br>
         <a href="/api/quote?tool=trending_markets" style="color: var(--accent); text-decoration: none;">Quote API</a>
       </p>
     </div>
@@ -5566,7 +5784,7 @@ Seller wallet: ${SERVICE.seller}</pre>
 
     <div class="cat-card" style="margin-bottom: 16px;">
       <h3 style="font-size: 15px; font-weight: 600; margin-bottom: 8px;">Receipts</h3>
-      <p style="font-size: 14px; color: var(--text-2);">After payment settles, verify on Base with <code>/receipt/&lt;tx&gt;</code>.</p>
+      <p style="font-size: 14px; color: var(--text-2);">Paid JSON responses include an <code>agenttoll_receipt</code> envelope with request, result, and payment-term hashes. If your buyer runtime exposes the settlement transaction hash, verify it on Base with <code>/receipt/&lt;tx&gt;</code>. Schema: <a href="/agenttoll-receipt-v1.md" style="color: var(--accent); text-decoration: none;">agenttoll.receipt.v1</a>.</p>
     </div>
 
     <div class="rail-card" data-rail-label="ACTION RAIL" style="margin-top: 32px; padding: 52px 22px 22px; display: flex; gap: 12px; flex-wrap: wrap;">
@@ -5651,10 +5869,26 @@ function openApiSpec() {
           responses: { "200": { description: "Tool price, payment rail, endpoints, and example input.", "content": { "application/json": { "schema": { "type": "object" } } } }, "404": { description: "Tool not found." } },
         },
       },
+      "/api/routes/find": {
+        get: {
+          summary: "Find paid routes for a task before payment",
+          parameters: [
+            { name: "q", in: "query", required: false, schema: { type: "string" }, description: "Task or topic, for example video model settings" },
+            { name: "limit", in: "query", required: false, schema: { type: "integer", minimum: 1, maximum: 10 } },
+          ],
+          responses: { "200": { description: "Ranked paid route matches with price, buyer contract, approval prompt, and expected result.", "content": { "application/json": { "schema": { "type": "object" } } } } },
+        },
+      },
       "/llms-full.txt": {
         get: {
           summary: "Long-form LLM discovery context",
           responses: { "200": { description: "Plain-text catalog for agents and LLM crawlers.", "content": { "text/plain": { "schema": { "type": "string" } } } } },
+        },
+      },
+      "/agenttoll-receipt-v1.md": {
+        get: {
+          summary: "AgentToll receipt schema",
+          responses: { "200": { description: "Markdown documentation for the agenttoll.receipt.v1 envelope.", "content": { "text/markdown": { "schema": { "type": "string" } } } } },
         },
       },
       "/.well-known/mcp.json": {
@@ -6043,7 +6277,7 @@ export default {
       return assetResponse(env, request, url.pathname);
     }
 
-    if (url.pathname === "/agenttoll-base-mcp-skill.md" || url.pathname === "/llms.txt" || url.pathname === "/sitemap.xml") {
+    if (url.pathname === "/agenttoll-base-mcp-skill.md" || url.pathname === "/agenttoll-receipt-v1.md" || url.pathname === "/llms.txt" || url.pathname === "/sitemap.xml") {
       return assetResponse(env, request, url.pathname);
     }
 
@@ -6057,6 +6291,10 @@ export default {
 
     if (url.pathname === "/api/quote") {
       return quoteTool(url);
+    }
+
+    if (url.pathname === "/api/routes/find") {
+      return routeFind(url);
     }
 
     if (url.pathname === "/api/x402/bazaar/search") {

@@ -16,7 +16,7 @@ OpenAPI spec: /openapi.json
 x402 discovery manifest: /.well-known/x402
 MCP endpoint: /mcp
 Tools directory: /tools
-Blog: /blog/x402-protocol-explained
+Blog: /blog/base-mcp-x402-agent-buyers
 Base MCP buyer skill: /agenttoll-base-mcp-skill.md
 Installable skill source: https://github.com/huwhitememes/tollbooth/tree/main/skills/agenttoll-base-mcp-buyer
 Codebase: https://github.com/huwhitememes/tollbooth (open source)
@@ -31,6 +31,7 @@ Free endpoints (no payment required):
 - GET /.well-known/agent.json — agent discovery manifest (100 tools)
 - GET /.well-known/x402 — x402 resource listing
 - GET /agenttoll-base-mcp-skill.md — Base MCP buyer guide for deciding, explaining, capping, and approving AgentToll x402 purchases
+
 
 ## Quickstart (curl)
 
@@ -196,9 +197,15 @@ Reddit and GitHub intelligence for sentiment, activity, repo health.
 
 ## Gen-Video Community Intelligence (2 tools)
 
-Live community intelligence from 1.2M+ generative video practitioners — workflows, settings, model comparisons.
-- POST /paid/genvideo/gen-video-intel — Model names, capabilities, pricing, workflows, gotchas. $0.05
-- POST /paid/genvideo/model-settings-lookup — Recommended settings per model (temp, top_p, etc). $0.02
+Live Banodoco practitioner-feed intelligence for generative video and image workflows. Focus: open-source/community-used stacks such as Wan, VACE, LTX, ComfyUI, FLUX 3, Seedance, Kling, Hunyuan, Qwen Image, LoRAs, training settings, fp8/quantization, and workflow gotchas. These routes sell current community intelligence, not direct API access to Sora, Veo, Runway, Pika, FLUX 3, Seedance, Kling, Wan, or any other model.
+- POST /paid/media/gen-video — Current model/workflow discussion, capabilities, settings chatter, comparisons, and practitioner gotchas. $0.05
+- POST /paid/media/model-settings — Community-tested video/image model settings: CFG, steps, denoise, fps, resolution, sampler, LoRA, ComfyUI and training notes. $0.02
+
+## Buyer discovery and receipts
+
+- GET /api/routes/find?q=video%20model%20settings — Free task-shaped route finder with price, buyer contract, approval prompt, and expected result.
+- GET /api/quote?tool=gen_video_intel — Free price and buyer contract metadata before payment.
+- GET /agenttoll-receipt-v1.md — Receipt schema for request hash, result hash, payment terms hash, network, asset, seller, amount, and settlement verification.
 
 ## Utility (6 tools)
 

@@ -7,7 +7,7 @@
   "assets": {
     "directory": "./public",
     "binding": "ASSETS",
-    "run_worker_first": ["/api/*", "/.well-known/*", "/blog", "/blog/*", "/agenttoll-base-mcp-skill.md", "/llms.txt", "/sitemap.xml"]
+    "run_worker_first": ["/api/*", "/.well-known/*", "/blog", "/blog/*", "/agenttoll-base-mcp-skill.md", "/agenttoll-receipt-v1.md", "/llms.txt", "/sitemap.xml"]
   },
   "workers_dev": true,
   "routes": [
