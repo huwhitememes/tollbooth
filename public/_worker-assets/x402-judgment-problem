@@ -1278,7 +1278,7 @@ article a,
 <li><a href="https://aws.amazon.com/blogs/machine-learning/pay-with-confidence-how-solv-labs-built-verifiable-auditable-agent-payments-on-amazon-bedrock-agentcore-payments/">AWS and Solv Labs: Verifiable, auditable agent payments</a></li>
 <li><a href="https://www.circle.com/blog/meet-steve-an-ai-agent-that-can-pay-its-own-way">Circle: Meet Steve</a></li>
 <li><a href="https://info.arkm.com/announcements/x402-on-arkham">Arkham: x402 on Arkham</a></li>
-<li>AgentToll CDP Bazaar snapshots, July 31 and August 19, 2026. Collected with $0 public read-only discovery calls from <code>https://api.cdp.coinbase.com/platform/v2/x402/discovery</code>.</li>
+<li>AgentToll snapshots of the CDP Bazaar catalog, captured July 31 and August 19, 2026.</li>
 </ul>
       </article>
     </div>

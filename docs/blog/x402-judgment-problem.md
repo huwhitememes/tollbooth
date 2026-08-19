@@ -145,4 +145,4 @@ AgentToll is building for that layer: bounded prices, task-shaped work, source-b
 - [AWS and Solv Labs: Verifiable, auditable agent payments](https://aws.amazon.com/blogs/machine-learning/pay-with-confidence-how-solv-labs-built-verifiable-auditable-agent-payments-on-amazon-bedrock-agentcore-payments/)
 - [Circle: Meet Steve](https://www.circle.com/blog/meet-steve-an-ai-agent-that-can-pay-its-own-way)
 - [Arkham: x402 on Arkham](https://info.arkm.com/announcements/x402-on-arkham)
-- AgentToll CDP Bazaar snapshots, July 31 and August 19, 2026. Collected with $0 public read-only discovery calls from `https://api.cdp.coinbase.com/platform/v2/x402/discovery`.
+- AgentToll snapshots of the CDP Bazaar catalog, captured July 31 and August 19, 2026.
