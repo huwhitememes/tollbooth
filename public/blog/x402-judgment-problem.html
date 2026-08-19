@@ -4,19 +4,42 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-<title>Blog | agenttoll.dev</title>
-<meta name="description" content="agenttoll.dev writing on x402, paid agent work, receipts, and agent payments.">
-<link rel="canonical" href="https://agenttoll.dev/blog">
-<meta property="og:title" content="Blog | agenttoll.dev">
-<meta property="og:description" content="agenttoll.dev writing on x402, paid agent work, receipts, and agent payments.">
-<meta property="og:type" content="website">
-<meta property="og:url" content="https://agenttoll.dev/blog">
-<meta property="og:image" content="https://agenttoll.dev/blog/og-blog-field-notes.png">
+<title>15,100 paid APIs, 110 curated: x402 has a judgment problem | agenttoll.dev</title>
+<meta name="description" content="AWS took agent payments to GA, Cloudflare announced programmable wallets, and LangChain moved spend controls into middleware. The scarce layer is deciding what deserves a payment.">
+<link rel="canonical" href="https://agenttoll.dev/blog/x402-judgment-problem">
+<meta property="og:title" content="15,100 paid APIs, 110 curated: x402 has a judgment problem">
+<meta property="og:description" content="AWS took agent payments to GA, Cloudflare announced programmable wallets, and LangChain moved spend controls into middleware. The scarce layer is deciding what deserves a payment.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://agenttoll.dev/blog/x402-judgment-problem">
+<meta property="og:image" content="https://agenttoll.dev/blog/og-x402-judgment-problem.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:type" content="image/png">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://agenttoll.dev/blog/og-blog-field-notes.png">
+<meta name="twitter:image" content="https://agenttoll.dev/blog/og-x402-judgment-problem.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "15,100 paid APIs, 110 curated: x402 has a judgment problem",
+  "description": "AWS took agent payments to GA, Cloudflare announced programmable wallets, and LangChain moved spend controls into middleware. The scarce layer is deciding what deserves a payment.",
+  "author": {
+    "@type": "Person",
+    "name": "Hu White",
+    "url": "https://www.linkedin.com/in/huwhitememes/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "agenttoll.dev",
+    "url": "https://agenttoll.dev"
+  },
+  "datePublished": "2026-08-19",
+  "dateModified": "2026-08-19",
+  "image": "https://agenttoll.dev/blog/og-x402-judgment-problem.png",
+  "mainEntityOfPage": "https://agenttoll.dev/blog/x402-judgment-problem"
+}</script>
 <style>
 :root {
   color-scheme: dark;
@@ -1046,20 +1069,81 @@ article a,
   .blog-article .tldr { padding: 62px 22px 24px; }
 }
 
+
+.blog-frame > div {
+  min-width: 0;
+}
+.blog-title {
+  overflow-wrap: anywhere;
+}
+.blog-hero-card img {
+  max-width: 100%;
+}
+.article-visual {
+  margin: 34px 0 40px;
+}
+.article-visual img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 18px;
+  border: 1px solid rgba(45, 212, 191, 0.20);
+  background: #06080c;
+  box-shadow: 0 18px 46px rgba(0,0,0,.30);
+}
+.article-visual figcaption {
+  margin: 11px 8px 0;
+  color: var(--text-3);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  line-height: 1.55;
+}
+.blog-article table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin: 26px 0 34px;
+  overflow: hidden;
+  border: 1px solid rgba(45, 212, 191, 0.20);
+  border-radius: 16px;
+  background: rgba(6,8,12,.56);
+}
+.blog-article th,
+.blog-article td {
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(56,78,112,.28);
+  color: var(--text-2);
+  font-size: 14px;
+  text-align: left;
+}
+.blog-article th {
+  color: var(--text);
+  background: rgba(45,212,191,.08);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  letter-spacing: .03em;
+}
+.blog-article tr:last-child td { border-bottom: 0; }
+.blog-article td:not(:first-child),
+.blog-article th:not(:first-child) { text-align: right; }
+.blog-article > p:last-of-type a {
+  display: inline-flex;
+  padding: 12px 20px;
+  border-radius: 10px;
+  background: var(--accent);
+  color: #06080c;
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: 0 0 28px rgba(45,212,191,.18);
+}
+@media (max-width: 620px) {
+  .blog-article table { display: block; overflow-x: auto; white-space: nowrap; }
+  .article-visual { margin-left: -4px; margin-right: -4px; }
+  .article-visual figcaption { font-size: 11px; }
+}
+
 </style>
-<style>
-.blog-masthead-card { display:block; margin: 22px 0 18px; border-radius:24px; border:1px solid rgba(45,212,191,.22); overflow:hidden; background:rgba(6,8,12,.66); box-shadow:var(--rail-glow), inset 0 1px 0 rgba(255,255,255,.06); }
-.blog-masthead-card img { display:block; width:100%; height:auto; }
-.blog-intro { color:var(--text-2); font-size:17px; line-height:1.72; margin:0 0 34px; max-width:780px; }
-.blog-list { display:grid; gap:22px; margin: 34px 0 80px; }
-.blog-list-card { display:block; padding:56px 22px 24px; border-radius:20px; border:1px solid rgba(45,212,191,.22); background:linear-gradient(180deg, rgba(6,8,12,.76), rgba(13,23,29,.62)); color:inherit; text-decoration:none; position:relative; overflow:hidden; box-shadow:var(--rail-glow), inset 0 1px 0 rgba(255,255,255,.06); }
-.blog-list-card::before { content:attr(data-rail-label); position:absolute; top:0; left:0; right:0; min-height:32px; display:flex; align-items:center; padding:0 14px; border-bottom:1px solid rgba(45,212,191,.16); background:rgba(8,16,21,.62); font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:.14em; color:#8ddfd5; }
-.blog-list-card img { display:block; width:100%; height:auto; margin:0 0 18px; border-radius:16px; border:1px solid rgba(45,212,191,.18); }
-.blog-list-card p { color:var(--text-2); line-height:1.7; margin:0 0 14px; }
-.blog-list-card .meta { color:var(--text-3); font-family:'JetBrains Mono', monospace; font-size:12px; letter-spacing:.08em; text-transform:uppercase; }
-</style>
-</head>
-<body>
+</head><body>
 <nav>
   <a href="/" class="logo" style="text-decoration:none;color:inherit;">agent<span>toll</span>.dev</a>
   <button class="nav-toggle" aria-label="Menu" onclick="document.querySelector('nav .links').classList.toggle('open')">≡</button>
@@ -1076,38 +1160,133 @@ article a,
 <main class="blog-shell">
   <div class="blog-frame">
     <div>
-      <div class="back-link"><a href="/">← Back to agenttoll.dev</a></div>
-      <div class="blog-kicker">AGENTTOLL.DEV · BLOG</div>
-      <figure class="blog-masthead-card"><img src="/blog/og-blog-field-notes.png" width="1200" height="630" alt="Field notes on paid agent tools."></figure>
-      <p class="blog-intro">Builder notes on x402, Base MCP, receipt-backed paid work, discovery surfaces, and the buyer metadata agents need before they spend.</p>
-      <div class="blog-list">
-        <a class="blog-list-card" data-rail-label="LATEST" href="/blog/x402-judgment-problem">
-          <img src="/blog/og-x402-judgment-problem.png" width="1200" height="630" alt="15,100 paid APIs, 110 curated: x402 has a judgment problem">
-          <p>AWS took agent payments to GA while Bazaar grew to 15,100 resources. The scarce layer is deciding what deserves a payment.</p>
-          <div class="meta">August 19, 2026 · x402 · agent payments</div>
-        </a>
-        <a class="blog-list-card" data-rail-label="ANALYSIS" href="/blog/base-mcp-x402-agent-buyers">
-          <img src="/blog/og-base-mcp-x402-agent-buyers.png" width="1200" height="630" alt="Base MCP Turns AI Agents Into x402 Buyers">
-          <p>Base MCP gives agents a wallet path. AgentToll packages x402 work products agents can inspect, cap, approve, and receipt.</p>
-          <div class="meta">July 30, 2026 · Base MCP · x402 buyers</div>
-        </a>
-        <a class="blog-list-card" data-rail-label="ANALYSIS" href="/blog/x402-foundation-agent-payments">
-          <img src="/blog/og-x402-foundation.png" width="1200" height="630" alt="X402 Got Its Standards Body. Now Comes the Hard Part.">
-          <p>Linux Foundation governance, Visa and Artemis usage data, and what the x402 Foundation launch means for builders shipping paid agent tools.</p>
-          <div class="meta">July 17, 2026 · x402 foundation</div>
-        </a>
-        <a class="blog-list-card" data-rail-label="GUIDE" href="/blog/x402-protocol-explained">
-          <img src="/blog/og-x402-article-v2.png" width="1200" height="630" alt="How AI Agents Pay for Work: The x402 Protocol Explained">
-          <p>A builder's guide to x402 payments, MCP discovery, and the five-layer pattern behind agent-buyable work.</p>
-          <div class="meta">July 12, 2026 · x402 protocol</div>
-        </a>
-      </div>
+      <div class="back-link"><a href="/blog">← Back to blog</a></div>
+      <div class="blog-kicker">ANALYSIS · X402 · AGENT PAYMENTS</div>
+      <h1 class="blog-title">15,100 paid APIs, 110 curated: x402 has a judgment problem</h1>
+      <figure class="blog-hero-card"><img src="/blog/og-x402-judgment-problem.png" width="1200" height="630" alt="15,100 paid APIs, 110 curated: x402 has a judgment problem."></figure>
+      <article class="blog-article">
+<div class="tldr"><strong>TL;DR:</strong> Agent payment plumbing got much easier in August. AWS took AgentCore Payments to general availability. LangChain put deterministic budgets and payment traces into middleware. Coinbase opened existing Business checkouts to x402 buyers. Cloudflare announced wallets that will let humans delegate bounded funds to agents. But the CDP Bazaar snapshot I pulled on August 19 contained 15,100 HTTP resources and only 110 curated listings. Paying is becoming infrastructure. Deciding what deserves a payment is now the scarce part.</div>
+<hr/>
+<p>Fifteen thousand one hundred paid endpoints. One hundred ten curated.</p>
+<p>That was the CDP Bazaar snapshot I pulled on August 19. The raw catalog had grown 2% since July 31. The curated set had shrunk by nearly 10%. Median listed price fell from 1.5 cents to 1 cent.</p>
+<p>One day earlier, Amazon had taken Bedrock AgentCore Payments to general availability.</p>
+<p>Put those two facts together and the shape of this market gets clearer. Agent payments are moving out of demo code and into the control plane. Wallet connections, hard budgets, protocol routing, traces, and endpoint curation now sit between the model and the merchant.</p>
+<p>The HTTP payment is the easy part. The hard part is deciding whether the result will be worth buying.</p>
+<figure class="article-visual">
+<img alt="CDP Bazaar resources, curated listings, and median price from July 31 through August 19, 2026." height="760" src="/blog/x402-bazaar-supply-vs-curation.svg" width="1200"/>
+<figcaption>AgentToll's $0 read-only Bazaar snapshots. Listing data measures supply and metadata, not buyer demand or revenue.</figcaption>
+</figure>
+<h2>Payment plumbing is becoming infrastructure</h2>
+<p>Amazon's August 18 launch is the cleanest dividing line. <a href="https://aws.amazon.com/blogs/machine-learning/amazon-bedrock-agentcore-payments-is-now-generally-available-enabling-agents-to-transact-safely-and-autonomously-at-scale/">AgentCore Payments is now generally available</a>, with Coinbase and Stripe Privy wallet connections, session budgets, expiry controls, CloudWatch observability, and payment routing that supports both x402 and Stripe and Tempo's Machine Payments Protocol.</p>
+<p>GA also added x402's <code>upto</code> scheme. Instead of approving a fixed charge before a request, an agent can authorize a ceiling and settle the amount consumed. That fits model inference, compute, and other metered services much better than a flat per-call price.</p>
+<p>A protocol-agnostic buyer layer changes the seller's position. An AWS agent no longer needs custom payment code for every x402 or MPP merchant. It can hit a paid service, pass the payment challenge into middleware, check a hard session cap, sign through its wallet provider, and continue.</p>
+<p>LangChain made that flow concrete on August 17. Its <a href="https://www.langchain.com/blog/langchain-agentcore-payments">AgentCore Payments middleware</a> catches the <code>402</code>, validates the amount against a session budget, signs the payment, retries the request, and records the purchase in LangSmith. The limit runs outside the prompt, so a model cannot talk its way around it.</p>
+<p>Coinbase widened the merchant side too. On August 11, the company said <a href="https://www.coinbase.com/blog/getting-paid-in-crypto-just-got-a-lot-more-powerful-with-coinbase-business">existing Coinbase Business checkouts can accept payments from AI agents through x402</a>. Coinbase reported more than 5,000 Business customers and 100,000 payments across its acceptance suite. Those totals cover the whole suite, not x402 traffic, so they are distribution evidence rather than agent-demand evidence.</p>
+<p>Cloudflare's move may be bigger, but it is earlier. <a href="https://blog.cloudflare.com/wallets">Cloudflare Wallets</a> let users claim a handle now. Stablecoin funding and agent payments are still described as coming soon. The planned design gives an Account Wallet control over agent-run Virtual Wallets through allowances, allowlists, and maximum transaction sizes. Paired with Cloudflare's x402 Monetization Gateway, that would put buyers and sellers behind the same edge network.</p>
+<p>The common pattern matters more than the vendor list. Payment authority is shifting away from the model and into infrastructure that can enforce policy.</p>
+<h2>The control plane is now the product</h2>
+<p>A raw x402 client answers one question: can this request be paid?</p>
+<p>A production buyer has harder questions. Is this recipient approved? Has the agent already paid for the same request? Will the next call break the session budget? Did a tool description redirect the agent to a different merchant? What did the agent buy, and why did it pick that service?</p>
+<p>AWS's OpenClaw integration is unusually direct about the threat model. It assumes untrusted content may manipulate the model. The model-facing runtime cannot create or expand its payment session. A human sets the recipient, asset, network, per-payment cap, total budget, and expiry through a separate administrative path. The agent can spend only inside that box.</p>
+<p>That is a much more credible design than asking a model to "be careful with money."</p>
+<p>Cloudflare is heading toward the same shape with Account Wallets and Virtual Wallets. LangChain puts purchase context beside the reasoning trace. AWS emits payment logs and metrics. Different products, same lesson: the safe unit is a bounded payment session, not a wallet dropped into an agent prompt.</p>
+<figure class="article-visual">
+<img alt="Diagram showing agent intent passing through policy, discovery, payment protocols, wallets, and settlement." height="780" src="/blog/x402-control-plane.svg" width="1200"/>
+<figcaption>The model proposes a purchase. The control plane decides whether it can happen and records why it did.</figcaption>
+</figure>
+<h2>Bazaar is forcing the issue</h2>
+<p>The catalog numbers look healthy until you ask what they mean.</p>
+<p>My July 31 snapshot contained 14,799 HTTP resources, 122 marked curated, and a median listed price of $0.015. The August 19 snapshot contained 15,100 resources, 110 curated, and a $0.01 median.</p>
+<table>
+<thead>
+<tr>
+<th>Bazaar snapshot</th>
+<th style="text-align: right;">July 31</th>
+<th style="text-align: right;">August 19</th>
+<th style="text-align: right;">Change</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>HTTP resources</td>
+<td style="text-align: right;">14,799</td>
+<td style="text-align: right;">15,100</td>
+<td style="text-align: right;">+2.0%</td>
+</tr>
+<tr>
+<td>Curated resources</td>
+<td style="text-align: right;">122</td>
+<td style="text-align: right;">110</td>
+<td style="text-align: right;">-9.8%</td>
+</tr>
+<tr>
+<td>Curated share</td>
+<td style="text-align: right;">0.824%</td>
+<td style="text-align: right;">0.728%</td>
+<td style="text-align: right;">-0.096 points</td>
+</tr>
+<tr>
+<td>Median listed price</td>
+<td style="text-align: right;">$0.015</td>
+<td style="text-align: right;">$0.01</td>
+<td style="text-align: right;">-33.3%</td>
+</tr>
+</tbody>
+</table>
+<p>The August 19 pull found 15,063 priced resources below $10. It also found no exposed <code>skillUrl</code> values in the discovery responses. That does not mean nobody has written agent skills. It means the field was absent across the catalog response I observed.</p>
+<p>These snapshots say plenty about supply. They do not tell us how many independent agents bought anything, whether a result helped complete a task, or how much revenue sellers earned. Listing count is not demand.</p>
+<p>Coinbase's current <a href="https://docs.cdp.coinbase.com/x402/buyer/discover-services">Bazaar discovery documentation</a> makes the selection pressure explicit. Search returns at most 20 resources. Ranking blends relevance with recent call volume, unique payers, description completeness, output schema, and service metadata. AWS says its Bazaar MCP view now uses a curated set selected by social proof, metadata richness, description quality, and availability.</p>
+<p>That is the market signal sellers should care about. A catalog with 15,100 entries does not create 15,100 real choices for an agent. Ranking and curation collapse that supply into a short list.</p>
+<p>Cheap generic wrappers will keep multiplying because they are easy to publish. Most will be functionally invisible.</p>
+<h2>A receipt cannot tell you why</h2>
+<p>Blockchains are good at recording settlement. They do not know whether the purchase was smart.</p>
+<p>LangChain's post makes this distinction cleanly. A payment record can show that one instrument sent two cents to an address at a certain time. It cannot show that the agent was researching a legal issue, had a one-dollar budget, picked the endpoint because of its tool description, and received an answer that did not address the question.</p>
+<p>That missing context is where the next product layer lives.</p>
+<p>A useful agent-payment receipt needs to connect the settlement to the work: the original task, the service description the agent saw, the price ceiling, the selected merchant, the result hash or artifact, and the agent's reason for choosing it. A buyer should be able to answer two questions later: what did we pay for, and did it help?</p>
+<p>AWS and Solv Labs published one serious version of that idea on August 12. Their <a href="https://aws.amazon.com/blogs/machine-learning/pay-with-confidence-how-solv-labs-built-verifiable-auditable-agent-payments-on-amazon-bedrock-agentcore-payments/">governed payment workflow</a> evaluated policy before settlement, signed an execution record inside a Nitro Enclave, attached a risk price, and anchored the evidence. In that implementation, transactions finished in under four seconds and governance added less than one second. Those are case-study numbers, not a guarantee for every AgentCore payment, but they show what a defensible receipt can contain.</p>
+<p>Circle supplied a smaller, stranger proof. Eight wallet-enabled "Steve" agents used x402 services during a World Cup prediction experiment. They paid per API call, placed real positions, and stayed inside preset transaction limits. Circle published it as an experiment, which is the right framing. Eight funded agents prove that the loop can run. They do not prove a broad market exists.</p>
+<p>Arkham's August 5 launch is closer to a durable merchant use case. <a href="https://info.arkm.com/announcements/x402-on-arkham">Agents can now buy Arkham API access with USDC on Base at request time</a>. Onchain intelligence has clear freshness, a known data provider, and an output that can feed a trading or research task. That is a stronger product than another generic JSON wrapper.</p>
+<h2>What agents will pay for</h2>
+<p>Sellers need to make a case before the charge. The endpoint metadata should tell the buyer what comes back, how fresh it is, what sources it uses, how to judge success, and when the buyer should skip it.</p>
+<p>The paid result then needs to survive scrutiny. For decision work, that means source links, a timestamp, method notes, a clear output schema, and a receipt that binds the artifact to the payment. If the result changes a plan or triggers another action, the buyer needs enough evidence to defend that step.</p>
+<p>This is why I keep pushing AgentToll toward finished work products instead of raw access. A regulatory impact brief is easier to justify than "premium compliance data." A contract-fit brief gives an agent a scored decision, cited awards, and pursuit notes. A market radar should explain what changed and what to do next, not dump a directory.</p>
+<p>Price still matters. A one-cent test call lets an agent sample a service without burning its task budget. But price cannot rescue an unclear product. In a ranked catalog, the cheapest mystery box is still a mystery box.</p>
+<p>The winning seller metadata will do four jobs:</p>
+<ul>
+<li>Give the agent enough free evidence to judge the purchase.</li>
+<li>State a fixed price or safe ceiling in machine-readable form.</li>
+<li>Return a task-shaped artifact with sources and method notes.</li>
+<li>Produce a receipt that connects payment, result, and purpose.</li>
+</ul>
+<p>That is harder than wrapping a public API. Good. Easy supply is already crowded.</p>
+<h2>The next bottleneck</h2>
+<p>August did not prove that the agent economy has arrived. It proved that several serious companies now expect agents to spend money and are building the controls before volume shows up.</p>
+<p>AWS took the payment layer to GA. LangChain moved budget checks and purchase traces into middleware. Coinbase opened a large merchant surface to x402. Cloudflare announced a delegated-wallet design at the edge. Circle and Arkham showed two very different paid-agent loops running on real services.</p>
+<p>Meanwhile, Bazaar kept adding supply while its curated slice stayed below 1%.</p>
+<p>So the next x402 contest will not be won by the team that publishes the most payable URLs. It will be won higher in the stack, where an agent decides which result deserves a cent and where the operator can inspect that decision later.</p>
+<p>AgentToll is building for that layer: bounded prices, task-shaped work, source-backed outputs, and receipts an agent can defend.</p>
+<p><a href="https://agenttoll.dev/tools">Inspect the paid work products →</a></p>
+<hr/>
+<h2>Sources</h2>
+<ul>
+<li><a href="https://aws.amazon.com/blogs/machine-learning/amazon-bedrock-agentcore-payments-is-now-generally-available-enabling-agents-to-transact-safely-and-autonomously-at-scale/">Amazon Bedrock AgentCore Payments is now generally available</a></li>
+<li><a href="https://www.langchain.com/blog/langchain-agentcore-payments">LangChain: AgentCore Payments middleware for LangChain agents</a></li>
+<li><a href="https://www.coinbase.com/blog/getting-paid-in-crypto-just-got-a-lot-more-powerful-with-coinbase-business">Coinbase Business: Agent payments through x402</a></li>
+<li><a href="https://blog.cloudflare.com/wallets">Cloudflare Wallets</a></li>
+<li><a href="https://blog.cloudflare.com/the-agentic-internet">Cloudflare: Building an open Agentic Internet</a></li>
+<li><a href="https://docs.cdp.coinbase.com/x402/buyer/discover-services">Coinbase Developer Platform: Discover services in Bazaar</a></li>
+<li><a href="https://aws.amazon.com/blogs/machine-learning/pay-with-confidence-how-solv-labs-built-verifiable-auditable-agent-payments-on-amazon-bedrock-agentcore-payments/">AWS and Solv Labs: Verifiable, auditable agent payments</a></li>
+<li><a href="https://www.circle.com/blog/meet-steve-an-ai-agent-that-can-pay-its-own-way">Circle: Meet Steve</a></li>
+<li><a href="https://info.arkm.com/announcements/x402-on-arkham">Arkham: x402 on Arkham</a></li>
+<li>AgentToll CDP Bazaar snapshots, July 31 and August 19, 2026. Collected with $0 public read-only discovery calls from <code>https://api.cdp.coinbase.com/platform/v2/x402/discovery</code>.</li>
+</ul>
+      </article>
     </div>
     <aside class="blog-side">
-      <div class="rail-card" data-rail-label="BLOG META"><div class="meta">Field notes</div><p>Analysis and builder guides on x402, Base MCP, paid agent work, receipts, and buyer-facing discovery surfaces.</p></div>
-      <div class="rail-card" data-rail-label="RELATED"><p><a href="/agenttoll-base-mcp-skill.md" style="color:var(--accent);">Read the Base MCP buyer skill</a></p><p><a href="/blog/x402-protocol-explained" style="color:var(--accent);">Read the builder guide to x402 agent payments</a></p><p><a href="/tools" style="color:var(--accent);">Browse 100 paid work products</a></p></div>
+      <div class="rail-card" data-rail-label="ARTICLE META"><div class="meta">Analysis · August 19, 2026</div><p>A field note on agent payment control planes, CDP Bazaar curation, and the work a seller must prove before an agent spends.</p></div>
+      <div class="rail-card" data-rail-label="RELATED"><p><a href="/blog/base-mcp-x402-agent-buyers" style="color:var(--accent);">How Base MCP turned agents into x402 buyers</a></p><p><a href="/tools/x402-market-radar" style="color:var(--accent);">Inspect the x402 Market Radar</a></p><p><a href="/docs" style="color:var(--accent);">Read the payment and receipt docs</a></p></div>
       <div class="author-card"><div class="flex"><div class="avatar" style="overflow:hidden;"><img src="/hu-white-pfp.jpg" alt="Hu White" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"></div><div><div style="font-size:15px;font-weight:600;">Hu White</div><div style="font-size:13px;color:var(--text-3);">Generative-AI veteran &#183; x402 builder &#183; <a href="https://github.com/huwhitememes" style="color:var(--accent);">GitHub</a> &#183; <a href="https://www.linkedin.com/in/huwhitememes/" style="color:var(--accent);">LinkedIn</a> &#183; <a href="https://x.com/memerhuwhite" style="color:var(--accent);">X</a></div></div></div><p style="font-size:13px;color:var(--text-2);margin-top:12px;line-height:1.6;">Built and operates agenttoll.dev, a marketplace of receipt-backed paid work products settling on Base USDC.</p></div>
-<div class="cta-row"><a href="/tools" class="btn btn-primary">Browse 100 tools &#8594;</a><a href="/docs" class="btn btn-ghost">Documentation</a><a href="/mcp" class="btn btn-ghost">MCP Endpoint</a></div>
+      <div class="cta-row"><a href="/tools" class="btn btn-primary">Inspect paid work →</a></div>
     </aside>
   </div>
 </main>

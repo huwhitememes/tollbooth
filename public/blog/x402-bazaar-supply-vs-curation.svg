@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" role="img" aria-labelledby="title desc">
+<title id="title">CDP Bazaar supply versus curation</title><desc id="desc">Three lines show HTTP resources, curated resources, and median listed price from July 31 through August 19, 2026.</desc>
+<defs>
+  <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#071017"/><stop offset="0.58" stop-color="#06080c"/><stop offset="1" stop-color="#0a1019"/></linearGradient>
+  <linearGradient id="teal" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#2dd4bf"/><stop offset="1" stop-color="#0ea5e9"/></linearGradient>
+  <radialGradient id="glow"><stop stop-color="#2dd4bf" stop-opacity=".26"/><stop offset="1" stop-color="#2dd4bf" stop-opacity="0"/></radialGradient>
+  <filter id="soft"><feGaussianBlur stdDeviation="18"/></filter>
+  <style>
+    text { font-family: Inter, Arial, sans-serif; fill: #e8eef6; }
+    .mono { font-family: 'JetBrains Mono', 'Courier New', monospace; }
+    .muted { fill: #8b9bb4; } .faint { fill: #5a6b85; } .accent { fill: #2dd4bf; }
+  </style>
+</defs>
+<rect width="100%" height="100%" fill="url(#bg)"/>
+<circle cx="180" cy="80" r="260" fill="url(#glow)" opacity=".6"/>
+<circle cx="1120" cy="720" r="260" fill="url(#glow)" opacity=".32"/>
+<text x="88" y="70" class="mono accent" font-size="14" letter-spacing="2">AGENTTOLL MARKET RADAR</text>
+<text x="88" y="118" font-size="38" font-weight="800">More supply. Less curation.</text>
+<text x="88" y="150" class="muted" font-size="18">CDP Bazaar listing snapshots, July 31 to August 19, 2026</text>
+<rect x="70" y="164" width="1090" height="200" rx="18" fill="#101622" fill-opacity=".63" stroke="#26364d" stroke-opacity=".72"/>
+<text x="88" y="186" class="mono faint" font-size="12" letter-spacing="1.5">HTTP RESOURCES</text>
+<line x1="88" y1="342.0" x2="1142" y2="342.0" stroke="#26364d" stroke-opacity=".55"/>
+<text x="80" y="346.0" class="mono faint" text-anchor="end" font-size="10">13,800</text>
+<line x1="88" y1="276.0" x2="1142" y2="276.0" stroke="#26364d" stroke-opacity=".55"/>
+<text x="80" y="280.0" class="mono faint" text-anchor="end" font-size="10">14,700.0</text>
+<line x1="88" y1="210.0" x2="1142" y2="210.0" stroke="#26364d" stroke-opacity=".55"/>
+<text x="80" y="214.0" class="mono faint" text-anchor="end" font-size="10">15,600</text>
+<path d="M 88.0 268.7 L 146.6 278.5 L 205.1 269.8 L 263.7 274.0 L 322.2 279.4 L 380.8 281.7 L 439.3 290.4 L 497.9 330.5 L 556.4 321.0 L 615.0 311.8 L 673.6 297.6 L 732.1 283.6 L 790.7 230.8 L 849.2 227.8 L 907.8 252.5 L 966.3 258.0 L 1024.9 261.0 L 1083.4 230.0 L 1142.0 246.7" fill="none" stroke="#2dd4bf" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="88.0" cy="268.7" r="5" fill="#06080c" stroke="#2dd4bf" stroke-width="3"/>
+<circle cx="380.8" cy="281.7" r="5" fill="#06080c" stroke="#2dd4bf" stroke-width="3"/>
+<circle cx="732.1" cy="283.6" r="5" fill="#06080c" stroke="#2dd4bf" stroke-width="3"/>
+<circle cx="1024.9" cy="261.0" r="5" fill="#06080c" stroke="#2dd4bf" stroke-width="3"/>
+<circle cx="1083.4" cy="230.0" r="5" fill="#06080c" stroke="#2dd4bf" stroke-width="3"/>
+<circle cx="1142.0" cy="246.7" r="5" fill="#06080c" stroke="#2dd4bf" stroke-width="3"/>
+<text x="98.0" y="258.7" class="mono" text-anchor="start" font-size="14" font-weight="700" fill="#2dd4bf">14,799</text>
+<text x="1132.0" y="236.7" class="mono" text-anchor="end" font-size="14" font-weight="700" fill="#2dd4bf">15,100</text>
+<rect x="70" y="394" width="1090" height="200" rx="18" fill="#101622" fill-opacity=".63" stroke="#26364d" stroke-opacity=".72"/>
+<text x="88" y="416" class="mono faint" font-size="12" letter-spacing="1.5">CURATED</text>
+<line x1="88" y1="572.0" x2="1142" y2="572.0" stroke="#26364d" stroke-opacity=".55"/>
+<text x="80" y="576.0" class="mono faint" text-anchor="end" font-size="10">100</text>
+<line x1="88" y1="506.0" x2="1142" y2="506.0" stroke="#26364d" stroke-opacity=".55"/>
+<text x="80" y="510.0" class="mono faint" text-anchor="end" font-size="10">120.0</text>
+<line x1="88" y1="440.0" x2="1142" y2="440.0" stroke="#26364d" stroke-opacity=".55"/>
+<text x="80" y="444.0" class="mono faint" text-anchor="end" font-size="10">140</text>
+<path d="M 88.0 499.4 L 146.6 502.7 L 205.1 502.7 L 263.7 506.0 L 322.2 502.7 L 380.8 502.7 L 439.3 506.0 L 497.9 502.7 L 556.4 499.4 L 615.0 502.7 L 673.6 502.7 L 732.1 459.8 L 790.7 469.7 L 849.2 473.0 L 907.8 476.3 L 966.3 542.3 L 1024.9 542.3 L 1083.4 542.3 L 1142.0 539.0" fill="none" stroke="#0ea5e9" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="88.0" cy="499.4" r="5" fill="#06080c" stroke="#0ea5e9" stroke-width="3"/>
+<circle cx="380.8" cy="502.7" r="5" fill="#06080c" stroke="#0ea5e9" stroke-width="3"/>
+<circle cx="732.1" cy="459.8" r="5" fill="#06080c" stroke="#0ea5e9" stroke-width="3"/>
+<circle cx="1024.9" cy="542.3" r="5" fill="#06080c" stroke="#0ea5e9" stroke-width="3"/>
+<circle cx="1083.4" cy="542.3" r="5" fill="#06080c" stroke="#0ea5e9" stroke-width="3"/>
+<circle cx="1142.0" cy="539.0" r="5" fill="#06080c" stroke="#0ea5e9" stroke-width="3"/>
+<text x="98.0" y="489.4" class="mono" text-anchor="start" font-size="14" font-weight="700" fill="#0ea5e9">122</text>
+<text x="1132.0" y="529.0" class="mono" text-anchor="end" font-size="14" font-weight="700" fill="#0ea5e9">110</text>
+<rect x="70" y="624" width="1090" height="96" rx="18" fill="#101622" fill-opacity=".63" stroke="#26364d" stroke-opacity=".72"/>
+<text x="88" y="646" class="mono faint" font-size="12" letter-spacing="1.5">MEDIAN PRICE</text>
+<line x1="88" y1="698.0" x2="1142" y2="698.0" stroke="#26364d" stroke-opacity=".55"/>
+<text x="80" y="702.0" class="mono faint" text-anchor="end" font-size="10">$0.009</text>
+<line x1="88" y1="684.0" x2="1142" y2="684.0" stroke="#26364d" stroke-opacity=".55"/>
+<text x="80" y="688.0" class="mono faint" text-anchor="end" font-size="10">$0.013</text>
+<line x1="88" y1="670.0" x2="1142" y2="670.0" stroke="#26364d" stroke-opacity=".55"/>
+<text x="80" y="674.0" class="mono faint" text-anchor="end" font-size="10">$0.016</text>
+<path d="M 88.0 674.0 L 146.6 678.0 L 205.1 694.0 L 263.7 694.0 L 322.2 694.0 L 380.8 694.0 L 439.3 694.0 L 497.9 694.0 L 556.4 694.0 L 615.0 694.0 L 673.6 694.0 L 732.1 694.0 L 790.7 694.0 L 849.2 694.0 L 907.8 694.0 L 966.3 694.0 L 1024.9 694.0 L 1083.4 694.0 L 1142.0 694.0" fill="none" stroke="#4ade80" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="88.0" cy="674.0" r="5" fill="#06080c" stroke="#4ade80" stroke-width="3"/>
+<circle cx="380.8" cy="694.0" r="5" fill="#06080c" stroke="#4ade80" stroke-width="3"/>
+<circle cx="732.1" cy="694.0" r="5" fill="#06080c" stroke="#4ade80" stroke-width="3"/>
+<circle cx="1024.9" cy="694.0" r="5" fill="#06080c" stroke="#4ade80" stroke-width="3"/>
+<circle cx="1083.4" cy="694.0" r="5" fill="#06080c" stroke="#4ade80" stroke-width="3"/>
+<circle cx="1142.0" cy="694.0" r="5" fill="#06080c" stroke="#4ade80" stroke-width="3"/>
+<text x="98.0" y="664.0" class="mono" text-anchor="start" font-size="14" font-weight="700" fill="#4ade80">$0.015</text>
+<text x="1132.0" y="684.0" class="mono" text-anchor="end" font-size="14" font-weight="700" fill="#4ade80">$0.010</text>
+<text x="88.0" y="736" class="mono faint" text-anchor="middle" font-size="11">Jul 31</text>
+<text x="380.8" y="736" class="mono faint" text-anchor="middle" font-size="11">Aug 5</text>
+<text x="732.1" y="736" class="mono faint" text-anchor="middle" font-size="11">Aug 11</text>
+<text x="1024.9" y="736" class="mono faint" text-anchor="middle" font-size="11">Aug 17</text>
+<text x="1142.0" y="736" class="mono faint" text-anchor="middle" font-size="11">Aug 19</text>
+</svg>

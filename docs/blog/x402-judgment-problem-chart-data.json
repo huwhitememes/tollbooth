@@ -1,0 +1,135 @@
+[
+  {
+    "generated_at": "2026-07-31T09:32:20.611631+00:00",
+    "date": "2026-07-31",
+    "resources": 14799,
+    "curated": 122,
+    "median": 0.015
+  },
+  {
+    "generated_at": "2026-08-01T09:00:05.328591+00:00",
+    "date": "2026-08-01",
+    "resources": 14666,
+    "curated": 121,
+    "median": 0.014
+  },
+  {
+    "generated_at": "2026-08-02T09:00:00.489170+00:00",
+    "date": "2026-08-02",
+    "resources": 14784,
+    "curated": 121,
+    "median": 0.01
+  },
+  {
+    "generated_at": "2026-08-03T09:00:28.682970+00:00",
+    "date": "2026-08-03",
+    "resources": 14727,
+    "curated": 120,
+    "median": 0.01
+  },
+  {
+    "generated_at": "2026-08-04T09:00:00.765851+00:00",
+    "date": "2026-08-04",
+    "resources": 14653,
+    "curated": 121,
+    "median": 0.01
+  },
+  {
+    "generated_at": "2026-08-05T09:00:40.302532+00:00",
+    "date": "2026-08-05",
+    "resources": 14622,
+    "curated": 121,
+    "median": 0.01
+  },
+  {
+    "generated_at": "2026-08-06T09:00:46.280541+00:00",
+    "date": "2026-08-06",
+    "resources": 14503,
+    "curated": 120,
+    "median": 0.01
+  },
+  {
+    "generated_at": "2026-08-07T09:00:31.939801+00:00",
+    "date": "2026-08-07",
+    "resources": 13957,
+    "curated": 121,
+    "median": 0.01
+  },
+  {
+    "generated_at": "2026-08-08T09:00:37.341485+00:00",
+    "date": "2026-08-08",
+    "resources": 14086,
+    "curated": 122,
+    "median": 0.01
+  },
+  {
+    "generated_at": "2026-08-09T09:00:27.134233+00:00",
+    "date": "2026-08-09",
+    "resources": 14212,
+    "curated": 121,
+    "median": 0.01
+  },
+  {
+    "generated_at": "2026-08-10T09:00:24.320390+00:00",
+    "date": "2026-08-10",
+    "resources": 14405,
+    "curated": 121,
+    "median": 0.01
+  },
+  {
+    "generated_at": "2026-08-11T09:00:20.563265+00:00",
+    "date": "2026-08-11",
+    "resources": 14597,
+    "curated": 134,
+    "median": 0.01
+  },
+  {
+    "generated_at": "2026-08-13T09:00:31.611434+00:00",
+    "date": "2026-08-13",
+    "resources": 15316,
+    "curated": 131,
+    "median": 0.01
+  },
+  {
+    "generated_at": "2026-08-14T13:24:45.431838+00:00",
+    "date": "2026-08-14",
+    "resources": 15357,
+    "curated": 130,
+    "median": 0.01
+  },
+  {
+    "generated_at": "2026-08-15T09:00:30.709737+00:00",
+    "date": "2026-08-15",
+    "resources": 15020,
+    "curated": 129,
+    "median": 0.01
+  },
+  {
+    "generated_at": "2026-08-16T09:00:28.745139+00:00",
+    "date": "2026-08-16",
+    "resources": 14946,
+    "curated": 109,
+    "median": 0.01
+  },
+  {
+    "generated_at": "2026-08-17T09:00:33.490299+00:00",
+    "date": "2026-08-17",
+    "resources": 14904,
+    "curated": 109,
+    "median": 0.01
+  },
+  {
+    "generated_at": "2026-08-18T22:32:01.308874+00:00",
+    "date": "2026-08-18",
+    "resources": 15327,
+    "curated": 109,
+    "median": 0.01
+  },
+  {
+    "generated_at": "2026-08-19T09:00:09.434561+00:00",
+    "date": "2026-08-19",
+    "resources": 15100,
+    "curated": 110,
+    "median": 0.01
+  }
+]
