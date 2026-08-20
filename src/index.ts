@@ -41,6 +41,7 @@ import { genVideoIntel, modelSettingsLookup } from "./gen-video-products";
 import { getSpaceWeatherKp, getWeatherForecast, getWeatherCurrent, getAuroraForecast, getMarineConditions, getAirQualityIndex, getPostalLookup, getIpGeolocation, getTimezoneCurrent, getAirportStatus, getDnsRecords, getIsbnLookup, getCryptoPrice, getBtcBalance, getBtcFees, getFoodRecalls } from "./quick-tools";
 import { buildX402MarketRadar } from "./x402-market-radar";
 import { buildX402RankAudit, buildInsiderClusterBrief, buildGovContractFitBrief, buildRegulatoryImpactBrief } from "./decision-briefs";
+import { buildMcpSafetyBrief, buildX402SellerReadinessAudit, buildMcpApprovalPack } from "./mcp-trust-products";
 
 // Environment-driven config — production defaults, overridable via process.env vars
 // Base Sepolia testnet: chain 84532, USDC at 0x1a35EE5c47503e1B627338D2c1943774f2E50B6D
@@ -51,7 +52,7 @@ const hasCdpCredentials = Boolean(process.env.CDP_API_KEY_ID && process.env.CDP_
 const SERVICE = {
   name: "agenttoll.dev",
   slug: "tollbooth",
-  version: "0.12.0",
+  version: "0.13.0",
   origin: process.env.X402_ORIGIN ?? "https://agenttoll.dev",
   mcpPath: "/mcp",
   description: "Receipt-backed paid work products for AI agents: market intelligence, OSINT briefs, legal/regulatory checks, research tasks, public-data monitoring, and spend-capped x402 calls on Base USDC.",
@@ -134,6 +135,30 @@ const TOOLS = [
     input: { resource: "optional resource URL", keywords: "optional string array, max 8", limit: "optional integer 5-25" },
     example: { resource: "https://agenttoll.dev/paid/x402/market-radar", keywords: ["x402 market radar", "CDP Bazaar ranking"] },
     http_path: "/paid/x402/rank-audit",
+  },
+  {
+    name: "mcp_safety_brief",
+    price_usd: "0.10",
+    description: "Static risk brief for an MCP server, OpenAPI spec, or tool manifest before an agent connects it. Returns tool risk, PII and credential hints, allowlist advice, approval policy, and a user-facing safety line.",
+    input: { server_url: "optional reference URL; not fetched", openapi_url: "optional reference URL; not fetched", openapi_json: "optional pasted OpenAPI object or JSON string to analyze", manifest_json: "optional MCP manifest object or JSON string", tool_schema: "optional tool schema object or JSON string", intended_task: "optional user task", sensitive_context: "optional boolean", max_tools: "optional integer 1-25" },
+    example: { openapi_json: { openapi: "3.1.0", paths: { "/messages": { post: { summary: "Send message", requestBody: { content: { "application/json": { schema: { type: "object", properties: { email: { type: "string" }, message: { type: "string" } } } } } } } } } }, intended_task: "send a support message", sensitive_context: true },
+    http_path: "/paid/mcp/safety-brief",
+  },
+  {
+    name: "x402_seller_readiness_audit",
+    price_usd: "0.10",
+    description: "Audit whether a paid x402 route is ready for agent buyers. Checks discovery metadata, price visibility, Base USDC terms, seller wallet, receipt language, tool descriptions, and approval copy.",
+    input: { resource_url: "optional reference URL; not fetched", openapi_url: "optional reference URL; not fetched", openapi_json: "optional pasted OpenAPI object or JSON string", agent_json: "optional agent manifest object or JSON string", expected_price: "optional number or string", seller_address: "optional 0x seller wallet", route_metadata: "optional route metadata object or JSON string" },
+    example: { resource_url: "https://agenttoll.dev/paid/x402/market-radar", expected_price: "0.05", seller_address: "0x62a0D3d9DF0dE8804983009949c714EaeAFd87F1", route_metadata: { protocol: "x402", network: "eip155:8453", asset: "USDC", receipt_schema: "agenttoll.receipt.v1" } },
+    http_path: "/paid/x402/seller-readiness-audit",
+  },
+  {
+    name: "mcp_approval_pack",
+    price_usd: "0.05",
+    description: "Generate the approval prompt and spend policy an agent should show before using a paid or risky tool. Returns maxPayment, seller checks, risk reasons, allowed fields, and what not to send.",
+    input: { tool_name: "optional tool name", route_url: "optional route URL", price_usd: "optional number or string", task_intent: "optional user task", max_payment_usd: "optional number or string", tool_schema: "optional tool schema object or JSON string", method: "optional HTTP method", seller_address: "optional 0x seller wallet" },
+    example: { tool_name: "x402_market_radar", route_url: "https://agenttoll.dev/paid/x402/market-radar", price_usd: "0.05", task_intent: "check x402 market demand", max_payment_usd: "0.05", tool_schema: { name: "x402_market_radar", description: "Return an x402 catalog and ranking brief for agent buyers.", properties: { query_limit: { type: "integer" } } }, seller_address: "0x62a0D3d9DF0dE8804983009949c714EaeAFd87F1" },
+    http_path: "/paid/mcp/approval-pack",
   },
   {
     name: "insider_cluster_brief",
@@ -1029,6 +1054,59 @@ const x402RankAuditDiscovery = declareDiscoveryExtension({
   output: { example: { product: "x402 Rank Audit", summary: { verdict: "partially_visible", ranked_keywords: 2 }, recommendations: [] } },
 });
 
+const mcpSafetyBriefDiscovery = declareDiscoveryExtension({
+  bodyType: "json",
+  input: { openapi_json: { openapi: "3.1.0", paths: { "/messages": { post: { summary: "Send message" } } } }, intended_task: "send a support message", sensitive_context: true },
+  inputSchema: { properties: {
+    server_url: { type: "string", maxLength: 500 },
+    openapi_url: { type: "string", maxLength: 500 },
+    openapi_json: { type: ["object", "string"] },
+    manifest_json: { type: ["object", "string"] },
+    tool_schema: { type: ["object", "string"] },
+    intended_task: { type: "string", maxLength: 240 },
+    sensitive_context: { type: "boolean" },
+    max_tools: { type: "integer", minimum: 1, maximum: 25 },
+  } },
+  output: { example: { product: "MCP Safety Brief", summary: { score: 80, risk_level: "medium", approval_required: true }, recommended_allowlist: [] } },
+});
+
+const x402SellerReadinessAuditDiscovery = declareDiscoveryExtension({
+  bodyType: "json",
+  input: {
+    resource_url: "https://agenttoll.dev/paid/x402/market-radar",
+    expected_price: "0.05",
+    seller_address: "0x62a0D3d9DF0dE8804983009949c714EaeAFd87F1",
+    route_metadata: { protocol: "x402", network: "eip155:8453", asset: "USDC", receipt_schema: "agenttoll.receipt.v1", approval_prompt: "Approve up to $0.05 after verifying the seller and expected result." },
+    agent_json: { tools: [{ name: "x402_market_radar", description: "Return an x402 catalog and ranking brief for agent buyers." }] },
+  },
+  inputSchema: { properties: {
+    resource_url: { type: "string", maxLength: 500 },
+    openapi_url: { type: "string", maxLength: 500 },
+    openapi_json: { type: ["object", "string"] },
+    agent_json: { type: ["object", "string"] },
+    expected_price: { type: ["string", "number"] },
+    seller_address: { type: "string", maxLength: 80 },
+    route_metadata: { type: ["object", "string"] },
+  } },
+  output: { example: { product: "x402 Seller Readiness Audit", summary: { readiness_score: 100, verdict: "agent_ready" }, missing: [] } },
+});
+
+const mcpApprovalPackDiscovery = declareDiscoveryExtension({
+  bodyType: "json",
+  input: { tool_name: "x402_market_radar", route_url: "https://agenttoll.dev/paid/x402/market-radar", price_usd: "0.05", task_intent: "check x402 market demand", max_payment_usd: "0.05", tool_schema: { name: "x402_market_radar", description: "Return an x402 catalog and ranking brief for agent buyers.", properties: { query_limit: { type: "integer" } } }, seller_address: "0x62a0D3d9DF0dE8804983009949c714EaeAFd87F1" },
+  inputSchema: { properties: {
+    tool_name: { type: "string", maxLength: 120 },
+    route_url: { type: "string", maxLength: 500 },
+    price_usd: { type: ["string", "number"] },
+    task_intent: { type: "string", maxLength: 240 },
+    max_payment_usd: { type: ["string", "number"] },
+    tool_schema: { type: ["object", "string"] },
+    method: { type: "string", maxLength: 20 },
+    seller_address: { type: "string", maxLength: 80 },
+  } },
+  output: { example: { product: "MCP Approval Pack", payment: { price_usd: "0.05", max_payment_usd: "0.05", policy_valid: true }, approval_prompt: "Approve x402_market_radar for check x402 market demand. It costs up to $0.05 on Base USDC and may send only these fields: query_limit. Verify seller 0x62a0D3d9DF0dE8804983009949c714EaeAFd87F1 before signing." } },
+});
+
 const insiderClusterBriefDiscovery = declareDiscoveryExtension({
   bodyType: "json",
   input: { ticker: "AAPL", limit: 30 },
@@ -1469,6 +1547,39 @@ paidHttp.use(paymentMiddleware({
     extensions: x402RankAuditDiscovery,
     unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.10", network: SERVICE.network } }),
   },
+  "POST /paid/mcp/safety-brief": {
+    accepts: { scheme: "exact", price: "$0.10", network: SERVICE.network, payTo: SERVICE.seller },
+    resource: `${SERVICE.origin}/paid/mcp/safety-brief`,
+    description: "MCP safety brief for agent buyers: tool risk, credential and PII hints, allowlist advice, approval policy, and safety line before connection",
+    mimeType: "application/json",
+    serviceName: "agenttoll.dev",
+    tags: ["mcp", "security", "risk", "allowlist", "approval", "x402", "paid-api", "ai-agents"],
+    iconUrl: `${SERVICE.origin}/favicon.svg`,
+    extensions: mcpSafetyBriefDiscovery,
+    unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.10", network: SERVICE.network } }),
+  },
+  "POST /paid/x402/seller-readiness-audit": {
+    accepts: { scheme: "exact", price: "$0.10", network: SERVICE.network, payTo: SERVICE.seller },
+    resource: `${SERVICE.origin}/paid/x402/seller-readiness-audit`,
+    description: "x402 seller readiness audit for agent buyers: discovery metadata, Base USDC terms, seller wallet, receipts, tool descriptions, and approval copy",
+    mimeType: "application/json",
+    serviceName: "agenttoll.dev",
+    tags: ["x402", "seller-readiness", "mcp", "metadata", "receipts", "approval", "paid-api", "ai-agents"],
+    iconUrl: `${SERVICE.origin}/favicon.svg`,
+    extensions: x402SellerReadinessAuditDiscovery,
+    unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.10", network: SERVICE.network } }),
+  },
+  "POST /paid/mcp/approval-pack": {
+    accepts: { scheme: "exact", price: "$0.05", network: SERVICE.network, payTo: SERVICE.seller },
+    resource: `${SERVICE.origin}/paid/mcp/approval-pack`,
+    description: "Agent approval pack for paid or risky tool calls: approval prompt, spend cap, seller checks, risk reasons, allowed fields, and blocked data",
+    mimeType: "application/json",
+    serviceName: "agenttoll.dev",
+    tags: ["mcp", "approval", "spend-cap", "x402", "wallet", "risk", "paid-api", "ai-agents"],
+    iconUrl: `${SERVICE.origin}/favicon.svg`,
+    extensions: mcpApprovalPackDiscovery,
+    unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.05", network: SERVICE.network } }),
+  },
   "POST /paid/finance/insider-cluster-brief": {
     accepts: { scheme: "exact", price: "$0.10", network: SERVICE.network, payTo: SERVICE.seller },
     resource: `${SERVICE.origin}/paid/finance/insider-cluster-brief`,
@@ -1877,6 +1988,33 @@ paidHttp.post("/paid/x402/rank-audit", async (c) => {
     return c.json(wrapped.data, 200, { "X-Cache": wrapped.cached ? "HIT" : "MISS", "X-Cache-Age": String(wrapped.age_ms ?? 0) } as any);
   } catch (error) {
     return c.json({ error: "x402_rank_audit_failed", message: error instanceof Error ? error.message : String(error) }, 502);
+  }
+});
+
+paidHttp.post("/paid/mcp/safety-brief", async (c) => {
+  const body = await c.req.json<Record<string, unknown>>().catch(() => ({} as Record<string, unknown>));
+  try {
+    return c.json(await withReceiptEnvelope("mcp_safety_brief", body, buildMcpSafetyBrief(body)));
+  } catch (error) {
+    return c.json({ error: "mcp_safety_brief_failed", message: error instanceof Error ? error.message : String(error) }, 400);
+  }
+});
+
+paidHttp.post("/paid/x402/seller-readiness-audit", async (c) => {
+  const body = await c.req.json<Record<string, unknown>>().catch(() => ({} as Record<string, unknown>));
+  try {
+    return c.json(await withReceiptEnvelope("x402_seller_readiness_audit", body, buildX402SellerReadinessAudit(body)));
+  } catch (error) {
+    return c.json({ error: "x402_seller_readiness_audit_failed", message: error instanceof Error ? error.message : String(error) }, 400);
+  }
+});
+
+paidHttp.post("/paid/mcp/approval-pack", async (c) => {
+  const body = await c.req.json<Record<string, unknown>>().catch(() => ({} as Record<string, unknown>));
+  try {
+    return c.json(await withReceiptEnvelope("mcp_approval_pack", body, buildMcpApprovalPack(body)));
+  } catch (error) {
+    return c.json({ error: "mcp_approval_pack_failed", message: error instanceof Error ? error.message : String(error) }, 400);
   }
 });
 
@@ -2873,6 +3011,59 @@ export class TollboothMCP extends McpAgent<Env> {
     );
 
     this.server.paidTool(
+      "mcp_safety_brief",
+      "Static risk brief for an MCP server, OpenAPI spec, or tool manifest before an agent connects it. Returns tool risk, PII and credential hints, allowlist advice, approval policy, and a user-facing safety line.",
+      0.10,
+      {
+        server_url: z.string().optional().describe("Reference URL only. This static audit does not fetch it."),
+        openapi_url: z.string().optional().describe("Reference URL only. Submit openapi_json to analyze the spec."),
+        openapi_json: z.any().optional().describe("Pasted OpenAPI object or JSON string to analyze"),
+        manifest_json: z.any().optional(),
+        tool_schema: z.any().optional(),
+        intended_task: z.string().optional(),
+        sensitive_context: z.boolean().optional(),
+        max_tools: z.number().int().min(1).max(25).optional(),
+      },
+      {},
+      async (args) => ({ content: [{ type: "text", text: JSON.stringify(await withReceiptEnvelope("mcp_safety_brief", args, buildMcpSafetyBrief(args))) }] }),
+    );
+
+    this.server.paidTool(
+      "x402_seller_readiness_audit",
+      "Audit whether a paid x402 route is ready for agent buyers. Checks discovery metadata, price visibility, Base USDC terms, seller wallet, receipt language, tool descriptions, and approval copy.",
+      0.10,
+      {
+        resource_url: z.string().optional().describe("Reference URL only. This static audit does not fetch it."),
+        openapi_url: z.string().optional().describe("Reference URL only. Submit openapi_json to analyze the spec."),
+        openapi_json: z.any().optional().describe("Pasted OpenAPI object or JSON string to analyze"),
+        agent_json: z.any().optional(),
+        expected_price: z.any().optional(),
+        seller_address: z.string().optional(),
+        route_metadata: z.any().optional(),
+      },
+      {},
+      async (args) => ({ content: [{ type: "text", text: JSON.stringify(await withReceiptEnvelope("x402_seller_readiness_audit", args, buildX402SellerReadinessAudit(args))) }] }),
+    );
+
+    this.server.paidTool(
+      "mcp_approval_pack",
+      "Generate the approval prompt and spend policy an agent should show before using a paid or risky tool. Returns maxPayment, seller checks, risk reasons, allowed fields, and what not to send.",
+      0.05,
+      {
+        tool_name: z.string().optional(),
+        route_url: z.string().optional(),
+        price_usd: z.any().optional(),
+        task_intent: z.string().optional(),
+        max_payment_usd: z.any().optional(),
+        tool_schema: z.any().optional(),
+        method: z.string().optional(),
+        seller_address: z.string().optional(),
+      },
+      {},
+      async (args) => ({ content: [{ type: "text", text: JSON.stringify(await withReceiptEnvelope("mcp_approval_pack", args, buildMcpApprovalPack(args))) }] }),
+    );
+
+    this.server.paidTool(
       "insider_cluster_brief",
       "Turn recent SEC Form 4 filings into an insider-activity cluster brief. Signal intel only.",
       0.10,
@@ -3348,6 +3539,9 @@ function serviceInfo() {
       cross_platform_arb_scan: `${SERVICE.origin}/paid/markets/cross-platform-scan`,
       x402_market_radar: `${SERVICE.origin}/paid/x402/market-radar`,
       x402_rank_audit: `${SERVICE.origin}/paid/x402/rank-audit`,
+      mcp_safety_brief: `${SERVICE.origin}/paid/mcp/safety-brief`,
+      x402_seller_readiness_audit: `${SERVICE.origin}/paid/x402/seller-readiness-audit`,
+      mcp_approval_pack: `${SERVICE.origin}/paid/mcp/approval-pack`,
       insider_cluster_brief: `${SERVICE.origin}/paid/finance/insider-cluster-brief`,
       gov_contract_fit_brief: `${SERVICE.origin}/paid/gov/contract-fit-brief`,
       regulatory_impact_brief: `${SERVICE.origin}/paid/osint/regulatory-impact-brief`,
@@ -3449,6 +3643,15 @@ function discoveryQueriesForTool(tool: any): string[] {
 }
 
 function expectedResultForTool(tool: any): string {
+  if (tool.name === "mcp_safety_brief") {
+    return "JSON risk brief with score, risk level, findings, recommended allowlist, approval policy, user approval line, and receipt envelope.";
+  }
+  if (tool.name === "x402_seller_readiness_audit") {
+    return "JSON readiness audit with score, passed checks, missing metadata, buyer prompt, next actions, and receipt envelope.";
+  }
+  if (tool.name === "mcp_approval_pack") {
+    return "JSON approval pack with maxPayment, seller checks, approval prompt, risk reasons, allowed fields, blocked fields, and receipt envelope.";
+  }
   if (tool.name === "gen_video_intel") {
     return "JSON with recent community summaries, practitioner excerpts, channels, dates, source notes, and an agenttoll_receipt envelope. No upstream model API access is included.";
   }
@@ -3794,11 +3997,11 @@ function llmsFullText() {
 }
 
 function toolJsonSchema(tool: (typeof TOOLS)[number]) {
-  const properties: Record<string, { type: string; description: string }> = {};
+  const properties: Record<string, Record<string, unknown>> = {};
   const required: string[] = [];
   for (const [key, hint] of Object.entries(tool.input)) {
     const optional = /optional/i.test(hint);
-    properties[key] = { type: "string", description: hint };
+    properties[key] = inputHintToSchema(hint);
     if (!optional) required.push(key);
   }
   return { type: "object" as const, properties, ...(required.length ? { required } : {}) };
@@ -3820,6 +4023,9 @@ function x402WellKnownPlain() {
       `${SERVICE.origin}/paid/polymarket/market-scan`,
       `${SERVICE.origin}/paid/markets/cross-platform-scan`,
       `${SERVICE.origin}/paid/x402/market-radar`,
+      `${SERVICE.origin}/paid/mcp/safety-brief`,
+      `${SERVICE.origin}/paid/x402/seller-readiness-audit`,
+      `${SERVICE.origin}/paid/mcp/approval-pack`,
     ],
     tools: TOOLS.map((t) => t.name),
   };
@@ -5406,7 +5612,8 @@ ${content}
 // ── Category definitions (single source of truth) ──────────────────
 const TOOL_CATEGORIES = [
   { name: "Prediction Markets", icon: "\u{1F4CA}", tools: ["polymarket_event_scan","polymarket_market_scan","cross_platform_arb_scan","rebalance_arb_scan","trending_markets","odds_feed","volume_analytics","resolution_history","kalshi_markets","combinatorial_arb","orderbook_imbalance","smart_money"] },
-  { name: "x402 Market Intel", icon: "\u{1F6E3}\u{FE0F}", tools: ["x402_market_radar","x402_rank_audit"] },
+  { name: "x402 Market Intel", icon: "\u{1F6E3}\u{FE0F}", tools: ["x402_market_radar","x402_rank_audit","x402_seller_readiness_audit"] },
+  { name: "MCP Trust", icon: "\u{1F6E1}\u{FE0F}", tools: ["mcp_safety_brief","mcp_approval_pack"] },
   { name: "OSINT & Intelligence", icon: "\u{1F30D}", tools: ["geo_intervention_pulse","flight_intel","osint_research_pack","scenario_verdict","weather_bias_score","supply_chain_stress","regulatory_pulse","regulatory_impact_brief","attention_momentum","sec_8k_velocity","fred_surprises","treasury_dts","openrouter_models","github_trending","github_repo_intel","hn_frontpage","reddit_search"] },
   { name: "Web Intel", icon: "\u{1F50D}", tools: ["scrape","detect_stack","extract_contacts","score_lead","enrich_lead","check_agent_policy","find_agent_resource","validate_agent_manifest"] },
   { name: "Legal & Regulatory", icon: "\u{2696}\u{FE0F}", tools: ["court_opinions","court_docket","federal_register","patents_search","regulations_search","judges_search","trademarks_search"] },
@@ -5431,6 +5638,7 @@ function categoryRailLabel(name: string): string {
   const labels: Record<string, string> = {
     "Prediction Markets": "MARKET",
     "x402 Market Intel": "X402 RADAR",
+    "MCP Trust": "MCP TRUST",
     "OSINT & Intelligence": "OSINT",
     "Web Intel": "WEB INTEL",
     "Legal & Regulatory": "LEGAL",
@@ -5798,7 +6006,16 @@ Seller wallet: ${SERVICE.seller}</pre>
 
 function inputHintToSchema(hint: unknown): Record<string, unknown> {
   const text = String(hint ?? "").toLowerCase();
-  const schema: Record<string, unknown> = { type: "string", description: String(hint ?? "") };
+  const schema: Record<string, unknown> = { description: String(hint ?? "") };
+  if (/object.*json string|json string.*object/.test(text)) {
+    schema.oneOf = [{ type: "object" }, { type: "string" }];
+    return schema;
+  }
+  if (/number or string|string or number/.test(text)) {
+    schema.oneOf = [{ type: "number" }, { type: "string" }];
+    return schema;
+  }
+  schema.type = "string";
   if (/integer|int|limit|days|hours|pages|count/.test(text)) schema.type = "integer";
   else if (/decimal|number|score|edge|volume|liquidity|similarity|price|lat|lon/.test(text)) schema.type = "number";
   else if (/boolean|true|false/.test(text)) schema.type = "boolean";

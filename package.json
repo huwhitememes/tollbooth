@@ -1,12 +1,12 @@
 {
   "name": "tollbooth",
-  "version": "0.12.0",
+  "version": "0.13.0",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
-    "test": "tsx --test test/**/*.test.ts",
+    "test": "tsx --test 'test/**/*.test.ts' 'tests/**/*.test.ts'",
     "check": "npm test && tsc --noEmit",
     "verify:live": "node scripts/verify-live.mjs",
     "settle:polymarket": "node scripts/settle-polymarket-http.mjs",
