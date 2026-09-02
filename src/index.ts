@@ -40,6 +40,7 @@ import { getPaperDetails, getCitationGraph } from "./academic-products";
 import { genVideoIntel, modelSettingsLookup } from "./gen-video-products";
 import { getSpaceWeatherKp, getWeatherForecast, getWeatherCurrent, getAuroraForecast, getMarineConditions, getAirQualityIndex, getPostalLookup, getIpGeolocation, getTimezoneCurrent, getAirportStatus, getDnsRecords, getIsbnLookup, getCryptoPrice, getBtcBalance, getBtcFees, getFoodRecalls } from "./quick-tools";
 import { buildX402MarketRadar } from "./x402-market-radar";
+import { X402_MARKET_RADAR_OUTPUT_EXAMPLE, X402_MARKET_RADAR_SUCCESS_SCHEMA } from "./x402-market-radar-schema";
 import { buildX402RankAudit, buildInsiderClusterBrief, buildGovContractFitBrief, buildRegulatoryImpactBrief } from "./decision-briefs";
 import { buildMcpSafetyBrief, buildX402SellerReadinessAudit, buildMcpApprovalPack } from "./mcp-trust-products";
 
@@ -1035,11 +1036,8 @@ const x402MarketRadarDiscovery = declareDiscoveryExtension({
     },
   },
   output: {
-    example: {
-      product: "x402 Market Radar",
-      catalog: { current_total: 14238, net_change_from_baseline: -10696 },
-      agenttoll: { merchant_count: 6, missing_rank_queries: ["x402 market radar"] },
-    },
+    example: X402_MARKET_RADAR_OUTPUT_EXAMPLE,
+    schema: X402_MARKET_RADAR_SUCCESS_SCHEMA,
   },
 });
 
@@ -6165,7 +6163,7 @@ function openApiSpec() {
           summary: "Paid x402 Bazaar market radar",
           description: "Returns HTTP 402 until paid $0.05 in Base USDC through x402. Tracks Bazaar catalog size, AgentToll ranks, vertical competition, and keyword gaps.",
           requestBody: { content: { "application/json": { schema: { type: "object", properties: { query_limit: { type: "integer", minimum: 3, maximum: 20 } } } } } },
-          responses: { "200": { description: "x402 market radar report.", "content": { "application/json": { "schema": { "type": "object" } } } }, "402": { description: "x402 payment requirements." } },
+          responses: { "200": { description: "x402 market radar report.", "content": { "application/json": { "schema": X402_MARKET_RADAR_SUCCESS_SCHEMA } } }, "402": { description: "x402 payment requirements." } },
         },
       },
       "/paid/x402/rank-audit": { post: { summary: "Paid x402 resource rank audit", description: "Returns HTTP 402 until paid $0.10 in Base USDC through x402. Checks Bazaar rank, competitors, and metadata defects for one resource.", requestBody: { content: { "application/json": { schema: { type: "object", properties: { resource: { type: "string" }, keywords: { type: "array", items: { type: "string" } }, limit: { type: "integer", minimum: 5, maximum: 25 } } } } } }, responses: { "200": { description: "Rank audit report.", "content": { "application/json": { "schema": { "type": "object" } } } }, "402": { description: "x402 payment requirements." } } } },
