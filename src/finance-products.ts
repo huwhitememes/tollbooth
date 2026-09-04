@@ -307,10 +307,12 @@ const TOKEN_STOCK_SYMBOLS: Record<string, string> = {
 
 function normalizeTokenStockQuery(q: string): { symbol: string; ticker: string } {
   const raw = q.trim().toUpperCase();
-  const symbol = raw.replace(/C$/, "") === raw ? raw : TOKEN_STOCK_SYMBOLS[raw] ?? raw;
-  // Direct match (e.g. "NVDAc" or "NVDA")
-  if (TOKEN_STOCK_SYMBOLS[raw]) return { symbol: raw, ticker: TOKEN_STOCK_SYMBOLS[raw] };
-  // Bare ticker (e.g. "nvda") -> try canonical token symbol
+  // Case-insensitive match against canonical token symbols (NVDAc, METAc, ...)
+  const canon = Object.keys(TOKEN_STOCK_SYMBOLS).find(
+    (k) => k.toUpperCase() === raw
+  );
+  if (canon) return { symbol: canon, ticker: TOKEN_STOCK_SYMBOLS[canon] };
+  // Bare ticker (e.g. "nvda") -> canonical token symbol
   const bare = Object.entries(TOKEN_STOCK_SYMBOLS).find(([, t]) => t === raw);
   if (bare) return { symbol: bare[0], ticker: bare[1] };
   return { symbol: raw, ticker: raw };
@@ -325,11 +327,14 @@ export async function getTokenStockQuote(query: string, limit?: number) {
     const { symbol, ticker } = normalizeTokenStockQuery(q);
 
     const search = await fetchJson(`${GECKO_BASE}/search/pools?query=${encodeURIComponent(symbol)}&page=1`, { timeoutMs: 12000 });
+    const symUpper = symbol.toUpperCase();
+    // Search results may omit the network relationship; accept unattributed pools and
+    // confirm each on Base via the detail endpoint (mismatched ones return no detail).
     const pools: any[] = (search?.data ?? []).filter((p: any) => {
-      const net = p?.relationships?.network?.data?.id;
+      const net = p?.relationships?.network?.data?.id ?? null;
       const name = (p?.attributes?.name ?? "").toUpperCase();
-      return net === "base" && name.includes(symbol);
-    }).slice(0, lim);
+      return (net === null || net === "base") && name.includes(symUpper);
+    }).slice(0, lim * 2);
 
     if (!pools.length) return fail(`no Base pools found for ${symbol} (known Coinbase token stocks: ${Object.keys(TOKEN_STOCK_SYMBOLS).join(", ")})`, source);
 
@@ -337,11 +342,13 @@ export async function getTokenStockQuote(query: string, limit?: number) {
       const a = p?.attributes ?? {};
       const addr = a?.address ?? "";
       const net = p?.relationships?.network?.data?.id ?? "base";
-      let detail = a;
+      let detail: any = null;
       try {
         const d = await fetchJson(`${GECKO_BASE}/networks/${net}/pools/${addr}`, { timeoutMs: 10000 });
-        detail = d?.data?.attributes ?? a;
-      } catch { /* search attrs are a fine fallback */ }
+        detail = d?.data?.attributes ?? null;
+      } catch { /* not on this network */ }
+      if (!detail) return null;
+      detail = detail ?? a;
       const vol = detail?.volume_usd ?? {};
       const chg = detail?.price_change_percentage ?? {};
       return {
@@ -361,18 +368,21 @@ export async function getTokenStockQuote(query: string, limit?: number) {
       };
     }));
 
-    // Rank by 24h volume so the deepest pool surfaces first
-    results.sort((x: any, y: any) => (y.volume_24h_usd ?? 0) - (x.volume_24h_usd ?? 0));
+    // Drop cross-network pools (null results), rank by 24h volume so the deepest pool surfaces first
+    const confirmed = results.filter((r: any) => r !== null);
+    confirmed.sort((x: any, y: any) => (y.volume_24h_usd ?? 0) - (x.volume_24h_usd ?? 0));
+
+    if (!confirmed.length) return fail(`no Base pools found for ${symbol} (known Coinbase token stocks: ${Object.keys(TOKEN_STOCK_SYMBOLS).join(", ")})`, source);
 
     return ok(
       {
         query: q,
         asset_class: "tokenized_equity",
         note: "Quotes are DEX pool prices for tokenized stock tokens (e.g. Coinbase B20 tokens on Base), not NASDAQ/NYSE prints. Deviations from the TradFi print are possible.",
-        pools: results,
+        pools: confirmed.slice(0, lim),
       },
       source,
-      results.length
+      confirmed.length
     );
   } catch (e: any) {
     return fail(e?.message ?? String(e), source);
