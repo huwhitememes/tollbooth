@@ -293,3 +293,88 @@ export async function getFredSeries(
     return fail(e?.message ?? String(e), source);
   }
 }
+
+// ─── 4. getTokenStockQuote — Tokenized Equity Quotes (GeckoTerminal) ─────
+
+const GECKO_BASE = "https://api.geckoterminal.com/api/v2";
+
+// Coinbase Tokenized Stocks (B20) tickers live on Base; suffix "c" per Coinbase
+const TOKEN_STOCK_SYMBOLS: Record<string, string> = {
+  NVDAc: "NVDA", METAc: "META", AAPLc: "AAPL", GOOGLc: "GOOGL", AMZN: "AMZN",
+  COIN: "COIN", CRCL: "CRCL", INTC: "INTC", MSFT: "MSFT", MSTR: "MSTR",
+  SNDK: "SNDK", SPCX: "SPCX", TSLA: "TSLA",
+};
+
+function normalizeTokenStockQuery(q: string): { symbol: string; ticker: string } {
+  const raw = q.trim().toUpperCase();
+  const symbol = raw.replace(/C$/, "") === raw ? raw : TOKEN_STOCK_SYMBOLS[raw] ?? raw;
+  // Direct match (e.g. "NVDAc" or "NVDA")
+  if (TOKEN_STOCK_SYMBOLS[raw]) return { symbol: raw, ticker: TOKEN_STOCK_SYMBOLS[raw] };
+  // Bare ticker (e.g. "nvda") -> try canonical token symbol
+  const bare = Object.entries(TOKEN_STOCK_SYMBOLS).find(([, t]) => t === raw);
+  if (bare) return { symbol: bare[0], ticker: bare[1] };
+  return { symbol: raw, ticker: raw };
+}
+
+export async function getTokenStockQuote(query: string, limit?: number) {
+  const source = "GeckoTerminal public DEX data (tokenized equities on Base)";
+  try {
+    const q = (query ?? "").trim();
+    if (!q) return fail("query is required (token symbol like NVDAc, or ticker like NVDA)", source);
+    const lim = clamp(Math.trunc(limit ?? 3), 1, 10);
+    const { symbol, ticker } = normalizeTokenStockQuery(q);
+
+    const search = await fetchJson(`${GECKO_BASE}/search/pools?query=${encodeURIComponent(symbol)}&page=1`, { timeoutMs: 12000 });
+    const pools: any[] = (search?.data ?? []).filter((p: any) => {
+      const net = p?.relationships?.network?.data?.id;
+      const name = (p?.attributes?.name ?? "").toUpperCase();
+      return net === "base" && name.includes(symbol);
+    }).slice(0, lim);
+
+    if (!pools.length) return fail(`no Base pools found for ${symbol} (known Coinbase token stocks: ${Object.keys(TOKEN_STOCK_SYMBOLS).join(", ")})`, source);
+
+    const results = await Promise.all(pools.map(async (p: any) => {
+      const a = p?.attributes ?? {};
+      const addr = a?.address ?? "";
+      const net = p?.relationships?.network?.data?.id ?? "base";
+      let detail = a;
+      try {
+        const d = await fetchJson(`${GECKO_BASE}/networks/${net}/pools/${addr}`, { timeoutMs: 10000 });
+        detail = d?.data?.attributes ?? a;
+      } catch { /* search attrs are a fine fallback */ }
+      const vol = detail?.volume_usd ?? {};
+      const chg = detail?.price_change_percentage ?? {};
+      return {
+        token_symbol: symbol,
+        underlying_ticker: ticker,
+        pool_name: detail?.name ?? a?.name ?? "",
+        network: net,
+        pool_address: addr,
+        price_usd: detail?.base_token_price_usd ? parseFloat(detail.base_token_price_usd) : null,
+        price_change_24h_pct: chg?.h24 != null ? parseFloat(chg.h24) : null,
+        volume_24h_usd: vol?.h24 != null ? parseFloat(vol.h24) : null,
+        volume_7d_usd: vol?.h7d != null ? parseFloat(vol.h7d) : null,
+        liquidity_usd: detail?.reserve_in_usd ? parseFloat(detail.reserve_in_usd) : null,
+        fdv_usd: detail?.fdv_usd ? parseFloat(detail.fdv_usd) : null,
+        dex: detail?.dex_id ?? null,
+        pool_created_at: detail?.pool_created_at ?? null,
+      };
+    }));
+
+    // Rank by 24h volume so the deepest pool surfaces first
+    results.sort((x: any, y: any) => (y.volume_24h_usd ?? 0) - (x.volume_24h_usd ?? 0));
+
+    return ok(
+      {
+        query: q,
+        asset_class: "tokenized_equity",
+        note: "Quotes are DEX pool prices for tokenized stock tokens (e.g. Coinbase B20 tokens on Base), not NASDAQ/NYSE prints. Deviations from the TradFi print are possible.",
+        pools: results,
+      },
+      source,
+      results.length
+    );
+  } catch (e: any) {
+    return fail(e?.message ?? String(e), source);
+  }
+}

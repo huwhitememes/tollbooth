@@ -28,7 +28,7 @@ import { fetchGithubTrending } from "./feeds/github-trending.js";
 import { fetchHnFrontpage } from "./feeds/hn-frontpage.js";
 import { fetchUsgsQuakes } from "./feeds/usgs-quake.js";
 import { fetchOpenAq } from "./feeds/openaq-air.js";
-import { searchEdgarFilings, getInsiderTrades, getFredSeries } from "./finance-products";
+import { searchEdgarFilings, getInsiderTrades, getFredSeries, getTokenStockQuote } from "./finance-products";
 import { scanCombinatorialArb, getOrderbookImbalance, getSmartMoney } from "./polymarket-advanced";
 import { searchCVEs, searchCompanies } from "./security-products-extra";
 import { searchReddit, getRepoIntel } from "./social-products";
@@ -650,6 +650,14 @@ const TOOLS = [
     input: { ticker: "optional stock ticker e.g. AAPL", limit: "optional int 5-50" },
     example: { ticker: "AAPL" },
     http_path: "/paid/finance/insider-trades",
+  },
+  {
+    name: "token_stock_quote",
+    price_usd: "0.03",
+    description: "Live DEX quotes for tokenized equities — Coinbase B20 stock tokens on Base (NVDAc, METAc, AAPLc, GOOGLc, TSLA, and the rest of the 13-token set). Price, 24h/7d volume, liquidity, FDV per pool.",
+    input: { query: "string token symbol (NVDAc) or ticker (NVDA)", limit: "optional int 1-10 pools, default 3" },
+    example: { query: "NVDAc" },
+    http_path: "/paid/finance/token-stock-quote",
   },
   {
     name: "fred_series",
@@ -1376,6 +1384,16 @@ const edgarFilingsDiscovery = declareDiscoveryExtension({
   output: { example: { success: true, data: { filings: [] } } },
 });
 
+const tokenStockQuoteDiscovery = declareDiscoveryExtension({
+  bodyType: "json",
+  input: { query: "NVDAc" },
+  inputSchema: { properties: {
+    query: { type: "string", maxLength: 20 },
+    limit: { type: "integer", minimum: 1, maximum: 10 },
+  } },
+  output: { example: { success: true, data: { pools: [{ token_symbol: "NVDAc", price_usd: 231.1, volume_24h_usd: 8500000 }] } } },
+});
+
 const cveSearchDiscovery = declareDiscoveryExtension({
   bodyType: "json",
   input: { keyword: "log4j", limit: 5 },
@@ -1832,6 +1850,17 @@ paidHttp.use(paymentMiddleware({
     tags: ["finance", "sec", "edgar", "filings", "stocks", "x402"],
     iconUrl: `${SERVICE.origin}/favicon.svg`,
     extensions: edgarFilingsDiscovery,
+    unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "$0.03", network: SERVICE.network } }),
+  },
+  "POST /paid/finance/token-stock-quote": {
+    accepts: { scheme: "exact", price: "$0.03", network: SERVICE.network, payTo: SERVICE.seller },
+    resource: `${SERVICE.origin}/paid/finance/token-stock-quote`,
+    description: "Live DEX quotes for tokenized equities — Coinbase B20 stock tokens on Base. Price, 24h/7d volume, liquidity, and FDV per pool.",
+    mimeType: "application/json",
+    serviceName: "agenttoll.dev",
+    tags: ["finance", "tokenized-equities", "b20", "base", "stocks", "quotes", "x402"],
+    iconUrl: `${SERVICE.origin}/favicon.svg`,
+    extensions: tokenStockQuoteDiscovery,
     unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "$0.03", network: SERVICE.network } }),
   },
   "POST /paid/security/cve-search": {
@@ -2520,6 +2549,7 @@ paidHttp.post("/paid/gov/lobbying", async (c) => {
 // ── Finance, Polymarket advanced, Security extra, Social, Utility, Legal extra, Health extra, Gov extra, Academic extra, Media (v0.14) ──
 paidHttp.post("/paid/finance/edgar", async (c) => { const b = await c.req.json<Record<string, unknown>>().catch(() => ({} as any)); try { return c.json(await searchEdgarFilings(b.query ? String(b.query) : "", b.form_type ? String(b.form_type) : undefined, b.ticker ? String(b.ticker) : undefined, typeof b.limit === "number" ? b.limit : undefined)); } catch (e: any) { return c.json({ error: "edgar_failed", message: e?.message ?? String(e) }, 502); } });
 paidHttp.post("/paid/finance/insider-trades", async (c) => { const b = await c.req.json<Record<string, unknown>>().catch(() => ({} as any)); try { return c.json(await getInsiderTrades(b.ticker ? String(b.ticker) : undefined, typeof b.limit === "number" ? b.limit : undefined)); } catch (e: any) { return c.json({ error: "insider_failed", message: e?.message ?? String(e) }, 502); } });
+paidHttp.post("/paid/finance/token-stock-quote", async (c) => { const b = await c.req.json<Record<string, unknown>>().catch(() => ({} as any)); try { return c.json(await getTokenStockQuote(b.query ? String(b.query) : "", typeof b.limit === "number" ? b.limit : undefined)); } catch (e: any) { return c.json({ error: "token_stock_quote_failed", message: e?.message ?? String(e) }, 502); } });
 paidHttp.post("/paid/finance/fred", async (c) => { const b = await c.req.json<Record<string, unknown>>().catch(() => ({} as any)); try { return c.json(await getFredSeries(b.series_id ? String(b.series_id) : undefined, typeof b.limit === "number" ? b.limit : undefined)); } catch (e: any) { return c.json({ error: "fred_failed", message: e?.message ?? String(e) }, 502); } });
 paidHttp.post("/paid/polymarket/combinatorial-arb", async (c) => { const b = await c.req.json<Record<string, unknown>>().catch(() => ({} as any)); try { return c.json(await scanCombinatorialArb(typeof b.limit === "number" ? b.limit : undefined)); } catch (e: any) { return c.json({ error: "comb_arb_failed", message: e?.message ?? String(e) }, 502); } });
 paidHttp.post("/paid/polymarket/orderbook-imbalance", async (c) => { const b = await c.req.json<Record<string, unknown>>().catch(() => ({} as any)); try { return c.json(await getOrderbookImbalance(b.token_id ? String(b.token_id) : undefined, b.condition_id ? String(b.condition_id) : undefined, typeof b.limit === "number" ? b.limit : undefined)); } catch (e: any) { return c.json({ error: "obi_failed", message: e?.message ?? String(e) }, 502); } });
@@ -3468,6 +3498,7 @@ export class TollboothMCP extends McpAgent<Env> {
     // ── v0.14 new tools ──
     this.server.paidTool("edgar_filings", "Search SEC EDGAR full-text filings by company, form type, or ticker.", 0.03, { query: z.string(), form_type: z.string().optional(), ticker: z.string().optional() }, {}, async (args: any) => ({ content: [{ type: "text" as const, text: JSON.stringify(await searchEdgarFilings(args.query, args.form_type, args.ticker)) }] }) );
     this.server.paidTool("insider_trades", "SEC Form 4 insider transactions.", 0.03, { ticker: z.string().optional(), limit: z.number().int().optional() }, {}, async (args: any) => ({ content: [{ type: "text" as const, text: JSON.stringify(await getInsiderTrades(args.ticker, args.limit)) }] }) );
+    this.server.paidTool("token_stock_quote", "Live DEX quotes for tokenized equities (Coinbase B20 stock tokens on Base).", 0.03, { query: z.string(), limit: z.number().int().optional() }, {}, async (args: any) => ({ content: [{ type: "text" as const, text: JSON.stringify(await getTokenStockQuote(args.query, args.limit)) }] }) );
     this.server.paidTool("fred_series", "FRED economic data series.", 0.02, { series_id: z.string().optional(), limit: z.number().int().optional() }, {}, async (args: any) => ({ content: [{ type: "text" as const, text: JSON.stringify(await getFredSeries(args.series_id, args.limit)) }] }) );
     this.server.paidTool("combinatorial_arb", "Polymarket negRisk combinatorial arbitrage scan.", 0.06, { limit: z.number().int().optional() }, {}, async (args: any) => ({ content: [{ type: "text" as const, text: JSON.stringify(await scanCombinatorialArb(args.limit)) }] }) );
     this.server.paidTool("orderbook_imbalance", "Polymarket CLOB orderbook imbalance.", 0.04, { token_id: z.string().optional(), condition_id: z.string().optional() }, {}, async (args: any) => ({ content: [{ type: "text" as const, text: JSON.stringify(await getOrderbookImbalance(args.token_id, args.condition_id)) }] }) );
@@ -5621,7 +5652,7 @@ const TOOL_CATEGORIES = [
   { name: "Health & Safety", icon: "\u{1F48A}", tools: ["drug_recalls","adverse_events","product_recalls","vehicle_recalls","drug_labels","disease_outbreaks","food_safety","food_recall_check"] },
   { name: "Environmental", icon: "\u{1F525}", tools: ["wildfires","weather_alerts","tide_data","space_weather","water_levels","usgs_quake","openaq_air","space_weather_kp","weather_forecast_grid","weather_current_global","aurora_forecast","marine_conditions","air_quality_index"] },
   { name: "Government", icon: "\u{1F3DB}\u{FE0F}", tools: ["federal_spending","national_debt","federal_grants","nonprofit_filings","economic_indicators","lobbying_records","federal_contracts","gov_contract_fit_brief"] },
-  { name: "Finance & Crypto", icon: "\u{1F4B0}", tools: ["edgar_filings","insider_trades","insider_cluster_brief","fred_series","currency_rates","business_days","crypto_price_simple","btc_address_balance","btc_mempool_fees"] },
+  { name: "Finance & Crypto", icon: "\u{1F4B0}", tools: ["edgar_filings","insider_trades","insider_cluster_brief","token_stock_quote","fred_series","currency_rates","business_days","crypto_price_simple","btc_address_balance","btc_mempool_fees"] },
   { name: "Security", icon: "\u{1F512}", tools: ["agent_threat_intel","mcp_supply_chain_iocs","agent_trifecta_score","agent_security_policies","cve_search","company_registry"] },
   { name: "Gen-Video Intel", icon: "\u{1F3AC}", tools: ["gen_video_intel","model_settings_lookup"] },
   { name: "Utility", icon: "\u{1F527}", tools: ["postal_code_lookup","ip_geolocation","timezone_current","airport_status","dns_records_lookup","isbn_book_lookup"] },
