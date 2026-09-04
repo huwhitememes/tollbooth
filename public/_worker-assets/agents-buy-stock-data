@@ -4,19 +4,42 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-<title>Blog | agenttoll.dev</title>
-<meta name="description" content="agenttoll.dev writing on x402, paid agent work, receipts, and agent payments.">
-<link rel="canonical" href="https://agenttoll.dev/blog">
-<meta property="og:title" content="Blog | agenttoll.dev">
-<meta property="og:description" content="agenttoll.dev writing on x402, paid agent work, receipts, and agent payments.">
-<meta property="og:type" content="website">
-<meta property="og:url" content="https://agenttoll.dev/blog">
-<meta property="og:image" content="https://agenttoll.dev/blog/og-blog-field-notes.png">
+<title>What agents will buy first isn't stocks. It's the data about stocks. | agenttoll.dev</title>
+<meta name="description" content="Coinbase put real US equities on Base, the same chain that dominates x402 agent payments. Agents already pay cents for data and API calls. The information layer around tokenized stocks is the builder opportunity.">
+<link rel="canonical" href="https://agenttoll.dev/blog/agents-buy-stock-data">
+<meta property="og:title" content="What agents will buy first isn't stocks. It's the data about stocks.">
+<meta property="og:description" content="Coinbase put real US equities on Base, the same chain that dominates x402 agent payments. Agents already pay cents for data and API calls. The information layer around tokenized stocks is the builder opportunity.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://agenttoll.dev/blog/agents-buy-stock-data">
+<meta property="og:image" content="https://agenttoll.dev/blog/og-agents-buy-stock-data.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:type" content="image/png">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://agenttoll.dev/blog/og-blog-field-notes.png">
+<meta name="twitter:image" content="https://agenttoll.dev/blog/og-agents-buy-stock-data.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "What agents will buy first isn't stocks. It's the data about stocks.",
+  "description": "Coinbase put real US equities on Base, the same chain that dominates x402 agent payments. Agents already pay cents for data and API calls. The information layer around tokenized stocks is the builder opportunity.",
+  "author": {
+    "@type": "Person",
+    "name": "Hu White",
+    "url": "https://www.linkedin.com/in/huwhitememes/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "agenttoll.dev",
+    "url": "https://agenttoll.dev"
+  },
+  "datePublished": "2026-09-03",
+  "dateModified": "2026-09-03",
+  "image": "https://agenttoll.dev/blog/og-agents-buy-stock-data.png",
+  "mainEntityOfPage": "https://agenttoll.dev/blog/agents-buy-stock-data"
+}</script>
 <style>
 :root {
   color-scheme: dark;
@@ -1046,20 +1069,136 @@ article a,
   .blog-article .tldr { padding: 62px 22px 24px; }
 }
 
+
+.blog-frame > div {
+  min-width: 0;
+}
+.blog-title {
+  overflow-wrap: anywhere;
+}
+.blog-hero-card img {
+  max-width: 100%;
+}
+.article-visual {
+  margin: 34px 0 40px;
+}
+.article-visual img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 18px;
+  border: 1px solid rgba(45, 212, 191, 0.20);
+  background: #06080c;
+  box-shadow: 0 18px 46px rgba(0,0,0,.30);
+}
+.article-visual figcaption {
+  margin: 11px 8px 0;
+  color: var(--text-3);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  line-height: 1.55;
+}
+.blog-article table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin: 26px 0 34px;
+  overflow: hidden;
+  border: 1px solid rgba(45, 212, 191, 0.20);
+  border-radius: 16px;
+  background: rgba(6,8,12,.56);
+}
+.blog-article th,
+.blog-article td {
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(56,78,112,.28);
+  color: var(--text-2);
+  font-size: 14px;
+  text-align: left;
+}
+.blog-article th {
+  color: var(--text);
+  background: rgba(45,212,191,.08);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  letter-spacing: .03em;
+}
+.blog-article tr:last-child td { border-bottom: 0; }
+.blog-article td:not(:first-child),
+.blog-article th:not(:first-child) { text-align: right; }
+.blog-article > p:last-of-type a {
+  display: inline-flex;
+  padding: 12px 20px;
+  border-radius: 10px;
+  background: var(--accent);
+  color: #06080c;
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: 0 0 28px rgba(45,212,191,.18);
+}
+@media (max-width: 620px) {
+  .blog-article table { display: block; overflow-x: auto; white-space: nowrap; }
+  .article-visual { margin-left: -4px; margin-right: -4px; }
+  .article-visual figcaption { font-size: 11px; }
+}
+
+
+.blog-frame > div {
+  min-width: 0;
+}
+.blog-title {
+  overflow-wrap: anywhere;
+}
+.article-visual {
+  margin: 34px 0 40px;
+}
+.blog-article table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin: 26px 0 34px;
+  overflow: hidden;
+  border: 1px solid rgba(45, 212, 191, 0.20);
+  border-radius: 16px;
+  background: rgba(6,8,12,.56);
+}
+.blog-article th,
+.blog-article td {
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(56,78,112,.28);
+  color: var(--text-2);
+  font-size: 14px;
+  text-align: left;
+}
+.blog-article th {
+  color: var(--text);
+  background: rgba(45,212,191,.08);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  letter-spacing: .03em;
+}
+.blog-article tr:last-child td { border-bottom: 0; }
+.blog-article h2 {
+  margin-top: 40px;
+}
+.blog-article ul {
+  margin: 18px 0 24px;
+  padding-left: 22px;
+  color: var(--text-2);
+}
+.blog-article ul li {
+  margin: 8px 0;
+}
+.blog-article ul li a {
+  color: var(--accent);
+}
+@media (max-width: 620px) {
+  .blog-article table { display: block; overflow-x: auto; white-space: nowrap; }
+  .article-visual { margin-left: -4px; margin-right: -4px; }
+}
+
 </style>
-<style>
-.blog-masthead-card { display:block; margin: 22px 0 18px; border-radius:24px; border:1px solid rgba(45,212,191,.22); overflow:hidden; background:rgba(6,8,12,.66); box-shadow:var(--rail-glow), inset 0 1px 0 rgba(255,255,255,.06); }
-.blog-masthead-card img { display:block; width:100%; height:auto; }
-.blog-intro { color:var(--text-2); font-size:17px; line-height:1.72; margin:0 0 34px; max-width:780px; }
-.blog-list { display:grid; gap:22px; margin: 34px 0 80px; }
-.blog-list-card { display:block; padding:56px 22px 24px; border-radius:20px; border:1px solid rgba(45,212,191,.22); background:linear-gradient(180deg, rgba(6,8,12,.76), rgba(13,23,29,.62)); color:inherit; text-decoration:none; position:relative; overflow:hidden; box-shadow:var(--rail-glow), inset 0 1px 0 rgba(255,255,255,.06); }
-.blog-list-card::before { content:attr(data-rail-label); position:absolute; top:0; left:0; right:0; min-height:32px; display:flex; align-items:center; padding:0 14px; border-bottom:1px solid rgba(45,212,191,.16); background:rgba(8,16,21,.62); font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:.14em; color:#8ddfd5; }
-.blog-list-card img { display:block; width:100%; height:auto; margin:0 0 18px; border-radius:16px; border:1px solid rgba(45,212,191,.18); }
-.blog-list-card p { color:var(--text-2); line-height:1.7; margin:0 0 14px; }
-.blog-list-card .meta { color:var(--text-3); font-family:'JetBrains Mono', monospace; font-size:12px; letter-spacing:.08em; text-transform:uppercase; }
-</style>
-</head>
-<body>
+</head><body>
 <nav>
   <a href="/" class="logo" style="text-decoration:none;color:inherit;">agent<span>toll</span>.dev</a>
   <button class="nav-toggle" aria-label="Menu" onclick="document.querySelector('nav .links').classList.toggle('open')">≡</button>
@@ -1076,43 +1215,66 @@ article a,
 <main class="blog-shell">
   <div class="blog-frame">
     <div>
-      <div class="back-link"><a href="/">← Back to agenttoll.dev</a></div>
-      <div class="blog-kicker">AGENTTOLL.DEV · BLOG</div>
-      <figure class="blog-masthead-card"><img src="/blog/og-blog-field-notes.png" width="1200" height="630" alt="Field notes on paid agent tools."></figure>
-      <p class="blog-intro">Builder notes on x402, Base MCP, receipt-backed paid work, discovery surfaces, and the buyer metadata agents need before they spend.</p>
-      <div class="blog-list">
-        <a class="blog-list-card" data-rail-label="LATEST" href="/blog/agents-buy-stock-data">
-          <img src="/blog/og-agents-buy-stock-data.png" width="1200" height="630" alt="What agents will buy first isn't stocks. It's the data about stocks.">
-          <p>Coinbase's tokenized stocks landed on Base, the same chain carrying x402 agent payments. The paid data layer in between is the builder gap.</p>
-          <div class="meta">September 3, 2026 · x402 · tokenized equities</div>
-        </a>
-        <a class="blog-list-card" data-rail-label="ANALYSIS" href="/blog/x402-judgment-problem">
-          <img src="/blog/og-x402-judgment-problem.png" width="1200" height="630" alt="15,100 paid APIs, 110 curated: x402 has a judgment problem">
-          <p>AWS took agent payments to GA while Bazaar grew to 15,100 resources. The scarce layer is deciding what deserves a payment.</p>
-          <div class="meta">August 19, 2026 · x402 · agent payments</div>
-        </a>
-        <a class="blog-list-card" data-rail-label="ANALYSIS" href="/blog/base-mcp-x402-agent-buyers">
-          <img src="/blog/og-base-mcp-x402-agent-buyers.png" width="1200" height="630" alt="Base MCP Turns AI Agents Into x402 Buyers">
-          <p>Base MCP gives agents a wallet path. AgentToll packages x402 work products agents can inspect, cap, approve, and receipt.</p>
-          <div class="meta">July 30, 2026 · Base MCP · x402 buyers</div>
-        </a>
-        <a class="blog-list-card" data-rail-label="ANALYSIS" href="/blog/x402-foundation-agent-payments">
-          <img src="/blog/og-x402-foundation.png" width="1200" height="630" alt="X402 Got Its Standards Body. Now Comes the Hard Part.">
-          <p>Linux Foundation governance, Visa and Artemis usage data, and what the x402 Foundation launch means for builders shipping paid agent tools.</p>
-          <div class="meta">July 17, 2026 · x402 foundation</div>
-        </a>
-        <a class="blog-list-card" data-rail-label="GUIDE" href="/blog/x402-protocol-explained">
-          <img src="/blog/og-x402-article-v2.png" width="1200" height="630" alt="How AI Agents Pay for Work: The x402 Protocol Explained">
-          <p>A builder's guide to x402 payments, MCP discovery, and the five-layer pattern behind agent-buyable work.</p>
-          <div class="meta">July 12, 2026 · x402 protocol</div>
-        </a>
-      </div>
+      <div class="back-link"><a href="/blog">← Back to blog</a></div>
+      <div class="blog-kicker">ANALYSIS · X402 · TOKENIZED EQUITIES</div>
+      <h1 class="blog-title">What agents will buy first isn't stocks. It's the data about stocks.</h1>
+      <article class="blog-article">
+<div class="tldr"><strong>TL;DR:</strong> On August 24, Coinbase launched tokenized US equities on Base, with real shares held 1:1 by Alpaca and Chainlink pricing them around the clock. Base is also the dominant rail for x402, the protocol agents already use to pay cents for data and API calls. No agent has bought a tokenized equity through x402 yet. The assets shipped, the payment rail shipped, and the paid data layer connecting them is the open gap.</div>
+<hr/>
+<p>On August 24, Coinbase started selling Apple, NVIDIA, Meta, and Alphabet on a blockchain.</p>
+<p>Not futures, and not a synthetic that merely tracks the price. <a href="https://blog.base.org/tokenized-stocks">Coinbase says</a> each token is a real share held 1:1 by Alpaca Securities in a bankruptcy-remote custody structure, with dividends and voting rights attached. The tokens live natively on Base, Coinbase's own layer 2, on a new standard called B20 that reached mainnet on July 8. Day one did $10.8 million in 24-hour volume, with roughly $4.5 million of shares minted onchain and about $3 million in DEX liquidity, per <a href="https://finance.yahoo.com/markets/crypto/articles/coinbase-tokenized-stocks-live-sec-094525267.html">CoinDesk's launch coverage</a>.</p>
+<p>Thirteen stock contracts exist: NVDAc, METAc, AAPLc, GOOGLc, AMZN, COIN, CRCL, INTC, MSFT, MSTR, SNDK, SPCX, and TSLA. <a href="https://www.galaxy.com/insights/research/coinbase-tokenized-stocks-base-third-party-issuer-sec-innovation-exemption">Galaxy Research</a> counted only the first four with actual circulating supply as of August 28, about $7.5 million worth. So this is a live product with a small footprint, not a flood of tokenized equity. Worth being precise about that, because almost nobody reporting on it has been.</p>
+<h2>What Coinbase shipped</h2>
+<p>The structure matters more than the ticker list.</p>
+<p>Coinbase is the issuer. Alpaca is the regulated broker and custodian. Pricing runs through Chainlink, which <a href="https://www.prnewswire.com/news-releases/coinbase-selects-chainlink-to-bring-new-tokenized-stocks-to-millions-of-defi-users-302858414.html">Coinbase named its official oracle</a> the same day: continuous feeds five days a week plus weekends for crypto, a 0.5% deviation threshold, 24-hour heartbeats, and Total Return Values that fold dividends into the price. Nine DeFi protocols integrated at launch, including Aerodrome for liquidity, Aave and Morpho and Euler for lending, and Wasabi for perpetuals and options.</p>
+<p>Galaxy calls this the wrapper model: Coinbase bought shares and wrapped them, and there is no evidence NVIDIA or Apple participated or consented. That distinction will matter later, when regulators decide what these things really are.</p>
+<p>And the location matters. The product is restricted to non-US persons under Regulation S. On August 11, Coinbase secured a Financial Services Permission from the Abu Dhabi Global Market regulator, which is now its international tokenization hub. Why offshore? Because the SEC still has not published its innovation exemption for tokenized securities. Bloomberg reported in May that the exemption was imminent. It got delayed once after Nasdaq, NYSE, and Cboe objected over liquidity fragmentation and overnight surveillance, then delayed again in mid-August amid White House concerns about congressional negotiations, per <a href="https://www.coindesk.com/policy/2026/08/13/u-s-sec-to-again-delay-innovation-exemption-for-tokenization-amid-wall-street-white-house-concerns">CoinDesk</a>. The SEC's next public move on round-the-clock trading is a roundtable on September 17.</p>
+<p>The rest of the market did not wait. Kraken's xStocks, live since June 2025, has done more than $38 billion in cumulative volume across 700+ tokenized assets, with a $609 million market cap and 125,000 holders as of mid-August, per <a href="https://genfinity.io/2026/08/18/kraken-us-stocks-europe-xstocks-trading">Genfinity</a>. Ondo, the largest issuer, crossed roughly $1 billion in tokenized stock value in August. And on September 1, <a href="https://www.reuters.com/world/uk/lseg-plans-tokenised-uk-shares-partners-with-kraken-owner-payward-2026-09-01">Reuters</a> reported that the London Stock Exchange's parent is partnering with Kraken's owner Payward to list xStocks on its planned LSE 24 venue in 2027. Tokenized equities as a category sat near $2.3 billion in mid-July and about $2.8 billion a month later.</p>
+<p>That is the state of the board. Now the part I care about most.</p>
+<h2>What agents buy when nobody is watching</h2>
+<p>In May 2025, Coinbase open-sourced x402, a payments protocol that turns HTTP's forgotten 402 status code into a machine-native checkout. An agent hits a priced resource, gets a 402 back with a price attached, pays in USDC, and resubmits the request with proof of payment. No account, no API key, no human clicking through a checkout page.</p>
+<p>On July 14 of this year the protocol moved into a foundation under the Linux Foundation, with roughly 40 member organizations including Visa, Mastercard, Stripe, Cloudflare, Google, and AWS. Cloudflare shipped a Monetization Gateway on July 1 that lets anyone charge per webpage, API call, dataset, or MCP tool, with settlement over x402. In August, AWS made AgentCore Payments generally available with Coinbase and Stripe using x402, so agents on AWS can now pay for APIs, content, and data feeds as a platform feature. Travala wired its travel MCP so an agent can book from 2.2 million hotels in USDC. you.com is adding x402 to its web search API, which means an agent will be able to pay per query for live web data.</p>
+<p>What do agents buy with all this rail? <a href="https://www.coindesk.com/business/2026/08/23/crypto-s-next-billion-users-might-be-ai-agents-and-they-re-paying-with-stablecoins">Coinbase told CoinDesk</a> that x402 has processed more than 165 million transactions worth about $50 million, from some 480,000 agents, at an average ticket near 30 cents. Lincoln Murr, who heads AI product at Coinbase, put it plainly: the product-market fit today is machine-to-machine payments from agents to APIs. Data, compute, lookups. Not meme coins, not stocks. Coinbase also conceded that maybe 25 to 30 percent of current activity could be people gaming a leaderboard rather than genuine agent spending, which is the kind of admission I respect and want to see more of.</p>
+<p>The skeptic's numbers deserve equal billing. Analyst Jamie Coutts, citing Helios Analytics data, <a href="https://www.ccn.com/news/crypto/x402-volume-plunges-cloudflare-ai-agent-payments">found</a> x402 daily settlement volume down 93 percent year to date, from peaks near $1 million a day in late 2025 to a seven-day average around $42,000. His read: the late-2025 surge was heavily testing, and the agentic economy narrative outran the transaction data. I think both stories are true at once. The volume is small and partly synthetic, and the rail is being adopted by the largest payments and infrastructure companies on the planet anyway. Rails get built before traffic shows up. That was true for the web and it will probably be true here.</p>
+<h2>A priced asset creates priced information</h2>
+<p>Here is the connection between the two halves of this article, and it is smaller and more concrete than "AI agents will trade stocks."</p>
+<p>Coinbase just created a new class of onchain assets that have a price, a dividend stream, a custody chain, and round-the-clock markets at rival exchanges too. Every one of those properties generates demand for information: live quotes, dividend-adjusted price feeds, order flow, liquidity depth, ownership analytics, news. The Chainlink feeds pricing Coinbase's stock tokens are already dividend-aware Total Return Values. That is a data product about a securities class, delivered onchain, five-plus days a week.</p>
+<p>Meanwhile, the one category agents demonstrably pay for at 30 cents a ticket is data and API access.</p>
+<p>Put those together. When equities become programmable onchain, the market data and research about those equities becomes the natural thing to sell per call. A trading agent that holds NVDAc and hedged exposure on Aerodrome does not need a Bloomberg terminal. It needs a quote it can buy for a fraction of a cent at 3 a.m., a dividend calendar it can query on demand, a liquidity check it can run before a swap. Human markets solved this with subscriptions and enterprise contracts priced for institutions. Machine markets solve it with metered micropayments, and the protocol for that already exists and already clears on the same chain where the stocks live.</p>
+<p>This is why I'd flag the Chainlink selection for anyone building in this space. The oracle layer made tokenized equities legible to DeFi, and the x402 layer makes information about them purchasable by software. Same chain, same company, both live as of August.</p>
+<h2>What's live, what's promised</h2>
+<p>Precision time. Things that exist today, verified:</p>
+<p>An agent can open and manage a tokenized stock liquidity position on Base. Bankr built an Aerodrome skill where an agent runs a tokenized stock LP position around the clock; it is item eight in <a href="https://x.com/base/status/2095480324616593599">Base's own August ecosystem recap</a>. That is a live, if early, instance of agent-managed tokenized equity exposure.</p>
+<p>Agents can pay per call for web search, travel bookings, and general API access over x402, with USDC settlement on Base, through Cloudflare, AWS, and direct integrations like you.com.</p>
+<p>Things that are announced but not live:</p>
+<p><a href="https://www.coinbase.com/blog/coinbase-for-agents">Coinbase for Agents</a>, launched June 11, lets ChatGPT or Claude trade crypto against a Coinbase account and will be x402-enabled for machine payments. Reporting in early September says Coinbase plans to expand it into traditional equities and prediction markets. Plans. Roadmap. Not shipped.</p>
+<p>And things that do not exist at all, as far as I could verify: any product where an agent buys or sells tokenized equities through an x402 payment flow, and any live tokenized equity data feed gated behind x402. If someone tells you agents are already trading tokenized stocks over agentic payment rails, ask for the transaction. I looked, and the closest real artifacts are the Bankr LP skill and a lot of roadmap language.</p>
+<p>The gap between those two lists is the opportunity. The assets shipped. The payment rail shipped. The data products connecting them have not, and the first usable ones will likely look boring: a pay-per-quote endpoint, a dividend feed, a liquidity scanner, each charging fractions of a cent to software that never sleeps and never asks for an invoice.</p>
+<h2>Where this goes</h2>
+<p>The pattern I track in my own work is simple: whenever a new asset class gets a machine-readable price, paid services grow around it like barnacles. Tokenized equities just got that price on the chain that dominates agentic payments. The stocks themselves are a story for securities lawyers and offshore exchanges. The information layer around them, metered and sold to agents one call at a time, is the story for builders, and it is barely started.</p>
+<p>I keep a running directory of x402 paid tools and services at <a href="https://agenttoll.dev">agenttoll.dev</a>. If you are building one of those boring, useful data endpoints, that is where your first agent customers will be looking.</p>
+<h2>Sources</h2>
+<ul>
+<li><a href="https://blog.base.org/tokenized-stocks">Coinbase Tokenized Stocks launch, Base blog, Aug 24, 2026</a></li>
+<li><a href="https://finance.yahoo.com/markets/crypto/articles/coinbase-tokenized-stocks-live-sec-094525267.html">Launch detail and day-one numbers, CoinDesk via Yahoo Finance, Aug 25, 2026</a></li>
+<li><a href="https://www.galaxy.com/insights/research/coinbase-tokenized-stocks-base-third-party-issuer-sec-innovation-exemption">Third-party wrapper analysis and supply counts, Galaxy Research, Aug 28, 2026</a></li>
+<li><a href="https://www.prnewswire.com/news-releases/coinbase-selects-chainlink-to-bring-new-tokenized-stocks-to-millions-of-defi-users-302858414.html">Chainlink oracle selection, PR Newswire, Aug 24, 2026</a></li>
+<li><a href="https://www.coindesk.com/policy/2026/08/13/u-s-sec-to-again-delay-innovation-exemption-for-tokenization-amid-wall-street-white-house-concerns">SEC innovation exemption delay, CoinDesk, Aug 13, 2026</a></li>
+<li><a href="https://genfinity.io/2026/08/18/kraken-us-stocks-europe-xstocks-trading">Kraken xStocks metrics and EEA launch, Genfinity, Aug 18, 2026</a></li>
+<li><a href="https://www.reuters.com/world/uk/lseg-plans-tokenised-uk-shares-partners-with-kraken-owner-payward-2026-09-01">LSEG-Payward partnership, Reuters, Sep 1, 2026</a></li>
+<li><a href="https://www.coindesk.com/business/2026/08/23/crypto-s-next-billion-users-might-be-ai-agents-and-they-re-paying-with-stablecoins">x402 transaction and agent counts, CoinDesk, Aug 23, 2026</a></li>
+<li><a href="https://www.ccn.com/news/crypto/x402-volume-plunges-cloudflare-ai-agent-payments">x402 volume decline analysis, CCN, Aug 13, 2026</a></li>
+<li><a href="https://x.com/base/status/2095480324616593599">Base August ecosystem recap, X, Sep 3, 2026</a></li>
+<li><a href="https://www.coinbase.com/blog/coinbase-for-agents">Coinbase for Agents, Coinbase blog, Jun 11, 2026</a></li>
+<li><a href="https://cryptonews.net/news/finance/33301160">Ondo $1B milestone, Cryptonews.net, Aug 15, 2026</a></li>
+</ul>
+      </article>
     </div>
     <aside class="blog-side">
-      <div class="rail-card" data-rail-label="BLOG META"><div class="meta">Field notes</div><p>Analysis and builder guides on x402, Base MCP, paid agent work, receipts, and buyer-facing discovery surfaces.</p></div>
-      <div class="rail-card" data-rail-label="RELATED"><p><a href="/agenttoll-base-mcp-skill.md" style="color:var(--accent);">Read the Base MCP buyer skill</a></p><p><a href="/blog/x402-protocol-explained" style="color:var(--accent);">Read the builder guide to x402 agent payments</a></p><p><a href="/tools" style="color:var(--accent);">Browse 100 paid work products</a></p></div>
+      <div class="rail-card" data-rail-label="ARTICLE META"><div class="meta">Analysis · September 3, 2026</div><p>Coinbase's tokenized stocks launched on Base, the same chain carrying x402 agent payments. What's live, what's promised, and the paid data layer in between.</p></div>
+      <div class="rail-card" data-rail-label="RELATED"><p><a href="/blog/x402-judgment-problem" style="color:var(--accent);">15,100 paid APIs, 110 curated</a></p><p><a href="/tools" style="color:var(--accent);">Browse paid work products</a></p><p><a href="/docs" style="color:var(--accent);">Read the payment and receipt docs</a></p></div>
       <div class="author-card"><div class="flex"><div class="avatar" style="overflow:hidden;"><img src="/hu-white-pfp.jpg" alt="Hu White" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"></div><div><div style="font-size:15px;font-weight:600;">Hu White</div><div style="font-size:13px;color:var(--text-3);">Generative-AI veteran &#183; x402 builder &#183; <a href="https://github.com/huwhitememes" style="color:var(--accent);">GitHub</a> &#183; <a href="https://www.linkedin.com/in/huwhitememes/" style="color:var(--accent);">LinkedIn</a> &#183; <a href="https://x.com/memerhuwhite" style="color:var(--accent);">X</a></div></div></div><p style="font-size:13px;color:var(--text-2);margin-top:12px;line-height:1.6;">Built and operates agenttoll.dev, a marketplace of receipt-backed paid work products settling on Base USDC.</p></div>
-<div class="cta-row"><a href="/tools" class="btn btn-primary">Browse 100 tools &#8594;</a><a href="/docs" class="btn btn-ghost">Documentation</a><a href="/mcp" class="btn btn-ghost">MCP Endpoint</a></div>
+      <div class="cta-row"><a href="/tools" class="btn btn-primary">Inspect paid work →</a></div>
     </aside>
   </div>
 </main>

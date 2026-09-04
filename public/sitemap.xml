@@ -521,6 +521,11 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://agenttoll.dev/blog/agents-buy-stock-data</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://agenttoll.dev/blog/x402-judgment-problem</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
