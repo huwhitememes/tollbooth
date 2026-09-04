@@ -18,6 +18,11 @@ Not futures, and not a synthetic that merely tracks the price. [Coinbase says](h
 
 Thirteen stock contracts exist: NVDAc, METAc, AAPLc, GOOGLc, AMZN, COIN, CRCL, INTC, MSFT, MSTR, SNDK, SPCX, and TSLA. [Galaxy Research](https://www.galaxy.com/insights/research/coinbase-tokenized-stocks-base-third-party-issuer-sec-innovation-exemption) counted only the first four with actual circulating supply as of August 28, about $7.5 million worth. So this is a live product with a small footprint, not a flood of tokenized equity. Worth being precise about that, because almost nobody reporting on it has been.
 
+<figure class="article-visual">
+  <img src="/blog/agents-buy-honest-scale.svg" width="1200" height="700" alt="To-scale bar chart: the tokenized equities category at about 2.8 billion dollars, with Coinbase B20 circulating supply at 7.5 million dollars magnified roughly 300 times.">
+  <figcaption>Everything drawn to scale. The Coinbase B20 sliver is 3 pixels wide on a 1,040-pixel bar, magnified here about 300×. Galaxy Research, Genfinity, mid-August 2026 estimates.</figcaption>
+</figure>
+
 ## What Coinbase shipped
 
 The structure matters more than the ticker list.
@@ -52,6 +57,11 @@ Meanwhile, the one category agents demonstrably pay for at 30 cents a ticket is 
 
 Put those together. When equities become programmable onchain, the market data and research about those equities becomes the natural thing to sell per call. A trading agent that holds NVDAc and hedged exposure on Aerodrome does not need a Bloomberg terminal. It needs a quote it can buy for a fraction of a cent at 3 a.m., a dividend calendar it can query on demand, a liquidity check it can run before a swap. Human markets solved this with subscriptions and enterprise contracts priced for institutions. Machine markets solve it with metered micropayments, and the protocol for that already exists and already clears on the same chain where the stocks live.
 
+<figure class="article-visual">
+  <img src="/blog/agents-buy-data-layers.svg" width="1200" height="640" alt="Diagram: tokenized equities and the x402 payment rail both live on Base, with a dashed gap labeled paid data layer, not built yet.">
+  <figcaption>Both sides shipped and settled on the same chain. The metered layer between them is the part nobody has built.</figcaption>
+</figure>
+
 This is why I'd flag the Chainlink selection for anyone building in this space. The oracle layer made tokenized equities legible to DeFi, and the x402 layer makes information about them purchasable by software. Same chain, same company, both live as of August.
 
 ## What's live, what's promised
@@ -66,9 +76,14 @@ Things that are announced but not live:
 
 [Coinbase for Agents](https://www.coinbase.com/blog/coinbase-for-agents), launched June 11, lets ChatGPT or Claude trade crypto against a Coinbase account and will be x402-enabled for machine payments. Reporting in early September says Coinbase plans to expand it into traditional equities and prediction markets. Plans. Roadmap. Not shipped.
 
-And things that do not exist at all, as far as I could verify: any product where an agent buys or sells tokenized equities through an x402 payment flow, and any live tokenized equity data feed gated behind x402. If someone tells you agents are already trading tokenized stocks over agentic payment rails, ask for the transaction. I looked, and the closest real artifacts are the Bankr LP skill and a lot of roadmap language.
+And things that did not exist at all, as far as I could verify: any product where an agent buys or sells tokenized equities through an x402 payment flow, and any live tokenized equity data feed gated behind x402. If someone tells you agents are already trading tokenized stocks over agentic payment rails, ask for the transaction. I looked, and the closest real artifacts are the Bankr LP skill and a lot of roadmap language.
 
-The gap between those two lists is the opportunity. The assets shipped. The payment rail shipped. The data products connecting them have not, and the first usable ones will likely look boring: a pay-per-quote endpoint, a dividend feed, a liquidity scanner, each charging fractions of a cent to software that never sleeps and never asks for an invoice.
+<figure class="article-visual">
+  <img src="/blog/agents-buy-receipt-card.svg" width="1200" height="640" alt="Onchain receipt card for the first paid token-stock quote call: 0.03 USDC on Base mainnet, settled gasless via EIP-3009 on September 4, 2026.">
+  <figcaption>Update, September 4: the first pay-per-call quote endpoint for these tokens is now live and receipt-backed. An agent pays $0.03 in USDC on Base and gets NVDAc pool prices, volumes, and liquidity back in the same response. Transaction <a href="https://agenttoll.dev/receipt/0x64f59b7b2ace1d2e499dec37627900489d3c96fa7eea9a7861eb66514eb60493">0x64f5…0493</a>, settled gasless. One endpoint is not a market, but it is a start you can verify.</figcaption>
+</figure>
+
+The gap between those two lists is the opportunity. The assets shipped. The payment rail shipped. As of this week the paid data layer between them has exactly one verified endpoint, mine, and the next ones will likely look just as boring: a dividend feed, a liquidity scanner, each charging fractions of a cent to software that never sleeps and never asks for an invoice.
 
 ## Where this goes
 
