@@ -1081,7 +1081,12 @@ article a,
       <figure class="blog-masthead-card"><img src="/blog/og-blog-field-notes.png" width="1200" height="630" alt="Field notes on paid agent tools."></figure>
       <p class="blog-intro">Builder notes on x402, Base MCP, receipt-backed paid work, discovery surfaces, and the buyer metadata agents need before they spend.</p>
       <div class="blog-list">
-        <a class="blog-list-card" data-rail-label="LATEST" href="/blog/x402-judgment-problem">
+        <a class="blog-list-card" data-rail-label="LATEST" href="/blog/agents-buy-stock-data">
+          <img src="/blog/og-agents-buy-stock-data.png" width="1200" height="630" alt="What agents will buy first isn't stocks. It's the data about stocks.">
+          <p>Coinbase's tokenized stocks landed on Base, the same chain carrying x402 agent payments. The paid data layer in between is the builder gap.</p>
+          <div class="meta">September 3, 2026 · x402 · tokenized equities</div>
+        </a>
+        <a class="blog-list-card" data-rail-label="ANALYSIS" href="/blog/x402-judgment-problem">
           <img src="/blog/og-x402-judgment-problem.png" width="1200" height="630" alt="15,100 paid APIs, 110 curated: x402 has a judgment problem">
           <p>AWS took agent payments to GA while Bazaar grew to 15,100 resources. The scarce layer is deciding what deserves a payment.</p>
           <div class="meta">August 19, 2026 · x402 · agent payments</div>
