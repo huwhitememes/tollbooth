@@ -4171,7 +4171,7 @@ const BASE_RPC_ENDPOINTS = [
   "https://mainnet.base.org",
   "https://base.drpc.org",
   "https://1rpc.io/base",
-  "https://base.meowrpc.com",
+  "https://base-mainnet.public.blastapi.io",
 ];
 
 async function getTransactionReceipt(tx: string): Promise<RpcReceipt | null> {
