@@ -297,6 +297,49 @@ export async function getFredSeries(
 // ─── 4. getTokenStockQuote — Tokenized Equity Quotes (GeckoTerminal) ─────
 
 const GECKO_BASE = "https://api.geckoterminal.com/api/v2";
+const DEXSCREENER_BASE = "https://api.dexscreener.com/latest/dex";
+
+// GeckoTerminal public API rate-limits (~30 req/min); short in-isolate cache
+// absorbs bursts so a cluster of paid calls does not trip upstream 429s.
+const TOKEN_STOCK_CACHE_TTL_MS = 60_000;
+const tokenStockCache = new Map<string, { t: number; v: any }>();
+
+function cacheGet(key: string): any | null {
+  const hit = tokenStockCache.get(key);
+  if (!hit) return null;
+  if (Date.now() - hit.t > TOKEN_STOCK_CACHE_TTL_MS) {
+    tokenStockCache.delete(key);
+    return null;
+  }
+  return hit.v;
+}
+
+function cachePut(key: string, v: any): void {
+  if (tokenStockCache.size > 500) tokenStockCache.clear();
+  tokenStockCache.set(key, { t: Date.now(), v });
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((r) => setTimeout(r, ms));
+}
+
+// fetchJson with bounded retry + backoff for transient upstream 429/5xx/network
+async function fetchJsonRetry(
+  url: string,
+  opts: RequestInit & { timeoutMs?: number } = {},
+  attempts = 3
+): Promise<any> {
+  let lastErr: unknown;
+  for (let i = 0; i < attempts; i++) {
+    try {
+      return await fetchJson(url, opts);
+    } catch (e) {
+      lastErr = e;
+      if (i < attempts - 1) await sleep(600 * (i + 1));
+    }
+  }
+  throw lastErr;
+}
 
 // Coinbase Tokenized Stocks (B20) tickers live on Base; suffix "c" per Coinbase
 const TOKEN_STOCK_SYMBOLS: Record<string, string> = {
@@ -325,8 +368,11 @@ export async function getTokenStockQuote(query: string, limit?: number) {
     if (!q) return fail("query is required (token symbol like NVDAc, or ticker like NVDA)", source);
     const lim = clamp(Math.trunc(limit ?? 3), 1, 10);
     const { symbol, ticker } = normalizeTokenStockQuery(q);
+    const cacheKey = `${symbol}|${lim}`;
+    const cached = cacheGet(cacheKey);
+    if (cached) return { ...cached, cached: true };
 
-    const search = await fetchJson(`${GECKO_BASE}/search/pools?query=${encodeURIComponent(symbol)}&page=1`, { timeoutMs: 12000 });
+    const search = await fetchJsonRetry(`${GECKO_BASE}/search/pools?query=${encodeURIComponent(symbol)}&page=1`, { timeoutMs: 12000 });
     const symUpper = symbol.toUpperCase();
     // Search results may omit the network relationship; accept unattributed pools and
     // confirm each on Base via the detail endpoint (mismatched ones return no detail).
@@ -336,45 +382,51 @@ export async function getTokenStockQuote(query: string, limit?: number) {
       return (net === null || net === "base") && name.includes(symUpper);
     }).slice(0, lim * 2);
 
-    if (!pools.length) return fail(`no Base pools found for ${symbol} (known Coinbase token stocks: ${Object.keys(TOKEN_STOCK_SYMBOLS).join(", ")})`, source);
-
-    const results = await Promise.all(pools.map(async (p: any) => {
-      const a = p?.attributes ?? {};
-      const addr = a?.address ?? "";
-      const net = p?.relationships?.network?.data?.id ?? "base";
-      let detail: any = null;
-      try {
-        const d = await fetchJson(`${GECKO_BASE}/networks/${net}/pools/${addr}`, { timeoutMs: 10000 });
-        detail = d?.data?.attributes ?? null;
-      } catch { /* not on this network */ }
-      if (!detail) return null;
-      detail = detail ?? a;
-      const vol = detail?.volume_usd ?? {};
-      const chg = detail?.price_change_percentage ?? {};
-      return {
-        token_symbol: symbol,
-        underlying_ticker: ticker,
-        pool_name: detail?.name ?? a?.name ?? "",
-        network: net,
-        pool_address: addr,
-        price_usd: detail?.base_token_price_usd ? parseFloat(detail.base_token_price_usd) : null,
-        price_change_24h_pct: chg?.h24 != null ? parseFloat(chg.h24) : null,
-        volume_24h_usd: vol?.h24 != null ? parseFloat(vol.h24) : null,
-        volume_7d_usd: vol?.h7d != null ? parseFloat(vol.h7d) : null,
-        liquidity_usd: detail?.reserve_in_usd ? parseFloat(detail.reserve_in_usd) : null,
-        fdv_usd: detail?.fdv_usd ? parseFloat(detail.fdv_usd) : null,
-        dex: detail?.dex_id ?? null,
-        pool_created_at: detail?.pool_created_at ?? null,
-      };
-    }));
+    const results = pools.length
+      ? await Promise.all(pools.map(async (p: any) => {
+          const a = p?.attributes ?? {};
+          const addr = a?.address ?? "";
+          const net = p?.relationships?.network?.data?.id ?? "base";
+          let detail: any = null;
+          try {
+            const d = await fetchJsonRetry(`${GECKO_BASE}/networks/${net}/pools/${addr}`, { timeoutMs: 10000 }, 2);
+            detail = d?.data?.attributes ?? null;
+          } catch { /* not on this network */ }
+          if (!detail) return null;
+          detail = detail ?? a;
+          const vol = detail?.volume_usd ?? {};
+          const chg = detail?.price_change_percentage ?? {};
+          return {
+            token_symbol: symbol,
+            underlying_ticker: ticker,
+            pool_name: detail?.name ?? a?.name ?? "",
+            network: net,
+            pool_address: addr,
+            price_usd: detail?.base_token_price_usd ? parseFloat(detail.base_token_price_usd) : null,
+            price_change_24h_pct: chg?.h24 != null ? parseFloat(chg.h24) : null,
+            volume_24h_usd: vol?.h24 != null ? parseFloat(vol.h24) : null,
+            volume_7d_usd: vol?.h7d != null ? parseFloat(vol.h7d) : null,
+            liquidity_usd: detail?.reserve_in_usd ? parseFloat(detail.reserve_in_usd) : null,
+            fdv_usd: detail?.fdv_usd ? parseFloat(detail.fdv_usd) : null,
+            dex: detail?.dex_id ?? null,
+            pool_created_at: detail?.pool_created_at ?? null,
+          };
+        }))
+      : [];
 
     // Drop cross-network pools (null results), rank by 24h volume so the deepest pool surfaces first
     const confirmed = results.filter((r: any) => r !== null);
     confirmed.sort((x: any, y: any) => (y.volume_24h_usd ?? 0) - (x.volume_24h_usd ?? 0));
 
-    if (!confirmed.length) return fail(`no Base pools found for ${symbol} (known Coinbase token stocks: ${Object.keys(TOKEN_STOCK_SYMBOLS).join(", ")})`, source);
+    if (!confirmed.length) {
+      // GeckoTerminal exhausted (rate limit, outage, or no pools) — fall back to
+      // DexScreener's free public search API with the same output schema.
+      const fb = await getTokenStockQuoteFromDexScreener(symbol, ticker, lim);
+      if (fb.success) { cachePut(cacheKey, fb); return fb; }
+      return fail(`no Base pools found for ${symbol} via GeckoTerminal or DexScreener (${fb.error}); known Coinbase token stocks: ${Object.keys(TOKEN_STOCK_SYMBOLS).join(", ")}`, source);
+    }
 
-    return ok(
+    const out = ok(
       {
         query: q,
         asset_class: "tokenized_equity",
@@ -383,6 +435,59 @@ export async function getTokenStockQuote(query: string, limit?: number) {
       },
       source,
       confirmed.length
+    );
+    cachePut(cacheKey, out);
+    return out;
+  } catch (e: any) {
+    // GeckoTerminal hard-failed (429 exhausted retries, 5xx, timeout) — try DexScreener
+    try {
+      const { symbol, ticker } = normalizeTokenStockQuery((query ?? "").trim());
+      const lim = clamp(Math.trunc(limit ?? 3), 1, 10);
+      const fb = await getTokenStockQuoteFromDexScreener(symbol, ticker, lim);
+      if (fb.success) { cachePut(`${symbol}|${lim}`, fb); return fb; }
+      return fail(`GeckoTerminal error (${e?.message ?? String(e)}); DexScreener fallback also failed: ${fb.error}`, source);
+    } catch (fbErr: any) {
+      return fail(`GeckoTerminal error (${e?.message ?? String(e)}); DexScreener fallback error (${fbErr?.message ?? String(fbErr)})`, source);
+    }
+  }
+}
+
+// DexScreener fallback — free keyless public API, same output schema.
+// Search results include unrelated/scam tokens, so require an exact
+// baseToken.symbol match on Base before ranking by 24h volume.
+export async function getTokenStockQuoteFromDexScreener(symbol: string, ticker: string, lim: number) {
+  const source = "DexScreener public DEX data (tokenized equities on Base)";
+  try {
+    const d = await fetchJsonRetry(`${DEXSCREENER_BASE}/search?q=${encodeURIComponent(symbol)}`, { timeoutMs: 12000 });
+    const pairs = ((d?.pairs ?? []) as any[])
+      .filter((p) => p?.chainId === "base")
+      .filter((p) => (p?.baseToken?.symbol ?? "").toUpperCase() === symbol.toUpperCase())
+      .map((p) => ({
+        token_symbol: symbol,
+        underlying_ticker: ticker,
+        pool_name: `${p?.baseToken?.symbol ?? symbol} / ${p?.quoteToken?.symbol ?? "?"}`,
+        network: "base",
+        pool_address: p?.pairAddress ?? "",
+        price_usd: p?.priceUsd != null ? parseFloat(p.priceUsd) : null,
+        price_change_24h_pct: p?.priceChange?.h24 != null ? parseFloat(p.priceChange.h24) : null,
+        volume_24h_usd: p?.volume?.h24 != null ? parseFloat(p.volume.h24) : null,
+        volume_7d_usd: null, // DexScreener does not expose 7d volume
+        liquidity_usd: p?.liquidity?.usd != null ? parseFloat(p.liquidity.usd) : null,
+        fdv_usd: p?.fdv != null ? parseFloat(p.fdv) : null,
+        dex: p?.dexId ?? null,
+        pool_created_at: p?.pairCreatedAt != null ? new Date(p.pairCreatedAt).toISOString() : null,
+      }));
+    if (!pairs.length) return fail(`no Base pools found for ${symbol}`, source);
+    pairs.sort((x: any, y: any) => (y.volume_24h_usd ?? 0) - (x.volume_24h_usd ?? 0));
+    return ok(
+      {
+        query: symbol,
+        asset_class: "tokenized_equity",
+        note: "Quotes are DEX pool prices for tokenized stock tokens (e.g. Coinbase B20 tokens on Base), not NASDAQ/NYSE prints. Deviations from the TradFi print are possible.",
+        pools: pairs.slice(0, lim),
+      },
+      source,
+      pairs.length
     );
   } catch (e: any) {
     return fail(e?.message ?? String(e), source);
