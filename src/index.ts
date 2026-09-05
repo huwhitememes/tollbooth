@@ -4167,12 +4167,19 @@ function formatUsdc(raw: bigint) {
   return frac ? `${whole}.${frac}` : whole.toString();
 }
 
+const BASE_RPC_ENDPOINTS = [
+  "https://mainnet.base.org",
+  "https://base.publicnode.com",
+  "https://base.drpc.org",
+  "https://1rpc.io/base",
+];
+
 async function getTransactionReceipt(tx: string): Promise<RpcReceipt | null> {
   let lastError: Error | null = null;
 
-  for (let attempt = 0; attempt < 3; attempt++) {
+  for (let attempt = 0; attempt < BASE_RPC_ENDPOINTS.length; attempt++) {
     try {
-      const response = await fetch("https://mainnet.base.org", {
+      const response = await fetch(BASE_RPC_ENDPOINTS[attempt], {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
