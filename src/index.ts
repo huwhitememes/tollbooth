@@ -4213,6 +4213,17 @@ async function receiptResponse(tx: string) {
     return jsonResponse({ error: "invalid_tx_hash" }, 400);
   }
 
+  // Serve verified receipts from the edge cache first — a mined transaction is
+  // immutable, so a cached verification never goes stale and upstream RPC
+  // rate limits cannot take an already-verified receipt offline.
+  try {
+    const cache = await (caches as any).default.open("receipts-v1");
+    const hit = await cache.match(new Request(new URL(`/receipt/${tx}`, "https://agenttoll.dev").toString()));
+    if (hit) return new Response(hit.body, hit);
+  } catch {
+    // cache API unavailable (local dev) — fall through to RPC
+  }
+
   const receipt = await getTransactionReceipt(tx);
   if (!receipt) {
     return jsonResponse({
