@@ -4169,9 +4169,9 @@ function formatUsdc(raw: bigint) {
 
 const BASE_RPC_ENDPOINTS = [
   "https://mainnet.base.org",
-  "https://base.publicnode.com",
   "https://base.drpc.org",
   "https://1rpc.io/base",
+  "https://base.meowrpc.com",
 ];
 
 async function getTransactionReceipt(tx: string): Promise<RpcReceipt | null> {
@@ -4239,7 +4239,7 @@ async function receiptResponse(tx: string) {
 
   const matching = transfers.filter((transfer) => transfer.to === seller);
 
-  return jsonResponse({
+  const final = jsonResponse({
     service: SERVICE.slug,
     verified: receipt.status === "0x1" && matching.length > 0,
     tx: receipt.transactionHash,
@@ -4254,6 +4254,18 @@ async function receiptResponse(tx: string) {
     all_usdc_transfers: transfers,
     explorer: `https://basescan.org/tx/${receipt.transactionHash}`,
   });
+
+  // Verified receipts are immutable — cache the rendered response at the edge.
+  try {
+    const cache = await (caches as any).default.open("receipts-v1");
+    const headers = new Headers(final.headers);
+    headers.set("Cache-Control", "public, max-age=86400");
+    await cache.put(new Request(new URL(`/receipt/${tx}`, "https://agenttoll.dev").toString()), new Response(final.body, { status: 200, headers }));
+  } catch {
+    // cache API unavailable (local dev) — serve without caching
+  }
+
+  return final;
 }
 
 
