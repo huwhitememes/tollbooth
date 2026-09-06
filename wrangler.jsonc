@@ -19,6 +19,10 @@
       "binding": "tollbooth_cache",
       "id": "dcac8fe8b6d0403bb480dc9033ccaab1",
       "preview_id": "c91dddb17a934714889765b77946fddd"
+    },
+    {
+      "binding": "RECEIPTS",
+      "id": "fe0582dd8ac248a3940ccde1a55baa66"
     }
   ],
   "triggers": {

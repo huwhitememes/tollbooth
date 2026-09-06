@@ -4208,20 +4208,37 @@ async function getTransactionReceipt(tx: string): Promise<RpcReceipt | null> {
   throw lastError ?? new Error("Base RPC failed");
 }
 
-async function receiptResponse(tx: string) {
+async function receiptResponse(tx: string, env?: any) {
   if (!/^0x[0-9a-fA-F]{64}$/.test(tx)) {
     return jsonResponse({ error: "invalid_tx_hash" }, 400);
   }
 
-  // Serve verified receipts from the edge cache first — a mined transaction is
-  // immutable, so a cached verification never goes stale and upstream RPC
+  const cacheUrl = new Request(new URL(`/receipt/${tx}`, "https://agenttoll.dev").toString());
+
+  // Two-tier read: local edge cache first, then global KV — a mined transaction
+  // is immutable, so a cached verification never goes stale, and upstream RPC
   // rate limits cannot take an already-verified receipt offline.
   try {
     const cache = await (caches as any).default.open("receipts-v1");
-    const hit = await cache.match(new Request(new URL(`/receipt/${tx}`, "https://agenttoll.dev").toString()));
+    const hit = await cache.match(cacheUrl);
     if (hit) return new Response(hit.body, hit);
   } catch {
-    // cache API unavailable (local dev) — fall through to RPC
+    // cache API unavailable (local dev) — fall through to KV/RPC
+  }
+  try {
+    const kv: KVNamespace | undefined = env?.RECEIPTS;
+    const kvVal = await kv?.get(`receipt:${tx}`);
+    if (kvVal) {
+      const body = JSON.parse(kvVal);
+      // Re-populate the local colo cache so subsequent hits in this colo skip KV
+      try {
+        const cache = await (caches as any).default.open("receipts-v1");
+        await cache.put(cacheUrl, new Response(kvVal, { status: 200, headers: { "Content-Type": "application/json", "Cache-Control": "public, max-age=86400" } }));
+      } catch { /* cache write-through optional */ }
+      return jsonResponse(body);
+    }
+  } catch {
+    // KV miss or unavailable — fall through to RPC
   }
 
   const receipt = await getTransactionReceipt(tx);
@@ -4250,7 +4267,7 @@ async function receiptResponse(tx: string) {
 
   const matching = transfers.filter((transfer) => transfer.to === seller);
 
-  const final = jsonResponse({
+  const finalBody = {
     service: SERVICE.slug,
     verified: receipt.status === "0x1" && matching.length > 0,
     tx: receipt.transactionHash,
@@ -4264,14 +4281,22 @@ async function receiptResponse(tx: string) {
     transfers_to_seller: matching,
     all_usdc_transfers: transfers,
     explorer: `https://basescan.org/tx/${receipt.transactionHash}`,
-  });
+  };
+  const final = jsonResponse(finalBody);
 
-  // Verified receipts are immutable — cache the rendered response at the edge.
+  // Verified receipts are immutable — store globally in KV (all colos) and
+  // cache the rendered response at the local edge.
+  try {
+    const kv: KVNamespace | undefined = env?.RECEIPTS;
+    await kv?.put(`receipt:${tx}`, JSON.stringify(finalBody));
+  } catch {
+    // KV unavailable (local dev) — edge cache below still applies
+  }
   try {
     const cache = await (caches as any).default.open("receipts-v1");
     const headers = new Headers(final.headers);
     headers.set("Cache-Control", "public, max-age=86400");
-    await cache.put(new Request(new URL(`/receipt/${tx}`, "https://agenttoll.dev").toString()), new Response(final.body, { status: 200, headers }));
+    await cache.put(cacheUrl, new Response(final.body, { status: 200, headers }));
   } catch {
     // cache API unavailable (local dev) — serve without caching
   }
@@ -6637,7 +6662,7 @@ export default {
     if (url.pathname.startsWith("/receipt/")) {
       const tx = url.pathname.split("/").filter(Boolean)[1];
       try {
-        return await receiptResponse(tx ?? "");
+        return await receiptResponse(tx ?? "", env);
       } catch (error) {
         return jsonResponse({ error: "receipt_lookup_failed", message: error instanceof Error ? error.message : String(error) }, 502);
       }
