@@ -16,7 +16,7 @@ OpenAPI spec: /openapi.json
 x402 discovery manifest: /.well-known/x402
 MCP endpoint: /mcp
 Tools directory: /tools
-Latest article: /blog/x402-402-wall
+Latest article: /blog/x402-chain-land-grab
 Blog index: /blog
 Base MCP buyer skill: /agenttoll-base-mcp-skill.md
 Installable skill source: https://github.com/huwhitememes/tollbooth/tree/main/skills/agenttoll-base-mcp-buyer

@@ -1,0 +1,1339 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<title>Every chain wants the agent rail: x402 gets five new lanes and the same traffic | agenttoll.dev</title>
+<meta name="description" content="Block plugged Bitcoin Lightning into x402, Cardano and Algorand shipped rails the same week, and Solana moved batch settlement to preview — while the audited agentic share of settled value still reads 0.6 to 7.5 percent. Rail supply is not demand.">
+<link rel="canonical" href="https://agenttoll.dev/blog/x402-chain-land-grab">
+<meta property="og:title" content="Every chain wants the agent rail: x402 gets five new lanes and the same traffic">
+<meta property="og:description" content="Block plugged Bitcoin Lightning into x402, Cardano and Algorand shipped rails the same week, and Solana moved batch settlement to preview — while the audited agentic share of settled value still reads 0.6 to 7.5 percent. Rail supply is not demand.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://agenttoll.dev/blog/x402-chain-land-grab">
+<meta property="og:image" content="https://agenttoll.dev/blog/og-x402-chain-land-grab.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:type" content="image/png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://agenttoll.dev/blog/og-x402-chain-land-grab.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Every chain wants the agent rail: x402 gets five new lanes and the same traffic",
+  "description": "Block plugged Bitcoin Lightning into x402, Cardano and Algorand shipped rails the same week, and Solana moved batch settlement to preview — while the audited agentic share of settled value still reads 0.6 to 7.5 percent. Rail supply is not demand.",
+  "author": {
+    "@type": "Person",
+    "name": "Hu White",
+    "url": "https://www.linkedin.com/in/huwhitememes/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "agenttoll.dev",
+    "url": "https://agenttoll.dev"
+  },
+  "datePublished": "2026-09-30",
+  "dateModified": "2026-09-30",
+  "image": "https://agenttoll.dev/blog/og-x402-chain-land-grab.png",
+  "mainEntityOfPage": "https://agenttoll.dev/blog/x402-chain-land-grab"
+}</script>
+<style>
+:root {
+  color-scheme: dark;
+  --bg: #06080c;
+  --bg-glass: rgba(10, 14, 22, 0.72);
+  --bg-card: rgba(16, 22, 34, 0.6);
+  --border: rgba(56, 78, 112, 0.25);
+  --border-hover: rgba(86, 116, 162, 0.4);
+  --text: #e8eef6;
+  --text-2: #8b9bb4;
+  --text-3: #5a6b85;
+  --accent: #2dd4bf;
+  --accent-2: #0ea5e9;
+  --accent-dim: rgba(45, 212, 191, 0.12);
+  --price: #4ade80;
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --duration-fast: 160ms;
+  --duration-ui: 220ms;
+  --focus-ring: 0 0 0 3px rgba(45, 212, 191, 0.32);
+  --rail-glow: 0 0 36px rgba(45, 212, 191, 0.16);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+/* Shader canvas */
+#shader-bg {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: 0;
+  opacity: 0.35;
+}
+/* Glass overlay to dim shader for readability */
+.glass-overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: 1;
+  background: radial-gradient(ellipse at center top, transparent 0%, rgba(6, 8, 12, 0.85) 70%);
+  pointer-events: none;
+}
+/* Nav */
+nav {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px 32px;
+}
+nav .logo {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 600;
+  font-size: 16px;
+  color: var(--text);
+  letter-spacing: -0.02em;
+  text-decoration: none;
+  padding: 4px 6px;
+  border-radius: 8px;
+  transition: color var(--duration-fast) ease, box-shadow var(--duration-fast) ease;
+}
+nav .logo span { color: var(--accent); }
+nav .links { display: flex; gap: 28px; align-items: center; }
+nav .links a {
+  color: var(--text-2);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 8px;
+  transition: color var(--duration-fast) ease, background-color var(--duration-fast) ease, box-shadow var(--duration-fast) ease;
+}
+nav .links a:hover { color: var(--text); }
+nav .logo:focus,
+nav .links a:focus,
+.btn:focus,
+.cat-card:focus,
+.tool-card:focus,
+.search-bar:focus,
+.nav-toggle:focus,
+nav .logo:focus-visible,
+nav .links a:focus-visible,
+.btn:focus-visible,
+.cat-card:focus-visible,
+.tool-card:focus-visible,
+.search-bar:focus-visible,
+.nav-toggle:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+nav .links .cta {
+  background: var(--accent-dim);
+  border: 1px solid rgba(45, 212, 191, 0.3);
+  padding: 8px 16px;
+  border-radius: 8px;
+  color: var(--accent);
+}
+/* Layout */
+main {
+  position: relative;
+  z-index: 5;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 32px;
+}
+/* Hero */
+.hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 80px 0 100px;
+  min-height: 70vh;
+  justify-content: center;
+}
+.hero .badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 100px;
+  background: var(--accent-dim);
+  border: 1px solid rgba(45, 212, 191, 0.2);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--accent);
+  margin-bottom: 28px;
+  backdrop-filter: blur(10px);
+}
+.hero .badge::before {
+  content: '';
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent);
+  animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+.hero h1 {
+  font-size: clamp(40px, 7vw, 84px);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.05em;
+  margin-bottom: 24px;
+  padding-bottom: 0.08em;
+  padding-right: 0.1em;
+  max-width: 900px;
+  color: var(--text);
+  text-shadow: 0 0 42px rgba(45, 212, 191, 0.10), 0 1px 0 rgba(255,255,255,0.12);
+}
+.hero p.sub {
+  font-size: clamp(16px, 2vw, 20px);
+  color: var(--text-2);
+  max-width: 620px;
+  margin-bottom: 36px;
+  line-height: 1.5;
+}
+.hero .actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 22px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 15px;
+  text-decoration: none;
+  transition: transform var(--duration-fast) var(--ease-out), box-shadow var(--duration-ui) var(--ease-out), border-color var(--duration-fast) ease, background-color var(--duration-fast) ease;
+  backdrop-filter: blur(10px);
+}
+.btn-primary {
+  background: var(--accent);
+  color: #06080c;
+  box-shadow: 0 0 30px rgba(45, 212, 191, 0.3);
+}
+.btn-primary:hover { box-shadow: 0 0 26px rgba(45, 212, 191, 0.12); }
+.btn:active { transform: scale(0.97); }
+.btn-ghost {
+  background: var(--bg-glass);
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+.btn-ghost:hover { border-color: var(--border-hover); }
+/* Stats bar */
+.stats {
+  display: flex;
+  gap: 0;
+  justify-content: center;
+  margin-top: 64px;
+  flex-wrap: wrap;
+  max-width: 760px;
+  border: 1px solid rgba(45, 212, 191, 0.22);
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(6, 8, 12, 0.74), rgba(16, 22, 34, 0.58));
+  box-shadow: var(--rail-glow), inset 0 1px 0 rgba(255,255,255,0.06);
+  overflow: hidden;
+  backdrop-filter: blur(14px);
+}
+.stats::before {
+  content: 'AGENT PAYMENT RAIL';
+  width: 100%;
+  padding: 9px 14px 7px;
+  border-bottom: 1px solid rgba(45, 212, 191, 0.16);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  color: var(--accent);
+  text-align: left;
+}
+.stat {
+  text-align: center;
+  min-width: 150px;
+  padding: 18px 22px 20px;
+  border-right: 1px solid rgba(56, 78, 112, 0.22);
+}
+.stat:last-child {
+  border-right: 0;
+}
+.stat .num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.04em;
+}
+.stat .label {
+  font-size: 13px;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-top: 2px;
+}
+/* Categories preview */
+.categories {
+  padding: 60px 0;
+}
+.section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 36px;
+}
+.section-head h2 {
+  font-size: clamp(24px, 4vw, 36px);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+.section-head a {
+  color: var(--accent);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+}
+.cat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+.cat-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  text-decoration: none;
+  color: inherit;
+  transition: transform var(--duration-ui) var(--ease-out), border-color var(--duration-fast) ease, box-shadow var(--duration-ui) var(--ease-out), background-color var(--duration-fast) ease;
+  backdrop-filter: blur(12px);
+}
+.cat-card:hover {
+  border-color: var(--border-hover);
+  box-shadow: 0 0 28px rgba(45, 212, 191, 0.12);
+}
+.cat-card h3 {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.cat-card .icon {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 18px;
+  opacity: 0.6;
+}
+.cat-card p {
+  font-size: 13px;
+  color: var(--text-2);
+  margin-bottom: 12px;
+}
+.cat-card .cat-count {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: var(--text-3);
+}
+/* How it works */
+.how {
+  padding: 80px 0;
+}
+.how-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+.step {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 32px;
+  backdrop-filter: blur(12px);
+}
+.step .num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  color: var(--accent);
+  margin-bottom: 12px;
+}
+.step h3 {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.step p {
+  font-size: 14px;
+  color: var(--text-2);
+  line-height: 1.6;
+}
+/* Footer */
+footer {
+  position: relative;
+  z-index: 5;
+  border-top: 1px solid var(--border);
+  padding: 32px;
+  margin-top: 80px;
+}
+footer .inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+footer .left {
+  font-size: 13px;
+  color: var(--text-3);
+}
+footer .links {
+  display: flex;
+  gap: 20px;
+}
+footer .links a {
+  color: var(--text-2);
+  text-decoration: none;
+  font-size: 13px;
+}
+footer .links a:hover { color: var(--text); }
+footer code {
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--text-3);
+}
+/* Nav toggle (hamburger) */
+.nav-toggle {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--text);
+  font-size: 24px;
+  cursor: pointer;
+  padding: 4px 8px;
+  z-index: 11;
+}
+/* Hero entrance animation */
+.hero .badge,
+.hero h1,
+.hero .sub,
+.hero .actions,
+.hero .stats {
+  animation: slideUp 0.6s ease-out both;
+}
+.hero .badge { animation-delay: 0.1s; }
+.hero h1 { animation-delay: 0.2s; }
+.hero .sub { animation-delay: 0.35s; }
+.hero .actions { animation-delay: 0.5s; }
+.hero .stats { animation-delay: 0.65s; }
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+/* Responsive */
+@media (max-width: 768px) {
+  .hero { padding: 40px 0 60px; min-height: auto; }
+  .how-grid { grid-template-columns: 1fr; }
+  .stats { gap: 24px; }
+  .stat .num { font-size: 28px; }
+  .cat-grid { grid-template-columns: 1fr !important; }
+  .tools-grid { grid-template-columns: 1fr !important; }
+  pre { font-size: 12px; }
+  .nav-toggle { display: block; }
+  nav .links {
+    display: none;
+    position: fixed;
+    top: 0; right: 0;
+    width: 240px;
+    height: 100vh;
+    background: rgba(6, 8, 12, 0.95);
+    backdrop-filter: blur(20px);
+    flex-direction: column;
+    padding: 80px 24px 24px;
+    gap: 20px;
+    z-index: 10;
+    border-left: 1px solid var(--border);
+  }
+  nav .links.open { display: flex; }
+  nav .links a {
+    font-size: 16px;
+    width: 100%;
+    padding: 8px 0;
+  }
+}
+@media (max-width: 480px) {
+  nav { padding: 16px 20px; }
+  main { padding: 0 20px !important; }
+  .hero h1 { font-size: clamp(32px, 10vw, 48px); }
+  .section-head { flex-direction: column; align-items: flex-start; gap: 8px; }
+  footer .inner { text-align: center; }
+  footer .build-public,
+  footer .footer-meta { flex-direction: column; align-items: center; }
+  footer .links { justify-content: center; }
+}
+/* ── Tool directory & detail page styles ── */
+.tools-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+  padding: 40px 0;
+}
+.tool-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  text-decoration: none;
+  color: inherit;
+  transition: transform var(--duration-ui) var(--ease-out), border-color var(--duration-fast) ease, box-shadow var(--duration-ui) var(--ease-out), background-color var(--duration-fast) ease;
+  backdrop-filter: blur(12px);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.tool-card:hover {
+  border-color: var(--border-hover);
+  box-shadow: 0 0 28px rgba(45, 212, 191, 0.12);
+}
+.tool-card .tool-name {
+  font-size: 15px;
+  font-weight: 600;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--text);
+}
+.tool-card .tool-price {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--price);
+}
+.tool-card .tool-desc {
+  font-size: 13px;
+  color: var(--text-2);
+  line-height: 1.5;
+}
+.tool-card .tool-path {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--text-3);
+}
+.detail-page {
+  padding: 60px 0;
+}
+.detail-page .back-link {
+  color: var(--accent);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 24px;
+  display: inline-block;
+}
+.detail-page .tool-header {
+  margin-bottom: 32px;
+}
+.detail-page .tool-header h1 {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: clamp(28px, 5vw, 48px);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  margin-bottom: 8px;
+  color: var(--text);
+  text-shadow: 0 0 30px rgba(45, 212, 191, 0.10);
+}
+.detail-page .tool-price-large {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 36px;
+  font-weight: 800;
+  color: var(--price);
+}
+.detail-page .tool-desc-full {
+  font-size: 18px;
+  color: var(--text-2);
+  line-height: 1.6;
+  margin: 24px 0;
+  max-width: 720px;
+}
+.detail-page .tool-section {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  margin: 16px 0;
+  backdrop-filter: blur(12px);
+}
+.detail-page .tool-section h3 {
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-3);
+  margin-bottom: 12px;
+}
+.detail-page pre {
+  background: rgba(6, 8, 12, 0.6);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  color: var(--text);
+  overflow-x: auto;
+  white-space: pre-wrap;
+}
+.search-bar {
+  width: 100%;
+  padding: 14px 20px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--text);
+  font-size: 15px;
+  font-family: 'Inter', sans-serif;
+  margin-bottom: 32px;
+  backdrop-filter: blur(12px);
+  outline: none;
+  transition: border-color var(--duration-fast) ease, box-shadow var(--duration-fast) ease;
+}
+.search-bar:focus {
+  border-color: var(--accent);
+}
+.search-bar::placeholder {
+  color: var(--text-3);
+}
+
+/* ── Category sections (tools directory) ── */
+.cat-section {
+  margin-bottom: 48px;
+  scroll-margin-top: 24px;
+}
+.cat-section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+.cat-section-head h2 {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.cat-icon {
+  font-size: 24px;
+}
+.cat-section-head .cat-count {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+
+
+/* ── Full-suite payment rail system ─────────────────────────────── */
+nav {
+  gap: 16px;
+}
+nav .logo {
+  background: rgba(8, 16, 21, 0.72);
+  border: 1px solid rgba(45, 212, 191, 0.24);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+}
+nav .logo:hover {
+  color: var(--text);
+  border-color: rgba(45, 212, 191, 0.38);
+}
+nav .links {
+  gap: 8px;
+  padding: 6px;
+  border: 1px solid rgba(45, 212, 191, 0.18);
+  border-radius: 16px;
+  background: linear-gradient(180deg, rgba(6, 8, 12, 0.72), rgba(10, 17, 24, 0.56));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+  backdrop-filter: blur(14px);
+}
+nav .links a {
+  padding: 8px 12px;
+  border: 1px solid rgba(56, 78, 112, 0.22);
+  background: rgba(8, 16, 21, 0.54);
+}
+nav .links a:hover {
+  color: var(--text);
+  border-color: rgba(45, 212, 191, 0.34);
+  background: rgba(45, 212, 191, 0.08);
+}
+nav .links .cta {
+  background: rgba(45, 212, 191, 0.12);
+  border-color: rgba(45, 212, 191, 0.38);
+  color: #8ddfd5;
+}
+.rail-card,
+.cat-card,
+.tool-card,
+.step,
+.detail-page .tool-section,
+.tldr,
+.author-card,
+.rail-search,
+footer .inner {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(45, 212, 191, 0.22);
+  background: linear-gradient(180deg, rgba(6, 8, 12, 0.76), rgba(13, 23, 29, 0.62));
+  box-shadow: var(--rail-glow), inset 0 1px 0 rgba(255,255,255,0.06);
+  backdrop-filter: blur(14px);
+}
+.cat-card,
+.tool-card,
+.step,
+.detail-page .tool-section,
+.tldr,
+.author-card {
+  padding-top: 56px;
+}
+.rail-search {
+  margin-bottom: 32px;
+  border-radius: 16px;
+  padding: 46px 14px 14px;
+}
+.rail-card {
+  border-radius: 20px;
+}
+.author-card {
+  border-radius: 18px;
+  padding: 56px 22px 22px;
+}
+.rail-card::before,
+.cat-card::before,
+.tool-card::before,
+.step::before,
+.detail-page .tool-section::before,
+.tldr::before,
+.author-card::before,
+.rail-search::before,
+footer .inner::before {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  border-bottom: 1px solid rgba(45, 212, 191, 0.16);
+  background: rgba(8, 16, 21, 0.62);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  line-height: 1;
+  letter-spacing: 0.14em;
+  color: #8ddfd5;
+}
+.cat-card::before,
+.tool-card::before {
+  content: none;
+  display: none;
+}
+.cat-card:not([data-rail-label]),
+.tool-card:not([data-rail-label]) {
+  padding-top: 24px;
+}
+.cat-card[data-rail-label],
+.tool-card[data-rail-label] {
+  padding-top: 56px;
+}
+.cat-card[data-rail-label]::before,
+.tool-card[data-rail-label]::before {
+  content: attr(data-rail-label);
+  display: flex;
+}
+.step::before { content: 'PAYMENT RAIL'; }
+.detail-page .tool-section::before { content: attr(data-rail-label); }
+.tldr::before { content: 'ARTICLE'; }
+.author-card::before { content: 'OPERATOR'; }
+.rail-search::before { content: 'SEARCH'; }
+footer .inner::before {
+  content: none;
+  display: none;
+}
+.rail-card::before { content: attr(data-rail-label); }
+.cat-card:hover,
+.tool-card:hover {
+  border-color: rgba(45, 212, 191, 0.42);
+  transform: none;
+  box-shadow: 0 0 34px rgba(45, 212, 191, 0.14), inset 0 1px 0 rgba(255,255,255,0.07);
+}
+.btn {
+  border: 1px solid rgba(45, 212, 191, 0.24);
+  background: rgba(8, 16, 21, 0.68);
+  color: var(--text);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+}
+.btn-primary {
+  background: rgba(45, 212, 191, 0.14);
+  border-color: rgba(45, 212, 191, 0.44);
+  color: #a7fff4;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.07);
+}
+.btn-primary:hover,
+.btn:hover {
+  transform: none;
+  border-color: rgba(45, 212, 191, 0.52);
+  box-shadow: 0 0 26px rgba(45, 212, 191, 0.12), inset 0 1px 0 rgba(255,255,255,0.07);
+}
+.btn:active { transform: none; }
+.search-bar {
+  margin-bottom: 0;
+  border: 0;
+  background: rgba(6, 8, 12, 0.62);
+  box-shadow: inset 0 0 0 1px rgba(56, 78, 112, 0.24);
+}
+.search-bar:focus {
+  box-shadow: inset 0 0 0 1px rgba(45, 212, 191, 0.54), var(--focus-ring);
+}
+footer {
+  border-top: 0;
+}
+footer .inner {
+  border-radius: 20px;
+  padding: 24px;
+  border-color: rgba(45, 212, 191, 0.14);
+  background: linear-gradient(180deg, rgba(6, 8, 12, 0.58), rgba(10, 17, 24, 0.42));
+  box-shadow: 0 0 22px rgba(45, 212, 191, 0.06), inset 0 1px 0 rgba(255,255,255,0.04);
+  flex-direction: column;
+  align-items: stretch;
+  gap: 18px;
+}
+footer .build-public,
+footer .footer-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+footer .build-public {
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(45, 212, 191, 0.12);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  line-height: 1.2;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+footer .build-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+footer .build-status::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent);
+}
+footer .studio-mark {
+  color: var(--text-2);
+}
+footer .footer-meta {
+  flex-wrap: wrap;
+}
+footer .links {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+footer .links a {
+  padding: 7px 10px;
+  border: 1px solid rgba(56, 78, 112, 0.22);
+  border-radius: 8px;
+  background: rgba(8, 16, 21, 0.42);
+  transition: color var(--duration-fast) ease, border-color var(--duration-fast) ease, background-color var(--duration-fast) ease;
+}
+footer .links a:hover {
+  color: var(--text);
+  border-color: rgba(45, 212, 191, 0.34);
+  background: rgba(45, 212, 191, 0.08);
+}
+.detail-page .back-link,
+.section-head a,
+article a,
+.back-link a {
+  border-radius: 8px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  #shader-bg { display: none; }
+  .hero .badge,
+  .hero h1,
+  .hero .sub,
+  .hero .actions,
+  .hero .stats,
+  .hero .badge::before {
+    animation: none;
+  }
+  .tool-card:hover { transform: none; }
+  .cat-card:hover { transform: none; }
+  .btn-primary:hover { transform: none; }
+  .btn:active { transform: none; }
+}
+
+
+
+.blog-shell {
+  padding: 48px 32px 80px;
+}
+.blog-frame {
+  max-width: 1160px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 760px) 300px;
+  gap: 36px;
+  align-items: start;
+}
+.blog-kicker {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  color: #8ddfd5;
+  margin-bottom: 14px;
+}
+.blog-title {
+  max-width: 780px;
+  font-size: clamp(34px, 5vw, 60px);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.05em;
+  color: var(--text);
+  text-shadow: 0 0 42px rgba(45, 212, 191, 0.10), 0 1px 0 rgba(255,255,255,0.12);
+  margin-bottom: 24px;
+}
+.back-link,
+.blog-kicker,
+.blog-title {
+  margin-left: 24px;
+  margin-right: 24px;
+}
+.blog-hero-card {
+  padding: 0;
+  border-radius: 0;
+  margin: 0 24px 40px;
+}
+.blog-hero-card::before { content: none; display: none; }
+.blog-hero-card img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1200 / 630;
+  border-radius: 12px;
+  border: 1px solid rgba(45, 212, 191, 0.18);
+}
+.blog-article {
+  padding: 0 24px 20px;
+}
+.blog-article::before { content: none; display: none; }
+.blog-article .tldr::before { content: 'TL;DR'; }
+.blog-article .tldr {
+  border-radius: 20px;
+  padding: 66px 30px 28px;
+  margin: 0 0 42px;
+  color: var(--text);
+  font-size: 17px;
+  line-height: 1.7;
+}
+.blog-article h2 {
+  font-size: 26px;
+  font-weight: 750;
+  letter-spacing: -0.02em;
+  margin: 56px 0 18px;
+}
+.blog-article h3 {
+  font-size: 19px;
+  font-weight: 650;
+  margin: 34px 0 14px;
+}
+.blog-article p,
+.blog-article li {
+  color: var(--text-2);
+  font-size: 17px;
+  line-height: 1.82;
+}
+.blog-article p { margin-bottom: 22px; }
+.blog-article ul { margin: 16px 0 22px 24px; }
+.blog-article hr {
+  border: 0;
+  border-top: 1px solid rgba(45, 212, 191, 0.16);
+  margin: 44px 0;
+}
+.blog-article code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .86em;
+  background: rgba(45,212,191,.10);
+  padding: 3px 7px;
+  border-radius: 6px;
+  color: #8ddfd5;
+}
+.blog-article pre {
+  background: rgba(6,8,12,.72);
+  border: 1px solid rgba(45,212,191,.20);
+  border-radius: 16px;
+  padding: 24px;
+  overflow-x: auto;
+  margin: 24px 0 30px;
+}
+.blog-article pre code {
+  background: none;
+  padding: 0;
+  color: var(--text);
+  font-size: 13.5px;
+  line-height: 1.65;
+}
+.blog-article a { color: #8ddfd5; }
+.blog-article strong { color: var(--text); }
+.blog-side {
+  position: sticky;
+  top: 20px;
+  display: grid;
+  gap: 16px;
+}
+.blog-side .rail-card,
+.blog-side .author-card {
+  border-radius: 20px;
+  padding: 60px 22px 22px;
+}
+.blog-side .rail-card p,
+.blog-side .author-card p {
+  color: var(--text-2);
+  font-size: 14px;
+  line-height: 1.65;
+}
+.meta {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  margin-bottom: 8px;
+}
+.back-link { margin-bottom: 22px; }
+.back-link a { color: #8ddfd5; text-decoration: none; font-size: 14px; }
+.cta-row {
+  margin-top: 20px;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.blog-side .cta-row .btn {
+  justify-content: center;
+  min-width: 176px;
+}
+.author-card .flex { display:flex; gap:16px; align-items:center; }
+.avatar { width:48px;height:48px;border-radius:50%;overflow:hidden;flex-shrink:0; }
+@media (max-width: 900px) {
+  .blog-frame { grid-template-columns: 1fr; gap: 28px; }
+  .blog-side { position: relative; top: auto; }
+}
+@media (max-width: 768px) {
+  .blog-shell { padding: 24px 20px 60px; }
+  .back-link,
+  .blog-kicker,
+  .blog-title {
+    margin-left: 2px;
+    margin-right: 2px;
+  }
+  .blog-hero-card { margin: 0 2px 36px; }
+  .blog-article { padding: 0 2px 24px; }
+  .blog-article .tldr { padding: 62px 22px 24px; }
+}
+
+
+.blog-frame > div {
+  min-width: 0;
+}
+.blog-title {
+  overflow-wrap: anywhere;
+}
+.blog-hero-card img {
+  max-width: 100%;
+}
+.article-visual {
+  margin: 34px 0 40px;
+}
+.article-visual img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 18px;
+  border: 1px solid rgba(45, 212, 191, 0.20);
+  background: #06080c;
+  box-shadow: 0 18px 46px rgba(0,0,0,.30);
+}
+.article-visual figcaption {
+  margin: 11px 8px 0;
+  color: var(--text-3);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  line-height: 1.55;
+}
+.blog-article table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin: 26px 0 34px;
+  overflow: hidden;
+  border: 1px solid rgba(45, 212, 191, 0.20);
+  border-radius: 16px;
+  background: rgba(6,8,12,.56);
+}
+.blog-article th,
+.blog-article td {
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(56,78,112,.28);
+  color: var(--text-2);
+  font-size: 14px;
+  text-align: left;
+}
+.blog-article th {
+  color: var(--text);
+  background: rgba(45,212,191,.08);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  letter-spacing: .03em;
+}
+.blog-article tr:last-child td { border-bottom: 0; }
+.blog-article td:not(:first-child),
+.blog-article th:not(:first-child) { text-align: right; }
+@media (max-width: 620px) {
+  .blog-article table { display: block; overflow-x: auto; white-space: nowrap; }
+  .article-visual { margin-left: -4px; margin-right: -4px; }
+  .article-visual figcaption { font-size: 11px; }
+}
+
+
+.blog-frame > div {
+  min-width: 0;
+}
+.blog-title {
+  overflow-wrap: anywhere;
+}
+.article-visual {
+  margin: 34px 0 40px;
+}
+.blog-article table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin: 26px 0 34px;
+  overflow: hidden;
+  border: 1px solid rgba(45, 212, 191, 0.20);
+  border-radius: 16px;
+  background: rgba(6,8,12,.56);
+}
+.blog-article th,
+.blog-article td {
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(56,78,112,.28);
+  color: var(--text-2);
+  font-size: 14px;
+  text-align: left;
+}
+.blog-article th {
+  color: var(--text);
+  background: rgba(45,212,191,.08);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  letter-spacing: .03em;
+}
+.blog-article tr:last-child td { border-bottom: 0; }
+.blog-article h2 {
+  margin-top: 40px;
+}
+.blog-article ul {
+  margin: 18px 0 24px;
+  padding-left: 22px;
+  color: var(--text-2);
+}
+.blog-article ul li {
+  margin: 8px 0;
+}
+.blog-article ul li a {
+  color: var(--accent);
+}
+@media (max-width: 620px) {
+  .blog-article table { display: block; overflow-x: auto; white-space: nowrap; }
+  .article-visual { margin-left: -4px; margin-right: -4px; }
+}
+
+
+.blog-frame > div {
+  min-width: 0;
+}
+.blog-title {
+  overflow-wrap: anywhere;
+}
+.article-visual {
+  margin: 34px 0 40px;
+}
+.blog-article table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin: 26px 0 34px;
+  overflow: hidden;
+  border: 1px solid rgba(45, 212, 191, 0.20);
+  border-radius: 16px;
+  background: rgba(6,8,12,.56);
+}
+.blog-article th,
+.blog-article td {
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(56,78,112,.28);
+  color: var(--text-2);
+  font-size: 14px;
+  text-align: left;
+}
+.blog-article th {
+  color: var(--text);
+  background: rgba(45,212,191,.08);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  letter-spacing: .03em;
+}
+.blog-article tr:last-child td { border-bottom: 0; }
+.blog-article h2 {
+  margin-top: 40px;
+}
+.blog-article ul {
+  margin: 18px 0 24px;
+  padding-left: 22px;
+  color: var(--text-2);
+}
+.blog-article ul li {
+  margin: 8px 0;
+}
+.blog-article ul li a {
+  color: var(--accent);
+}
+@media (max-width: 620px) {
+  .blog-article table { display: block; overflow-x: auto; white-space: nowrap; }
+  .article-visual { margin-left: -4px; margin-right: -4px; }
+}
+
+</style>
+</head><body>
+<nav>
+  <a href="/" class="logo" style="text-decoration:none;color:inherit;">agent<span>toll</span>.dev</a>
+  <button class="nav-toggle" aria-label="Menu" onclick="document.querySelector('nav .links').classList.toggle('open')">≡</button>
+  <div class="links">
+    <a href="/tools">Tools</a>
+    <a href="/docs">Docs</a>
+    <a href="/discovery">Discovery</a>
+    <a href="/blog">Blog</a>
+    <a href="/.well-known/agent.json">agent.json</a>
+    <a href="/api/system/info">API</a>
+    <a href="/mcp" class="cta">MCP Endpoint</a>
+  </div>
+</nav>
+<main class="blog-shell">
+  <div class="blog-frame">
+    <div>
+      <div class="back-link"><a href="/blog">← Back to blog</a></div>
+      <div class="blog-kicker">ANALYSIS · X402 · THE CHAIN LAND GRAB</div>
+      <h1 class="blog-title">Every chain wants the agent rail: x402 gets five new lanes and the same traffic</h1>
+      <article class="blog-article">
+<div class="tldr"><strong>TL;DR:</strong> Ten days in September put five new payment rails in front of AI agents: Block's Lightning integration, Cardano's SDK entry and facilitator, Algorand's kit, Solana's batch settlement, Coinbase's agent wallets. The same month, the audited agentic share of x402's settled value still read 0.6 to 7.5 percent. The industry answered a demand problem with supply. Here is the seller-side read: what the queue actually signals, what shipped this week on our own endpoints, and what not to do.</div>
+<p>Last Thursday Block — Jack Dorsey's company — joined the x402 Foundation and plugged Bitcoin's Lightning Network into the agent payment standard. The pitch is the right one: agents will need low-cost, high-volume payments, and Lightning is built for exactly that.</p>
+<p>Three days earlier, Cardano put ADA into the official x402 SDK and announced its own facilitator. Algorand shipped an x402 kit the same week; ALGO jumped 14 percent on the news. Solana, which already carries most x402 traffic, moved batch settlement for micropayments into public preview on Tuesday. Coinbase launched agent wallets for trading the same day.</p>
+<p>Count them: five new payment rails for AI agents in ten days.</p>
+<p>Now the awkward chart. A blockchain intelligence firm audited x402's settled value this month: of $25.6 million that survived fraud screens, somewhere between 0.6 and 7.5 percent looks like it came from AI agents. That is roughly $5,000 to $11,000 a month of agent commerce on a rail that has settled tens of millions.</p>
+<p>The industry saw that number and decided the problem was throughput.</p>
+<figure class="article-visual"><img alt="Timeline of the September 2026 rail queue: Cardano in the x402 SDK, the Cardano facilitator and Algorand kit, Block joining the foundation with Lightning, and Solana batch settlement with Coinbase agent wallets." height="640" src="/blog/x402-chain-queue.svg" width="1200"/><figcaption>Five new ways for an agent to pay, announced between September 21 and 30, 2026. The highlighted row is the big one: Block joining the x402 Foundation with Bitcoin Lightning support. Cardano's facilitator is still off mainnet — the announcement outran the infrastructure.</figcaption></figure>
+<h2>More roads, same traffic</h2>
+<p>To be fair to everyone shipping: none of this is stupid. Lightning gives agents a Bitcoin-denominated rail with near-zero fees. ADA and ALGO integrations give two large holder communities a reason to point their chains at agent commerce. Batch settlement on Solana attacks a real constraint — settling thousands of two-cent calls one at a time is a losing game.</p>
+<p>And the demand number is not nothing. It is small, but it is real and growing from a real base. Cardano's facilitator is still off mainnet — the announcement outran the infrastructure — but the Cardano SDK integration is live, and every new rail lowers the odds that an agent fails to pay simply because its wallet speaks the wrong chain.</p>
+<p>That last part matters more than it sounds. Payment friction is invisible when it works and fatal when it doesn't. An agent that can't pay doesn't file a support ticket. It picks the other seller.</p>
+<figure class="article-visual"><img alt="Honest-scale contrast: payment rails multiplied across Base, Solana, Polygon, XRP, Cardano, Algorand and Lightning, while the agentic share of screened settled value stayed a 0.6 to 7.5 percent sliver, enlarged about six times to stay visible." height="640" src="/blog/x402-two-highways.svg" width="1200"/><figcaption>The sliver is enlarged about six times so you can see it at all. On true scale, the agentic share of $25.6 million in screened settled value is a hairline. Rail supply on top; audited demand on the bottom.</figcaption></figure>
+<h2>What the queue actually tells you</h2>
+<p>Here is the seller-side read, from someone who runs paid endpoints on this rail.</p>
+<p>Announcements tell you where the industry is pointing. Settlements tell you where agents are paying. Those are different maps, and only one of them takes your money.</p>
+<p>The queue says supply. Every rail launch is a chain marketing itself into the default slot for agent commerce — the same slot Solana quietly occupies today, with roughly 23 million transactions in the last month. The audited demand number has not moved off its sliver. When five chains compete for a market worth five figures a month, the competition is not for revenue. It is for position.</p>
+<p>That is not cynical. Position is how standards win — Visa spent decades buying the default slot before the volume justified it. But sellers should not confuse the race for position with the arrival of customers. If you reprice your catalog, restructure your endpoints, or chase a chain integration because of a launch-week headline, you are trading against supply news on a demand-sized market.</p>
+<h2>What this seller is doing</h2>
+<p>Three things, in order.</p>
+<p>First, accept payment wherever agents already are, not wherever the press release is. This week I shipped dual-rail payment terms across my catalog: agents can settle in USDC on Base or on Solana, their choice, same endpoints, same prices. Solana because that is where the paying agents actually are today — two outlets clocked 23 million transactions there in four weeks — not because of a token. The Base rail stays. The point is that the seller pays nothing to widen the door, so the door gets widened.</p>
+<p>Second, stay legible. The agents that do pay pick sellers the way the Bazaar ranks them: complete descriptions, real input schemas, example outputs. Listing is table stakes; metadata is the ranking. This is the same argument as last month — the scarce skill in agent commerce is being understood, not being reachable.</p>
+<p>Third, keep receipts. When the demand wave comes — and the pipeline of agent wallets, budget middleware, and know-your-agent frameworks says it is being built whether this quarter proves it or not — the sellers who survive scrutiny will be the ones who can show what a payment bought. A receipt that binds the task, the price, and the result is the whole business. The rail it settled on is a detail.</p>
+<h2>The honest close</h2>
+<p>None of this proves agent commerce has arrived. Five new lanes is not traffic. The traffic report still reads 0.6 to 7.5 percent, and the same audit that produced it found agents paying for stock quotes and little else.</p>
+<p>But watch what the queue is for. Nobody builds five payment rails in ten days for a market that stays small. The chains are positioning for the agent economy they expect — and the sellers who set up now, on the rails where agents already pay, with metadata that ranks and receipts that prove value, will not have to scramble when the expectations and the traffic finally meet.</p>
+<p>Rail supply is not demand. But it is the industry betting, publicly and in writing, that demand is coming.</p>
+<p>Put your endpoint where the bet is.</p>
+<h2>Sources</h2>
+<ul>
+<li><a href="https://blockonomi.com/block-joins-x402-foundation-adds-bitcoin-lightning-payments-for-ai-agents/">Blockonomi — Block Joins x402 Foundation, Adds Bitcoin Lightning Payments for AI Agents</a> (Sep 25, 2026)</li>
+<li><a href="https://www.thestreet.com/crypto/solana-dominates-x402-with-23-2m-transactions-in-four-weeks">The Street — Solana dominates x402 with 23.2M transactions in four weeks</a> (Sep 22, 2026)</li>
+<li><a href="https://www.tradingview.com/news/">TradingView — Cardano: ADA Goes Live in the Official x402 SDK</a> (Sep 21, 2026)</li>
+<li><a href="https://99bitcoins.com/news/cardano-news-ada-introduces-x402-facilitator/">99Bitcoins — ADA Introduces x402 Facilitator</a> (Sep 22, 2026)</li>
+<li><a href="https://cryptorank.io/news/">CryptoRank — AI agents can pay in ADA via x402, with Cardano's facilitator still off mainnet</a> (Sep 23, 2026)</li>
+<li><a href="https://ambcrypto.com/">AMBCrypto — Algorand's x402 challenge becomes the AI catalyst behind ALGO's 14% surge</a> (Sep 29, 2026)</li>
+<li><a href="https://tradersunion.com/">Traders Union — X402 kit adds Algorand payments for AI apps</a> (Sep 24, 2026)</li>
+<li><a href="https://www.tradingview.com/news/">TradingView — Solana: x402 batch settlement enters public preview for micropayments</a> (Sep 30, 2026)</li>
+<li><a href="https://coinmarketcap.com/academy/">CoinMarketCap — Coinbase Launches AI Agent Wallets for Crypto Trading</a> (Sep 30, 2026)</li>
+<li><a href="https://www.trmlabs.com/trm-tech-blog/whos-actually-paying-measuring-ai-agent-payments-onchain">TRM Labs — Who's Actually Paying? Measuring AI Agent Payments Onchain</a> (Sep 2026)</li>
+</ul>
+      </article>
+    </div>
+    <aside class="blog-side">
+      <div class="rail-card" data-rail-label="ARTICLE META"><div class="meta">Analysis · September 30, 2026</div><p>Five new x402 payment rails shipped in ten days — Block's Lightning, Cardano, Algorand, Solana batch settlement, Coinbase agent wallets — while the audited agentic share of settled value stayed a 0.6 to 7.5 percent sliver. What the rail queue actually signals, and where a seller should stand.</p></div>
+      <div class="rail-card" data-rail-label="RELATED"><p><a href="/blog/x402-402-wall" style="color:var(--accent);">The 402 wall: x402 just got its demand audit</a></p><p><a href="/blog/agents-buy-stock-data" style="color:var(--accent);">What agents will buy first isn't stocks</a></p><p><a href="/tools" style="color:var(--accent);">Browse paid work products</a></p><p><a href="/receipt" style="color:var(--accent);">Receipt verifier</a></p></div>
+      <div class="author-card"><div class="flex"><div class="avatar" style="overflow:hidden;"><img src="/hu-white-pfp.jpg" alt="Hu White" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"></div><div><div style="font-size:15px;font-weight:600;">Hu White</div><div style="font-size:13px;color:var(--text-3);">Generative-AI veteran &#183; x402 builder &#183; <a href="https://github.com/huwhitememes" style="color:var(--accent);">GitHub</a> &#183; <a href="https://www.linkedin.com/in/huwhitememes/" style="color:var(--accent);">LinkedIn</a> &#183; <a href="https://x.com/memerhuwhite" style="color:var(--accent);">X</a></div></div></div><p style="font-size:13px;color:var(--text-2);margin-top:12px;line-height:1.6;">Built and operates agenttoll.dev, a marketplace of receipt-backed paid work products settling on Base USDC.</p></div>
+      <div class="cta-row"><a href="/tools" class="btn btn-primary">Inspect paid work →</a></div>
+    </aside>
+  </div>
+</main>
+<footer>
+  <div class="inner">
+    <div class="build-public">
+      <div class="build-status">v0.2, building in public</div>
+      <div class="studio-mark">© 2026 MEME KING STUDIO</div>
+    </div>
+    <div class="footer-meta">
+      <div class="left">Built by Hu White · <a href="mailto:memerhuwhite@gmail.com" style="color: var(--accent); text-decoration: none;">Contact</a> · Settles on Base USDC to <code>0x62a0…7F1</code></div>
+      <div class="links">
+        <a href="/tools">Tools</a>
+        <a href="/discovery">Discovery</a>
+        <a href="/mcp">MCP</a>
+        <a href="/.well-known/mcp.json">MCP manifest</a>
+        <a href="/openapi.json">OpenAPI</a>
+        <a href="/llms-full.txt">llms-full.txt</a>
+        <a href="/.well-known/agent.json">agent.json</a>
+        <a href="mailto:memerhuwhite@gmail.com">Contact</a>
+      </div>
+    </div>
+  </div>
+</footer>
+</body>
+</html>

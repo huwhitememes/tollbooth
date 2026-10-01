@@ -6658,6 +6658,7 @@ export default {
     if (url.pathname.startsWith("/blog/")) {
       const blogHtmlAssets: Record<string, string> = {
         "/blog/x402-402-wall": "/_worker-assets/x402-402-wall",
+        "/blog/x402-chain-land-grab": "/_worker-assets/x402-chain-land-grab",
         "/blog/agents-buy-stock-data": "/_worker-assets/agents-buy-stock-data",
         "/blog/x402-judgment-problem": "/_worker-assets/x402-judgment-problem",
         "/blog/base-mcp-x402-agent-buyers": "/_worker-assets/base-mcp-x402-agent-buyers",
