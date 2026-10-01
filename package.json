@@ -20,6 +20,7 @@
     "@x402/extensions": "^2.18.0",
     "@x402/fetch": "^2.18.0",
     "@x402/hono": "^2.18.0",
+    "@x402/svm": "^2.18.0",
     "agents": "latest",
     "hono": "^4.12.29",
     "viem": "^2.53.1",
@@ -28,7 +29,7 @@
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20260629.1",
     "@types/node": "^26.1.0",
-    "tsx": "^4.23.0",
+    "tsx": "^4.23.15",
     "typescript": "^5.5.0",
     "wrangler": "^4.107.0"
   }

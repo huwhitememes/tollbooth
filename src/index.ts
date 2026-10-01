@@ -3,6 +3,7 @@ import { HTTPFacilitatorClient, x402ResourceServer } from "@x402/core/server";
 import { McpAgent } from "agents/mcp";
 import { withX402, type X402Config } from "agents/x402";
 import { registerExactEvmScheme } from "@x402/evm/exact/server";
+import { registerExactSvmScheme } from "@x402/svm/exact/server";
 import { bazaarResourceServerExtension, declareDiscoveryExtension } from "@x402/extensions/bazaar";
 import { paymentMiddleware } from "@x402/hono";
 import { createFacilitatorConfig } from "@coinbase/x402";
@@ -62,6 +63,14 @@ const SERVICE = {
   usdc: (process.env.X402_USDC as `0x${string}`) ?? "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
   facilitator: process.env.X402_FACILITATOR ?? (hasCdpCredentials ? CDP_FACILITATOR_URL : PAYAI_FACILITATOR_URL),
 } as const;
+
+// ── Solana rail (env-gated; inert until SOLANA_PAYTO is set) ────────────────
+const SOLANA_NETWORK = "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp"; // Solana mainnet (CAIP-2)
+const SOLANA_USDC_MAINNET = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
+const solanaPayTo = process.env.SOLANA_PAYTO ?? "";
+// Solana settlements route through the PayAI facilitator (public /supported; it
+// settles solana mainnet). CDP facilitator stays primary for EVM networks.
+const hasSolanaRail = Boolean(solanaPayTo && SERVICE.facilitator !== CDP_FACILITATOR_URL);
 
 const TOOLS = [
   {
@@ -984,8 +993,35 @@ function createFacilitatorClientConfig() {
 }
 
 const httpFacilitator = new ResilientFacilitatorClient(createFacilitatorClientConfig());
-const httpResourceServer = new x402ResourceServer(httpFacilitator);
+// Solana rides the PayAI facilitator even when CDP is primary for EVM — CDP's
+// /supported does not list solana; PayAI settles it (verified via GET /supported).
+// Workers forbid fetch in global scope, so init-time /supported calls fail; this
+// client mirrors ResilientFacilitatorClient's static-kinds fallback (PayAI's
+// solana feePayer below is from its live /supported response, 2026-09-30).
+const PAYAI_SOLANA_FEE_PAYER = "CjNFTjvBhbJJd2B5ePPMHRLx1ELZpa8dwQgGL727eKww";
+class ResilientSolanaFacilitatorClient extends HTTPFacilitatorClient {
+  override async getSupported(): Promise<Awaited<ReturnType<HTTPFacilitatorClient["getSupported"]>>> {
+    try {
+      const supported = await super.getSupported();
+      if (supported.kinds.some((kind) => kind.x402Version === 2 && kind.scheme === "exact" && kind.network === SOLANA_NETWORK)) {
+        return supported;
+      }
+    } catch (error) {
+      console.warn("PayAI /supported failed; using exact Solana capability fallback", error);
+    }
+    return {
+      kinds: [{ x402Version: 2, scheme: "exact", network: SOLANA_NETWORK, extra: { feePayer: PAYAI_SOLANA_FEE_PAYER } }],
+      extensions: ["bazaar"],
+      signers: {},
+    };
+  }
+}
+const solanaFacilitator = hasSolanaRail ? new ResilientSolanaFacilitatorClient({ url: PAYAI_FACILITATOR_URL }) : null;
+const httpResourceServer = new x402ResourceServer(solanaFacilitator ? [httpFacilitator, solanaFacilitator] : httpFacilitator);
 registerExactEvmScheme(httpResourceServer);
+if (hasSolanaRail) {
+  registerExactSvmScheme(httpResourceServer, { networks: [SOLANA_NETWORK] });
+}
 httpResourceServer.registerExtension(bazaarResourceServerExtension);
 
 const marketScanDiscovery = declareDiscoveryExtension({
@@ -1431,6 +1467,7 @@ paidHttp.get("/paid/*", async (c) => {
     price_usd: tool.price_usd,
     network: SERVICE.network,
     facilitator: SERVICE.facilitator,
+    ...(hasSolanaRail ? { networks_accepted: [SERVICE.network, SOLANA_NETWORK], solana_usdc: SOLANA_USDC_MAINNET } : {}),
     message: "This is free buyer metadata for an x402 paid work product. POST JSON to receive the 402 payment challenge, then retry with a signed payment.",
     buyer_contract: toolBuyerContract(tool),
     approval_prompt: toolApprovalPrompt(tool),
@@ -1450,6 +1487,52 @@ paidHttp.get("/paid/*", async (c) => {
 });
 
 
+// Derive a JSON-schema hint (Bazaar ranking input: input schema completeness)
+// from a TOOLS[].input prose map like { url: "string, include https://" }.
+function jsonSchemaHintFor(input: unknown): { properties: Record<string, any>; required: string[] } | undefined {
+  if (!input || typeof input !== "object" || Array.isArray(input)) return undefined;
+  const properties: Record<string, any> = {};
+  const required: string[] = [];
+  for (const [key, hint] of Object.entries(input as Record<string, unknown>)) {
+    const text = typeof hint === "string" ? hint : JSON.stringify(hint) ?? "";
+    const isOptional = /optional/i.test(text);
+    let type = "string";
+    if (/integer|\bint\b/i.test(text)) type = "integer";
+    else if (/number|float|decimal/i.test(text)) type = "number";
+    else if (/boolean|flag/i.test(text)) type = "boolean";
+    else if (/array|list of/i.test(text)) type = "array";
+    properties[key] = { type, description: text };
+    if (!isOptional) required.push(key);
+  }
+  return { properties, required };
+}
+
+// Discovery extension for a TOOLS entry: example input + derived schema + output sample.
+function toolDiscoveryExtension(tool: any) {
+  const input = tool.example && typeof tool.example === "object" && !Array.isArray(tool.example) ? tool.example : {};
+  const inputSchema = jsonSchemaHintFor(tool.input);
+  const outputExample =
+    tool.output && typeof tool.output === "object" && !Array.isArray(tool.output)
+      ? (tool.output.example ?? tool.output)
+      : undefined;
+  return declareDiscoveryExtension({
+    bodyType: "json",
+    input,
+    ...(inputSchema ? { inputSchema } : {}),
+    ...(outputExample ? { output: { example: outputExample } } : {}),
+  });
+}
+
+// Payment options for a route: Base USDC always; Solana USDC added when the
+// rail is configured (SOLANA_PAYTO set and not riding the CDP-only path).
+function routeAccepts(price: string) {
+  const base: any = { scheme: "exact", price, network: SERVICE.network, payTo: SERVICE.seller };
+  if (hasSolanaRail) {
+    return [base, { scheme: "exact", price, network: SOLANA_NETWORK, payTo: solanaPayTo }];
+  }
+  return base;
+}
+
 function genericPaymentRoutes(): Record<string, any> {
   const routes: Record<string, any> = {};
   for (const tool of TOOLS as readonly any[]) {
@@ -1461,13 +1544,14 @@ function genericPaymentRoutes(): Record<string, any> {
       .flatMap((part) => part.split("-"))
       .filter(Boolean);
     routes[`POST ${tool.http_path}`] = {
-      accepts: { scheme: "exact", price: `$${tool.price_usd}`, network: SERVICE.network, payTo: SERVICE.seller },
+      accepts: routeAccepts(`$${tool.price_usd}`),
       resource: `${SERVICE.origin}${tool.http_path}`,
       description: tool.description,
       mimeType: "application/json",
       serviceName: "agenttoll.dev",
       tags: Array.from(new Set([...pathTags, String(tool.name), "x402", "paid-api", "ai-agents"])),
       iconUrl: `${SERVICE.origin}/favicon.svg`,
+      extensions: toolDiscoveryExtension(tool),
       unpaidResponseBody: () => ({
         contentType: "application/json",
         body: { error: "payment_required", price_usd: String(tool.price_usd), network: SERVICE.network },
@@ -1511,7 +1595,7 @@ paidHttp.use("/paid/*", async (c, next) => {
 paidHttp.use(paymentMiddleware({
   ...genericPaymentRoutes(),
   "POST /paid/polymarket/event-scan": {
-    accepts: { scheme: "exact", price: "$0.03", network: SERVICE.network, payTo: SERVICE.seller },
+    accepts: routeAccepts("$0.03"),
     resource: `${SERVICE.origin}/paid/polymarket/event-scan`,
     description: "Live fee-adjusted Polymarket negRisk event scan",
     mimeType: "application/json",
@@ -1522,7 +1606,7 @@ paidHttp.use(paymentMiddleware({
     unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.03", network: SERVICE.network } }),
   },
   "POST /paid/polymarket/market-scan": {
-    accepts: { scheme: "exact", price: "$0.05", network: SERVICE.network, payTo: SERVICE.seller },
+    accepts: routeAccepts("$0.05"),
     resource: `${SERVICE.origin}/paid/polymarket/market-scan`,
     description: "Live Polymarket resolution-candidate and bundle-violation scan",
     mimeType: "application/json",
@@ -1533,7 +1617,7 @@ paidHttp.use(paymentMiddleware({
     unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.05", network: SERVICE.network } }),
   },
   "POST /paid/markets/cross-platform-scan": {
-    accepts: { scheme: "exact", price: "$0.10", network: SERVICE.network, payTo: SERVICE.seller },
+    accepts: routeAccepts("$0.10"),
     resource: `${SERVICE.origin}/paid/markets/cross-platform-scan`,
     description: "Live Polymarket-versus-Kalshi cross-platform spread scan",
     mimeType: "application/json",
@@ -1544,7 +1628,7 @@ paidHttp.use(paymentMiddleware({
     unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.10", network: SERVICE.network } }),
   },
   "POST /paid/x402/market-radar": {
-    accepts: { scheme: "exact", price: "$0.05", network: SERVICE.network, payTo: SERVICE.seller },
+    accepts: routeAccepts("$0.05"),
     resource: `${SERVICE.origin}/paid/x402/market-radar`,
     description: "CDP Bazaar market radar for x402 builders, paid MCP tools, and paid data APIs for AI agents — catalog size, keyword ranks, AgentToll visibility, vertical competition, price samples, and next actions",
     mimeType: "application/json",
@@ -1555,7 +1639,7 @@ paidHttp.use(paymentMiddleware({
     unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.05", network: SERVICE.network } }),
   },
   "POST /paid/x402/rank-audit": {
-    accepts: { scheme: "exact", price: "$0.10", network: SERVICE.network, payTo: SERVICE.seller },
+    accepts: routeAccepts("$0.10"),
     resource: `${SERVICE.origin}/paid/x402/rank-audit`,
     description: "Buyer-keyword rank audit for one x402 resource, paid MCP tool, or paid data API: Bazaar position, competitors above it, metadata defects, and next fixes",
     mimeType: "application/json",
@@ -1566,7 +1650,7 @@ paidHttp.use(paymentMiddleware({
     unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.10", network: SERVICE.network } }),
   },
   "POST /paid/mcp/safety-brief": {
-    accepts: { scheme: "exact", price: "$0.10", network: SERVICE.network, payTo: SERVICE.seller },
+    accepts: routeAccepts("$0.10"),
     resource: `${SERVICE.origin}/paid/mcp/safety-brief`,
     description: "MCP safety brief for agent buyers: tool risk, credential and PII hints, allowlist advice, approval policy, and safety line before connection",
     mimeType: "application/json",
@@ -1577,7 +1661,7 @@ paidHttp.use(paymentMiddleware({
     unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.10", network: SERVICE.network } }),
   },
   "POST /paid/x402/seller-readiness-audit": {
-    accepts: { scheme: "exact", price: "$0.10", network: SERVICE.network, payTo: SERVICE.seller },
+    accepts: routeAccepts("$0.10"),
     resource: `${SERVICE.origin}/paid/x402/seller-readiness-audit`,
     description: "x402 seller readiness audit for agent buyers: discovery metadata, Base USDC terms, seller wallet, receipts, tool descriptions, and approval copy",
     mimeType: "application/json",
@@ -1588,7 +1672,7 @@ paidHttp.use(paymentMiddleware({
     unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.10", network: SERVICE.network } }),
   },
   "POST /paid/mcp/approval-pack": {
-    accepts: { scheme: "exact", price: "$0.05", network: SERVICE.network, payTo: SERVICE.seller },
+    accepts: routeAccepts("$0.05"),
     resource: `${SERVICE.origin}/paid/mcp/approval-pack`,
     description: "Agent approval pack for paid or risky tool calls: approval prompt, spend cap, seller checks, risk reasons, allowed fields, and blocked data",
     mimeType: "application/json",
@@ -1599,7 +1683,7 @@ paidHttp.use(paymentMiddleware({
     unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.05", network: SERVICE.network } }),
   },
   "POST /paid/finance/insider-cluster-brief": {
-    accepts: { scheme: "exact", price: "$0.10", network: SERVICE.network, payTo: SERVICE.seller },
+    accepts: routeAccepts("$0.10"),
     resource: `${SERVICE.origin}/paid/finance/insider-cluster-brief`,
     description: "SEC Form 4 insider-activity cluster brief with filing counts, source links, and watchlist verdict",
     mimeType: "application/json",
@@ -1610,7 +1694,7 @@ paidHttp.use(paymentMiddleware({
     unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.10", network: SERVICE.network } }),
   },
   "POST /paid/gov/contract-fit-brief": {
-    accepts: { scheme: "exact", price: "$0.15", network: SERVICE.network, payTo: SERVICE.seller },
+    accepts: routeAccepts("$0.15"),
     resource: `${SERVICE.origin}/paid/gov/contract-fit-brief`,
     description: "Federal contract-fit brief: scored incumbents, buyer agencies, award amounts, and pursuit notes for one service niche",
     mimeType: "application/json",
@@ -1621,7 +1705,7 @@ paidHttp.use(paymentMiddleware({
     unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.15", network: SERVICE.network } }),
   },
   "POST /paid/osint/regulatory-impact-brief": {
-    accepts: { scheme: "exact", price: "$0.12", network: SERVICE.network, payTo: SERVICE.seller },
+    accepts: routeAccepts("$0.12"),
     resource: `${SERVICE.origin}/paid/osint/regulatory-impact-brief`,
     description: "Regulatory impact brief for one sector: fresh rulemaking signals, severity, agency context, and action read",
     mimeType: "application/json",
@@ -1632,7 +1716,7 @@ paidHttp.use(paymentMiddleware({
     unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.12", network: SERVICE.network } }),
   },
   "POST /paid/polymarket/rebalance-scan": {
-    accepts: { scheme: "exact", price: "$0.04", network: SERVICE.network, payTo: SERVICE.seller },
+    accepts: routeAccepts("$0.04"),
     resource: `${SERVICE.origin}/paid/polymarket/rebalance-scan`,
     description: "Scan Polymarket for single-market YES+NO pricing violations — guaranteed rebalance arbitrage opportunities",
     mimeType: "application/json",
@@ -1643,7 +1727,7 @@ paidHttp.use(paymentMiddleware({
     unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.04", network: SERVICE.network } }),
   },
   "POST /paid/polymarket/trending": {
-    accepts: { scheme: "exact", price: "$0.02", network: SERVICE.network, payTo: SERVICE.seller },
+    accepts: routeAccepts("$0.02"),
     resource: `${SERVICE.origin}/paid/polymarket/trending`,
     description: "Top trending Polymarket markets by 24h volume — prices, liquidity, volume data",
     mimeType: "application/json",
@@ -1654,7 +1738,7 @@ paidHttp.use(paymentMiddleware({
     unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.02", network: SERVICE.network } }),
   },
   "POST /paid/odds/feed": {
-    accepts: { scheme: "exact", price: "$0.02", network: SERVICE.network, payTo: SERVICE.seller },
+    accepts: routeAccepts("$0.02"),
     resource: `${SERVICE.origin}/paid/odds/feed`,
     description: "Normalized live odds across Polymarket and Kalshi — YES/NO prices, spreads, volume, liquidity",
     mimeType: "application/json",
@@ -1665,7 +1749,7 @@ paidHttp.use(paymentMiddleware({
     unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.02", network: SERVICE.network } }),
   },
   "POST /paid/polymarket/volume-analytics": {
-    accepts: { scheme: "exact", price: "$0.03", network: SERVICE.network, payTo: SERVICE.seller },
+    accepts: routeAccepts("$0.03"),
     resource: `${SERVICE.origin}/paid/polymarket/volume-analytics`,
     description: "Top Polymarket markets by 24h volume with momentum, liquidity, and price change analytics",
     mimeType: "application/json",
@@ -1676,7 +1760,7 @@ paidHttp.use(paymentMiddleware({
     unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.03", network: SERVICE.network } }),
   },
   "POST /paid/polymarket/resolution-history": {
-    accepts: { scheme: "exact", price: "$0.03", network: SERVICE.network, payTo: SERVICE.seller },
+    accepts: routeAccepts("$0.03"),
     resource: `${SERVICE.origin}/paid/polymarket/resolution-history`,
     description: "Recently resolved Polymarket markets with final outcomes for backtesting and model calibration",
     mimeType: "application/json",
@@ -1687,7 +1771,7 @@ paidHttp.use(paymentMiddleware({
     unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.03", network: SERVICE.network } }),
   },
   "POST /paid/kalshi/markets": {
-    accepts: { scheme: "exact", price: "$0.02", network: SERVICE.network, payTo: SERVICE.seller },
+    accepts: routeAccepts("$0.02"),
     resource: `${SERVICE.origin}/paid/kalshi/markets`,
     description: "Live Kalshi market list with bid/ask spreads, volume, open interest, and close dates",
     mimeType: "application/json",
@@ -1698,7 +1782,7 @@ paidHttp.use(paymentMiddleware({
     unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.02", network: SERVICE.network } }),
   },
   "POST /paid/security/threat-intel": {
-    accepts: { scheme: "exact", price: "$0.03", network: SERVICE.network, payTo: SERVICE.seller },
+    accepts: routeAccepts("$0.03"),
     resource: `${SERVICE.origin}/paid/security/threat-intel`,
     description: "OWASP Agentic Top 10 threat catalog — ASI01-ASI10 with detection hints, mitigations, and mapped detection rules",
     mimeType: "application/json",
@@ -1709,7 +1793,7 @@ paidHttp.use(paymentMiddleware({
     unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.03", network: SERVICE.network } }),
   },
   "POST /paid/security/mcp-iocs": {
-    accepts: { scheme: "exact", price: "$0.02", network: SERVICE.network, payTo: SERVICE.seller },
+    accepts: routeAccepts("$0.02"),
     resource: `${SERVICE.origin}/paid/security/mcp-iocs`,
     description: "Known-malicious MCP packages, versions, C2 hosts — virus database for MCP supply chain",
     mimeType: "application/json",
@@ -1720,7 +1804,7 @@ paidHttp.use(paymentMiddleware({
     unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.02", network: SERVICE.network } }),
   },
   "POST /paid/security/trifecta-score": {
-    accepts: { scheme: "exact", price: "$0.05", network: SERVICE.network, payTo: SERVICE.seller },
+    accepts: routeAccepts("$0.05"),
     resource: `${SERVICE.origin}/paid/security/trifecta-score`,
     description: "Lethal trifecta risk score — private data + untrusted content + outbound actions assessment with missing controls and decomposition advice",
     mimeType: "application/json",
@@ -1731,7 +1815,7 @@ paidHttp.use(paymentMiddleware({
     unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.05", network: SERVICE.network } }),
   },
   "POST /paid/security/policies": {
-    accepts: { scheme: "exact", price: "$0.05", network: SERVICE.network, payTo: SERVICE.seller },
+    accepts: routeAccepts("$0.05"),
     resource: `${SERVICE.origin}/paid/security/policies`,
     description: "Drop-in agent security policy templates by profile — coding, browser, payment, research agent rules",
     mimeType: "application/json",
@@ -1743,7 +1827,7 @@ paidHttp.use(paymentMiddleware({
   },
   // ── OSINT — 11 SKUs ─────────────────────────────────────────────
   "POST /paid/osint/geo-pulse": {
-    accepts: { scheme: "exact", price: "$0.04", network: SERVICE.network, payTo: SERVICE.seller },
+    accepts: routeAccepts("$0.04"),
     resource: `${SERVICE.origin}/paid/osint/geo-pulse`,
     description: "Composite geopolitical intervention signal — GDELT + BBC + AlJazeera + ADS-B mil + prediction-market boosters (intervention signal pattern)",
     mimeType: "application/json",
@@ -1754,7 +1838,7 @@ paidHttp.use(paymentMiddleware({
     unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "$0.04", network: SERVICE.network } }),
   },
   "POST /paid/osint/flight-intel": {
-    accepts: { scheme: "exact", price: "$0.03", network: SERVICE.network, payTo: SERVICE.seller },
+    accepts: routeAccepts("$0.03"),
     resource: `${SERVICE.origin}/paid/osint/flight-intel`,
     description: "Exec-jet + mil aircraft intel — TEB/VNY/DCA geofence, tail filter, notable B-52/F-35/E-3 detection via adsb.lol",
     mimeType: "application/json",
@@ -1765,7 +1849,7 @@ paidHttp.use(paymentMiddleware({
     unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "$0.03", network: SERVICE.network } }),
   },
   "POST /paid/osint/research-pack": {
-    accepts: { scheme: "exact", price: "$0.05", network: SERVICE.network, payTo: SERVICE.seller },
+    accepts: routeAccepts("$0.05"),
     resource: `${SERVICE.origin}/paid/osint/research-pack`,
     description: "Multi-source OSINT pack — GDELT + BBC + HN + Reddit, 4-layer verification layer, combined relevance scoring (research pack)",
     mimeType: "application/json",
@@ -1776,7 +1860,7 @@ paidHttp.use(paymentMiddleware({
     unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "$0.05", network: SERVICE.network } }),
   },
   "POST /paid/osint/scenario-verdict": {
-    accepts: { scheme: "exact", price: "$0.05", network: SERVICE.network, payTo: SERVICE.seller },
+    accepts: routeAccepts("$0.05"),
     resource: `${SERVICE.origin}/paid/osint/scenario-verdict`,
     description: "Scenario engine seed->entity->3-scenario verdict.json + composite YES prob mapped to market question",
     mimeType: "application/json",
@@ -1787,7 +1871,7 @@ paidHttp.use(paymentMiddleware({
     unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "$0.05", network: SERVICE.network } }),
   },
   "POST /paid/osint/weather-bias": {
-    accepts: { scheme: "exact", price: "$0.03", network: SERVICE.network, payTo: SERVICE.seller },
+    accepts: routeAccepts("$0.03"),
     resource: `${SERVICE.origin}/paid/osint/weather-bias`,
     description: "Weather bias score vs recent mean — uses Open-Meteo archive+forecast and ticker mapping for Kalshi HIGH* markets",
     mimeType: "application/json",
@@ -1798,7 +1882,7 @@ paidHttp.use(paymentMiddleware({
     unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "$0.03", network: SERVICE.network } }),
   },
   "POST /paid/osint/supply-stress": {
-    accepts: { scheme: "exact", price: "$0.03", network: SERVICE.network, payTo: SERVICE.seller },
+    accepts: routeAccepts("$0.03"),
     resource: `${SERVICE.origin}/paid/osint/supply-stress`,
     description: "Supply-chain stress index — CBP BWT + GDELT chokepoint mentions + AIS hint, port stress for freight/commodity markets",
     mimeType: "application/json",
@@ -1809,7 +1893,7 @@ paidHttp.use(paymentMiddleware({
     unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "$0.03", network: SERVICE.network } }),
   },
   "POST /paid/osint/regulatory-pulse": {
-    accepts: { scheme: "exact", price: "$0.03", network: SERVICE.network, payTo: SERVICE.seller },
+    accepts: routeAccepts("$0.03"),
     resource: `${SERVICE.origin}/paid/osint/regulatory-pulse`,
     description: "Regulatory pulse — SEC Atom + openFDA adverse + USPTO + FCC OET + FAA registry patterns for bio/tech markets",
     mimeType: "application/json",
@@ -1820,7 +1904,7 @@ paidHttp.use(paymentMiddleware({
     unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "$0.03", network: SERVICE.network } }),
   },
   "POST /paid/osint/attention-momentum": {
-    accepts: { scheme: "exact", price: "$0.02", network: SERVICE.network, payTo: SERVICE.seller },
+    accepts: routeAccepts("$0.02"),
     resource: `${SERVICE.origin}/paid/osint/attention-momentum`,
     description: "Attention momentum — HN Algolia + Reddit JSON velocity scoring, points/hr + momentum_score, viral detection for culture markets",
     mimeType: "application/json",
@@ -1831,7 +1915,7 @@ paidHttp.use(paymentMiddleware({
     unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "$0.02", network: SERVICE.network } }),
   },
   "POST /paid/osint/sec-8k-velocity": {
-    accepts: { scheme: "exact", price: "$0.03", network: SERVICE.network, payTo: SERVICE.seller },
+    accepts: routeAccepts("$0.03"),
     resource: `${SERVICE.origin}/paid/osint/sec-8k-velocity`,
     description: "SEC 8-K velocity — EFTS FullTextSearch + Atom current, 1h vs 24h mean spike >3x, Item 1.05/2.02/5.02 boost",
     mimeType: "application/json",
@@ -1842,7 +1926,7 @@ paidHttp.use(paymentMiddleware({
     unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "$0.03", network: SERVICE.network } }),
   },
   "POST /paid/finance/edgar": {
-    accepts: { scheme: "exact", price: "$0.03", network: SERVICE.network, payTo: SERVICE.seller },
+    accepts: routeAccepts("$0.03"),
     resource: `${SERVICE.origin}/paid/finance/edgar`,
     description: "Search SEC EDGAR filings by company, form type, or ticker — filing URLs, dates, descriptions, and public filing metadata",
     mimeType: "application/json",
@@ -1853,7 +1937,7 @@ paidHttp.use(paymentMiddleware({
     unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "$0.03", network: SERVICE.network } }),
   },
   "POST /paid/finance/token-stock-quote": {
-    accepts: { scheme: "exact", price: "$0.03", network: SERVICE.network, payTo: SERVICE.seller },
+    accepts: routeAccepts("$0.03"),
     resource: `${SERVICE.origin}/paid/finance/token-stock-quote`,
     description: "Live DEX quotes for tokenized equities — Coinbase B20 stock tokens on Base. Price, 24h/7d volume, liquidity, and FDV per pool.",
     mimeType: "application/json",
@@ -1864,7 +1948,7 @@ paidHttp.use(paymentMiddleware({
     unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "$0.03", network: SERVICE.network } }),
   },
   "POST /paid/security/cve-search": {
-    accepts: { scheme: "exact", price: "$0.02", network: SERVICE.network, payTo: SERVICE.seller },
+    accepts: routeAccepts("$0.02"),
     resource: `${SERVICE.origin}/paid/security/cve-search`,
     description: "Search NIST NVD CVEs by keyword, CVE ID, or severity — CVSS, affected products, references, and vulnerability metadata",
     mimeType: "application/json",
@@ -1875,7 +1959,7 @@ paidHttp.use(paymentMiddleware({
     unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "$0.02", network: SERVICE.network } }),
   },
   "POST /paid/media/gen-video": {
-    accepts: { scheme: "exact", price: "$0.05", network: SERVICE.network, payTo: SERVICE.seller },
+    accepts: routeAccepts("$0.05"),
     resource: `${SERVICE.origin}/paid/media/gen-video`,
     description: "Live Banodoco practitioner-feed intelligence for generative video and image workflows: Wan, VACE, LTX, ComfyUI, FLUX 3, Seedance, Kling, Hunyuan, Qwen Image, settings, comparisons, and gotchas. Intelligence only; no direct model API resale.",
     mimeType: "application/json",
@@ -1886,7 +1970,7 @@ paidHttp.use(paymentMiddleware({
     unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "$0.05", network: SERVICE.network } }),
   },
   "POST /paid/osint/fred-surprises": {
-    accepts: { scheme: "exact", price: "$0.02", network: SERVICE.network, payTo: SERVICE.seller },
+    accepts: routeAccepts("$0.02"),
     resource: `${SERVICE.origin}/paid/osint/fred-surprises`,
     description: "FRED rates surprise — DGS10/DGS2 csv public-domain no-key, spread + inversion flag, delta scoring",
     mimeType: "application/json",
@@ -1897,7 +1981,7 @@ paidHttp.use(paymentMiddleware({
     unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "$0.02", network: SERVICE.network } }),
   },
   "POST /paid/osint/treasury-dts": {
-    accepts: { scheme: "exact", price: "$0.04", network: SERVICE.network, payTo: SERVICE.seller },
+    accepts: routeAccepts("$0.04"),
     resource: `${SERVICE.origin}/paid/osint/treasury-dts`,
     description: "Treasury DTS — TGA operating_cash_balance gov public-domain, d/d delta, deposits/withdrawals",
     mimeType: "application/json",
@@ -1909,7 +1993,7 @@ paidHttp.use(paymentMiddleware({
   },
   // ── 4 new public-API feeds (v0.9.1) ────────────────────────────────
   "POST /paid/osint/github-trending": {
-    accepts: { scheme: "exact", price: "$0.02", network: SERVICE.network, payTo: SERVICE.seller },
+    accepts: routeAccepts("$0.02"),
     resource: `${SERVICE.origin}/paid/osint/github-trending`,
     description: "GitHub trending repos — stars>1 + recent push, sorted by stars desc via GitHub Search API no-key. Dev tooling / open source virality momentum.",
     mimeType: "application/json",
@@ -1919,7 +2003,7 @@ paidHttp.use(paymentMiddleware({
     unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "$0.02", network: SERVICE.network } }),
   },
   "POST /paid/osint/hn-frontpage": {
-    accepts: { scheme: "exact", price: "$0.02", network: SERVICE.network, payTo: SERVICE.seller },
+    accepts: routeAccepts("$0.02"),
     resource: `${SERVICE.origin}/paid/osint/hn-frontpage`,
     description: "HN frontpage live — Algolia front_page tag, dwell = points/(hours_old+2). Top stories sorted by dwell for attention-momentum edge.",
     mimeType: "application/json",
@@ -1929,7 +2013,7 @@ paidHttp.use(paymentMiddleware({
     unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "$0.02", network: SERVICE.network } }),
   },
   "POST /paid/osint/usgs-quake": {
-    accepts: { scheme: "exact", price: "$0.02", network: SERVICE.network, payTo: SERVICE.seller },
+    accepts: routeAccepts("$0.02"),
     resource: `${SERVICE.origin}/paid/osint/usgs-quake`,
     description: "USGS all-day earthquakes — mag, place, time, coords, tsunami, url. Public GeoJSON no-key. Disaster / insurance / commodity tail-risk pulse.",
     mimeType: "application/json",
@@ -1939,7 +2023,7 @@ paidHttp.use(paymentMiddleware({
     unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "$0.02", network: SERVICE.network } }),
   },
   "POST /paid/osint/openaq-air": {
-    accepts: { scheme: "exact", price: "$0.02", network: SERVICE.network, payTo: SERVICE.seller },
+    accepts: routeAccepts("$0.02"),
     resource: `${SERVICE.origin}/paid/osint/openaq-air`,
     description: "OpenAQ air quality pulse — PM2.5/PM10/NO2/O3 by city/country, lastUpdated, sensor counts. v3 API + v2 fallback. Env / health / geo pulse.",
     mimeType: "application/json",
@@ -1949,7 +2033,7 @@ paidHttp.use(paymentMiddleware({
     unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "$0.02", network: SERVICE.network } }),
   },
   "POST /paid/osint/openrouter-models": {
-    accepts: { scheme: "exact", price: "$0.02", network: SERVICE.network, payTo: SERVICE.seller },
+    accepts: routeAccepts("$0.02"),
     resource: `${SERVICE.origin}/paid/osint/openrouter-models`,
     description: "OpenRouter model catalog — live model list with context length, pricing, capabilities. AI/ML infrastructure intel.",
     mimeType: "application/json",
@@ -1959,36 +2043,36 @@ paidHttp.use(paymentMiddleware({
     unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.02", network: SERVICE.network } }),
   },
   // ── Legal & Regulatory (v0.11.0) ──────────────────────────────────
-  "POST /paid/legal/court-opinions": { accepts: { scheme: "exact", price: "$0.05", network: SERVICE.network, payTo: SERVICE.seller }, resource: `${SERVICE.origin}/paid/legal/court-opinions`, description: "Search US federal court opinions via CourtListener (Free Law Project)", mimeType: "application/json", serviceName: "agenttoll.dev", tags: ["legal", "court", "opinions", "courtlistener", "x402"], iconUrl: `${SERVICE.origin}/favicon.svg`, unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.05", network: SERVICE.network } }) },
-  "POST /paid/legal/court-docket": { accepts: { scheme: "exact", price: "$0.05", network: SERVICE.network, payTo: SERVICE.seller }, resource: `${SERVICE.origin}/paid/legal/court-docket`, description: "Look up a federal court docket via CourtListener RECAP archive", mimeType: "application/json", serviceName: "agenttoll.dev", tags: ["legal", "court", "docket", "recap", "x402"], iconUrl: `${SERVICE.origin}/favicon.svg`, unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.05", network: SERVICE.network } }) },
-  "POST /paid/legal/federal-register": { accepts: { scheme: "exact", price: "$0.03", network: SERVICE.network, payTo: SERVICE.seller }, resource: `${SERVICE.origin}/paid/legal/federal-register`, description: "Search the daily Federal Register — proposed rules, final rules, presidential notices", mimeType: "application/json", serviceName: "agenttoll.dev", tags: ["legal", "federal-register", "regulations", "x402"], iconUrl: `${SERVICE.origin}/favicon.svg`, unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.03", network: SERVICE.network } }) },
-  "POST /paid/legal/patents": { accepts: { scheme: "exact", price: "$0.04", network: SERVICE.network, payTo: SERVICE.seller }, resource: `${SERVICE.origin}/paid/legal/patents`, description: "Full-text patent search via Google Patents", mimeType: "application/json", serviceName: "agenttoll.dev", tags: ["legal", "patent", "uspto", "x402"], iconUrl: `${SERVICE.origin}/favicon.svg`, unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.04", network: SERVICE.network } }) },
-  "POST /paid/legal/regulations": { accepts: { scheme: "exact", price: "$0.03", network: SERVICE.network, payTo: SERVICE.seller }, resource: `${SERVICE.origin}/paid/legal/regulations`, description: "Search open rulemakings and public dockets", mimeType: "application/json", serviceName: "agenttoll.dev", tags: ["legal", "regulations", "rulemaking", "x402"], iconUrl: `${SERVICE.origin}/favicon.svg`, unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.03", network: SERVICE.network } }) },
+  "POST /paid/legal/court-opinions": { accepts: routeAccepts("$0.05"), resource: `${SERVICE.origin}/paid/legal/court-opinions`, description: "Search US federal court opinions via CourtListener (Free Law Project)", mimeType: "application/json", serviceName: "agenttoll.dev", tags: ["legal", "court", "opinions", "courtlistener", "x402"], iconUrl: `${SERVICE.origin}/favicon.svg`, unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.05", network: SERVICE.network } }) },
+  "POST /paid/legal/court-docket": { accepts: routeAccepts("$0.05"), resource: `${SERVICE.origin}/paid/legal/court-docket`, description: "Look up a federal court docket via CourtListener RECAP archive", mimeType: "application/json", serviceName: "agenttoll.dev", tags: ["legal", "court", "docket", "recap", "x402"], iconUrl: `${SERVICE.origin}/favicon.svg`, unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.05", network: SERVICE.network } }) },
+  "POST /paid/legal/federal-register": { accepts: routeAccepts("$0.03"), resource: `${SERVICE.origin}/paid/legal/federal-register`, description: "Search the daily Federal Register — proposed rules, final rules, presidential notices", mimeType: "application/json", serviceName: "agenttoll.dev", tags: ["legal", "federal-register", "regulations", "x402"], iconUrl: `${SERVICE.origin}/favicon.svg`, unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.03", network: SERVICE.network } }) },
+  "POST /paid/legal/patents": { accepts: routeAccepts("$0.04"), resource: `${SERVICE.origin}/paid/legal/patents`, description: "Full-text patent search via Google Patents", mimeType: "application/json", serviceName: "agenttoll.dev", tags: ["legal", "patent", "uspto", "x402"], iconUrl: `${SERVICE.origin}/favicon.svg`, unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.04", network: SERVICE.network } }) },
+  "POST /paid/legal/regulations": { accepts: routeAccepts("$0.03"), resource: `${SERVICE.origin}/paid/legal/regulations`, description: "Search open rulemakings and public dockets", mimeType: "application/json", serviceName: "agenttoll.dev", tags: ["legal", "regulations", "rulemaking", "x402"], iconUrl: `${SERVICE.origin}/favicon.svg`, unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.03", network: SERVICE.network } }) },
   // ── Academic & Scientific (v0.11.0) ───────────────────────────────
-  "POST /paid/academic/papers": { accepts: { scheme: "exact", price: "$0.04", network: SERVICE.network, payTo: SERVICE.seller }, resource: `${SERVICE.origin}/paid/academic/papers`, description: "Search 226M+ academic papers via Semantic Scholar Graph API", mimeType: "application/json", serviceName: "agenttoll.dev", tags: ["academic", "papers", "semantic-scholar", "research", "x402"], iconUrl: `${SERVICE.origin}/favicon.svg`, unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.04", network: SERVICE.network } }) },
-  "POST /paid/academic/arxiv": { accepts: { scheme: "exact", price: "$0.02", network: SERVICE.network, payTo: SERVICE.seller }, resource: `${SERVICE.origin}/paid/academic/arxiv`, description: "Search arXiv preprints in CS, physics, math, biology", mimeType: "application/json", serviceName: "agenttoll.dev", tags: ["academic", "arxiv", "preprint", "x402"], iconUrl: `${SERVICE.origin}/favicon.svg`, unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.02", network: SERVICE.network } }) },
-  "POST /paid/academic/pubmed": { accepts: { scheme: "exact", price: "$0.03", network: SERVICE.network, payTo: SERVICE.seller }, resource: `${SERVICE.origin}/paid/academic/pubmed`, description: "Search 37M+ biomedical papers via NCBI PubMed", mimeType: "application/json", serviceName: "agenttoll.dev", tags: ["academic", "pubmed", "biomedical", "x402"], iconUrl: `${SERVICE.origin}/favicon.svg`, unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.03", network: SERVICE.network } }) },
-  "POST /paid/academic/clinical-trials": { accepts: { scheme: "exact", price: "$0.04", network: SERVICE.network, payTo: SERVICE.seller }, resource: `${SERVICE.origin}/paid/academic/clinical-trials`, description: "Search 480K+ clinical studies via ClinicalTrials.gov v2", mimeType: "application/json", serviceName: "agenttoll.dev", tags: ["academic", "clinical-trials", "medical", "x402"], iconUrl: `${SERVICE.origin}/favicon.svg`, unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.04", network: SERVICE.network } }) },
-  "POST /paid/academic/openalex": { accepts: { scheme: "exact", price: "$0.03", network: SERVICE.network, payTo: SERVICE.seller }, resource: `${SERVICE.origin}/paid/academic/openalex`, description: "Search 250M+ works via OpenAlex with institution data and bibliometrics", mimeType: "application/json", serviceName: "agenttoll.dev", tags: ["academic", "openalex", "bibliometrics", "x402"], iconUrl: `${SERVICE.origin}/favicon.svg`, unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.03", network: SERVICE.network } }) },
+  "POST /paid/academic/papers": { accepts: routeAccepts("$0.04"), resource: `${SERVICE.origin}/paid/academic/papers`, description: "Search 226M+ academic papers via Semantic Scholar Graph API", mimeType: "application/json", serviceName: "agenttoll.dev", tags: ["academic", "papers", "semantic-scholar", "research", "x402"], iconUrl: `${SERVICE.origin}/favicon.svg`, unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.04", network: SERVICE.network } }) },
+  "POST /paid/academic/arxiv": { accepts: routeAccepts("$0.02"), resource: `${SERVICE.origin}/paid/academic/arxiv`, description: "Search arXiv preprints in CS, physics, math, biology", mimeType: "application/json", serviceName: "agenttoll.dev", tags: ["academic", "arxiv", "preprint", "x402"], iconUrl: `${SERVICE.origin}/favicon.svg`, unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.02", network: SERVICE.network } }) },
+  "POST /paid/academic/pubmed": { accepts: routeAccepts("$0.03"), resource: `${SERVICE.origin}/paid/academic/pubmed`, description: "Search 37M+ biomedical papers via NCBI PubMed", mimeType: "application/json", serviceName: "agenttoll.dev", tags: ["academic", "pubmed", "biomedical", "x402"], iconUrl: `${SERVICE.origin}/favicon.svg`, unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.03", network: SERVICE.network } }) },
+  "POST /paid/academic/clinical-trials": { accepts: routeAccepts("$0.04"), resource: `${SERVICE.origin}/paid/academic/clinical-trials`, description: "Search 480K+ clinical studies via ClinicalTrials.gov v2", mimeType: "application/json", serviceName: "agenttoll.dev", tags: ["academic", "clinical-trials", "medical", "x402"], iconUrl: `${SERVICE.origin}/favicon.svg`, unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.04", network: SERVICE.network } }) },
+  "POST /paid/academic/openalex": { accepts: routeAccepts("$0.03"), resource: `${SERVICE.origin}/paid/academic/openalex`, description: "Search 250M+ works via OpenAlex with institution data and bibliometrics", mimeType: "application/json", serviceName: "agenttoll.dev", tags: ["academic", "openalex", "bibliometrics", "x402"], iconUrl: `${SERVICE.origin}/favicon.svg`, unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.03", network: SERVICE.network } }) },
   // ── Public Health & Safety (v0.11.0) ──────────────────────────────
-  "POST /paid/health/drug-recalls": { accepts: { scheme: "exact", price: "$0.03", network: SERVICE.network, payTo: SERVICE.seller }, resource: `${SERVICE.origin}/paid/health/drug-recalls`, description: "Search FDA drug/device/food enforcement recalls via openFDA", mimeType: "application/json", serviceName: "agenttoll.dev", tags: ["health", "fda", "drug-recall", "x402"], iconUrl: `${SERVICE.origin}/favicon.svg`, unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.03", network: SERVICE.network } }) },
-  "POST /paid/health/adverse-events": { accepts: { scheme: "exact", price: "$0.04", network: SERVICE.network, payTo: SERVICE.seller }, resource: `${SERVICE.origin}/paid/health/adverse-events`, description: "Search 20M+ FDA adverse drug event reports via openFDA", mimeType: "application/json", serviceName: "agenttoll.dev", tags: ["health", "fda", "adverse-events", "pharmacovigilance", "x402"], iconUrl: `${SERVICE.origin}/favicon.svg`, unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.04", network: SERVICE.network } }) },
-  "POST /paid/health/product-recalls": { accepts: { scheme: "exact", price: "$0.03", network: SERVICE.network, payTo: SERVICE.seller }, resource: `${SERVICE.origin}/paid/health/product-recalls`, description: "Search CPSC consumer product recalls via saferproducts.gov", mimeType: "application/json", serviceName: "agenttoll.dev", tags: ["health", "cpsc", "product-recall", "safety", "x402"], iconUrl: `${SERVICE.origin}/favicon.svg`, unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.03", network: SERVICE.network } }) },
-  "POST /paid/health/vehicle-recalls": { accepts: { scheme: "exact", price: "$0.03", network: SERVICE.network, payTo: SERVICE.seller }, resource: `${SERVICE.origin}/paid/health/vehicle-recalls`, description: "Search NHTSA vehicle recalls by make, model, or VIN", mimeType: "application/json", serviceName: "agenttoll.dev", tags: ["health", "nhtsa", "vehicle-recall", "safety", "x402"], iconUrl: `${SERVICE.origin}/favicon.svg`, unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.03", network: SERVICE.network } }) },
-  "POST /paid/health/drug-labels": { accepts: { scheme: "exact", price: "$0.03", network: SERVICE.network, payTo: SERVICE.seller }, resource: `${SERVICE.origin}/paid/health/drug-labels`, description: "Search official FDA drug labels via openFDA — dosage, warnings, contraindications", mimeType: "application/json", serviceName: "agenttoll.dev", tags: ["health", "fda", "drug-label", "x402"], iconUrl: `${SERVICE.origin}/favicon.svg`, unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.03", network: SERVICE.network } }) },
+  "POST /paid/health/drug-recalls": { accepts: routeAccepts("$0.03"), resource: `${SERVICE.origin}/paid/health/drug-recalls`, description: "Search FDA drug/device/food enforcement recalls via openFDA", mimeType: "application/json", serviceName: "agenttoll.dev", tags: ["health", "fda", "drug-recall", "x402"], iconUrl: `${SERVICE.origin}/favicon.svg`, unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.03", network: SERVICE.network } }) },
+  "POST /paid/health/adverse-events": { accepts: routeAccepts("$0.04"), resource: `${SERVICE.origin}/paid/health/adverse-events`, description: "Search 20M+ FDA adverse drug event reports via openFDA", mimeType: "application/json", serviceName: "agenttoll.dev", tags: ["health", "fda", "adverse-events", "pharmacovigilance", "x402"], iconUrl: `${SERVICE.origin}/favicon.svg`, unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.04", network: SERVICE.network } }) },
+  "POST /paid/health/product-recalls": { accepts: routeAccepts("$0.03"), resource: `${SERVICE.origin}/paid/health/product-recalls`, description: "Search CPSC consumer product recalls via saferproducts.gov", mimeType: "application/json", serviceName: "agenttoll.dev", tags: ["health", "cpsc", "product-recall", "safety", "x402"], iconUrl: `${SERVICE.origin}/favicon.svg`, unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.03", network: SERVICE.network } }) },
+  "POST /paid/health/vehicle-recalls": { accepts: routeAccepts("$0.03"), resource: `${SERVICE.origin}/paid/health/vehicle-recalls`, description: "Search NHTSA vehicle recalls by make, model, or VIN", mimeType: "application/json", serviceName: "agenttoll.dev", tags: ["health", "nhtsa", "vehicle-recall", "safety", "x402"], iconUrl: `${SERVICE.origin}/favicon.svg`, unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.03", network: SERVICE.network } }) },
+  "POST /paid/health/drug-labels": { accepts: routeAccepts("$0.03"), resource: `${SERVICE.origin}/paid/health/drug-labels`, description: "Search official FDA drug labels via openFDA — dosage, warnings, contraindications", mimeType: "application/json", serviceName: "agenttoll.dev", tags: ["health", "fda", "drug-label", "x402"], iconUrl: `${SERVICE.origin}/favicon.svg`, unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.03", network: SERVICE.network } }) },
   // ── Environmental & Climate (v0.11.0) ─────────────────────────────
-  "POST /paid/env/wildfires": { accepts: { scheme: "exact", price: "$0.03", network: SERVICE.network, payTo: SERVICE.seller }, resource: `${SERVICE.origin}/paid/env/wildfires`, description: "Active wildfire detections from NASA FIRMS satellites", mimeType: "application/json", serviceName: "agenttoll.dev", tags: ["environment", "wildfire", "nasa", "firms", "x402"], iconUrl: `${SERVICE.origin}/favicon.svg`, unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.03", network: SERVICE.network } }) },
-  "POST /paid/env/weather-alerts": { accepts: { scheme: "exact", price: "$0.02", network: SERVICE.network, payTo: SERVICE.seller }, resource: `${SERVICE.origin}/paid/env/weather-alerts`, description: "Active NOAA NWS severe weather alerts by state or zone", mimeType: "application/json", serviceName: "agenttoll.dev", tags: ["environment", "weather", "noaa", "nws", "alerts", "x402"], iconUrl: `${SERVICE.origin}/favicon.svg`, unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.02", network: SERVICE.network } }) },
-  "POST /paid/env/tides": { accepts: { scheme: "exact", price: "$0.03", network: SERVICE.network, payTo: SERVICE.seller }, resource: `${SERVICE.origin}/paid/env/tides`, description: "NOAA tide predictions and observed water levels for coastal stations", mimeType: "application/json", serviceName: "agenttoll.dev", tags: ["environment", "tide", "noaa", "coastal", "x402"], iconUrl: `${SERVICE.origin}/favicon.svg`, unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.03", network: SERVICE.network } }) },
-  "POST /paid/env/space-weather": { accepts: { scheme: "exact", price: "$0.02", network: SERVICE.network, payTo: SERVICE.seller }, resource: `${SERVICE.origin}/paid/env/space-weather`, description: "NOAA space weather — solar flares, geomagnetic storms, solar wind, Kp index", mimeType: "application/json", serviceName: "agenttoll.dev", tags: ["environment", "space-weather", "noaa", "solar", "x402"], iconUrl: `${SERVICE.origin}/favicon.svg`, unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.02", network: SERVICE.network } }) },
-  "POST /paid/env/water-levels": { accepts: { scheme: "exact", price: "$0.03", network: SERVICE.network, payTo: SERVICE.seller }, resource: `${SERVICE.origin}/paid/env/water-levels`, description: "Real-time USGS river/stream flow and flood data by state", mimeType: "application/json", serviceName: "agenttoll.dev", tags: ["environment", "water", "usgs", "flood", "x402"], iconUrl: `${SERVICE.origin}/favicon.svg`, unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.03", network: SERVICE.network } }) },
+  "POST /paid/env/wildfires": { accepts: routeAccepts("$0.03"), resource: `${SERVICE.origin}/paid/env/wildfires`, description: "Active wildfire detections from NASA FIRMS satellites", mimeType: "application/json", serviceName: "agenttoll.dev", tags: ["environment", "wildfire", "nasa", "firms", "x402"], iconUrl: `${SERVICE.origin}/favicon.svg`, unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.03", network: SERVICE.network } }) },
+  "POST /paid/env/weather-alerts": { accepts: routeAccepts("$0.02"), resource: `${SERVICE.origin}/paid/env/weather-alerts`, description: "Active NOAA NWS severe weather alerts by state or zone", mimeType: "application/json", serviceName: "agenttoll.dev", tags: ["environment", "weather", "noaa", "nws", "alerts", "x402"], iconUrl: `${SERVICE.origin}/favicon.svg`, unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.02", network: SERVICE.network } }) },
+  "POST /paid/env/tides": { accepts: routeAccepts("$0.03"), resource: `${SERVICE.origin}/paid/env/tides`, description: "NOAA tide predictions and observed water levels for coastal stations", mimeType: "application/json", serviceName: "agenttoll.dev", tags: ["environment", "tide", "noaa", "coastal", "x402"], iconUrl: `${SERVICE.origin}/favicon.svg`, unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.03", network: SERVICE.network } }) },
+  "POST /paid/env/space-weather": { accepts: routeAccepts("$0.02"), resource: `${SERVICE.origin}/paid/env/space-weather`, description: "NOAA space weather — solar flares, geomagnetic storms, solar wind, Kp index", mimeType: "application/json", serviceName: "agenttoll.dev", tags: ["environment", "space-weather", "noaa", "solar", "x402"], iconUrl: `${SERVICE.origin}/favicon.svg`, unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.02", network: SERVICE.network } }) },
+  "POST /paid/env/water-levels": { accepts: routeAccepts("$0.03"), resource: `${SERVICE.origin}/paid/env/water-levels`, description: "Real-time USGS river/stream flow and flood data by state", mimeType: "application/json", serviceName: "agenttoll.dev", tags: ["environment", "water", "usgs", "flood", "x402"], iconUrl: `${SERVICE.origin}/favicon.svg`, unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.03", network: SERVICE.network } }) },
   // ── Government Spending & Contracts (v0.11.0) ─────────────────────
-  "POST /paid/gov/federal-spending": { accepts: { scheme: "exact", price: "$0.04", network: SERVICE.network, payTo: SERVICE.seller }, resource: `${SERVICE.origin}/paid/gov/federal-spending`, description: "Search $6T+ federal budget by agency, recipient, or keyword via USAspending.gov", mimeType: "application/json", serviceName: "agenttoll.dev", tags: ["government", "spending", "usaspending", "budget", "x402"], iconUrl: `${SERVICE.origin}/favicon.svg`, unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.04", network: SERVICE.network } }) },
-  "POST /paid/gov/national-debt": { accepts: { scheme: "exact", price: "$0.02", network: SERVICE.network, payTo: SERVICE.seller }, resource: `${SERVICE.origin}/paid/gov/national-debt`, description: "US national debt to the penny via Treasury FiscalData", mimeType: "application/json", serviceName: "agenttoll.dev", tags: ["government", "debt", "treasury", "x402"], iconUrl: `${SERVICE.origin}/favicon.svg`, unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.02", network: SERVICE.network } }) },
-  "POST /paid/gov/federal-grants": { accepts: { scheme: "exact", price: "$0.03", network: SERVICE.network, payTo: SERVICE.seller }, resource: `${SERVICE.origin}/paid/gov/federal-grants`, description: "Search Grants.gov for open federal funding opportunities", mimeType: "application/json", serviceName: "agenttoll.dev", tags: ["government", "grants", "funding", "x402"], iconUrl: `${SERVICE.origin}/favicon.svg`, unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.03", network: SERVICE.network } }) },
-  "POST /paid/gov/nonprofits": { accepts: { scheme: "exact", price: "$0.03", network: SERVICE.network, payTo: SERVICE.seller }, resource: `${SERVICE.origin}/paid/gov/nonprofits`, description: "Search nonprofit IRS 990 filings via ProPublica Nonprofit Explorer", mimeType: "application/json", serviceName: "agenttoll.dev", tags: ["government", "nonprofit", "irs", "990", "x402"], iconUrl: `${SERVICE.origin}/favicon.svg`, unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.03", network: SERVICE.network } }) },
-  "POST /paid/gov/economic-indicators": { accepts: { scheme: "exact", price: "$0.03", network: SERVICE.network, payTo: SERVICE.seller }, resource: `${SERVICE.origin}/paid/gov/economic-indicators`, description: "GDP, CPI, unemployment, trade data via World Bank API", mimeType: "application/json", serviceName: "agenttoll.dev", tags: ["government", "economic", "world-bank", "gdp", "x402"], iconUrl: `${SERVICE.origin}/favicon.svg`, unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.03", network: SERVICE.network } }) },
-  "POST /paid/gov/lobbying": { accepts: { scheme: "exact", price: "$0.04", network: SERVICE.network, payTo: SERVICE.seller }, resource: `${SERVICE.origin}/paid/gov/lobbying`, description: "Search FEC lobbying disclosure records", mimeType: "application/json", serviceName: "agenttoll.dev", tags: ["government", "lobbying", "fec", "x402"], iconUrl: `${SERVICE.origin}/favicon.svg`, unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.04", network: SERVICE.network } }) },
+  "POST /paid/gov/federal-spending": { accepts: routeAccepts("$0.04"), resource: `${SERVICE.origin}/paid/gov/federal-spending`, description: "Search $6T+ federal budget by agency, recipient, or keyword via USAspending.gov", mimeType: "application/json", serviceName: "agenttoll.dev", tags: ["government", "spending", "usaspending", "budget", "x402"], iconUrl: `${SERVICE.origin}/favicon.svg`, unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.04", network: SERVICE.network } }) },
+  "POST /paid/gov/national-debt": { accepts: routeAccepts("$0.02"), resource: `${SERVICE.origin}/paid/gov/national-debt`, description: "US national debt to the penny via Treasury FiscalData", mimeType: "application/json", serviceName: "agenttoll.dev", tags: ["government", "debt", "treasury", "x402"], iconUrl: `${SERVICE.origin}/favicon.svg`, unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.02", network: SERVICE.network } }) },
+  "POST /paid/gov/federal-grants": { accepts: routeAccepts("$0.03"), resource: `${SERVICE.origin}/paid/gov/federal-grants`, description: "Search Grants.gov for open federal funding opportunities", mimeType: "application/json", serviceName: "agenttoll.dev", tags: ["government", "grants", "funding", "x402"], iconUrl: `${SERVICE.origin}/favicon.svg`, unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.03", network: SERVICE.network } }) },
+  "POST /paid/gov/nonprofits": { accepts: routeAccepts("$0.03"), resource: `${SERVICE.origin}/paid/gov/nonprofits`, description: "Search nonprofit IRS 990 filings via ProPublica Nonprofit Explorer", mimeType: "application/json", serviceName: "agenttoll.dev", tags: ["government", "nonprofit", "irs", "990", "x402"], iconUrl: `${SERVICE.origin}/favicon.svg`, unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.03", network: SERVICE.network } }) },
+  "POST /paid/gov/economic-indicators": { accepts: routeAccepts("$0.03"), resource: `${SERVICE.origin}/paid/gov/economic-indicators`, description: "GDP, CPI, unemployment, trade data via World Bank API", mimeType: "application/json", serviceName: "agenttoll.dev", tags: ["government", "economic", "world-bank", "gdp", "x402"], iconUrl: `${SERVICE.origin}/favicon.svg`, unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.03", network: SERVICE.network } }) },
+  "POST /paid/gov/lobbying": { accepts: routeAccepts("$0.04"), resource: `${SERVICE.origin}/paid/gov/lobbying`, description: "Search FEC lobbying disclosure records", mimeType: "application/json", serviceName: "agenttoll.dev", tags: ["government", "lobbying", "fec", "x402"], iconUrl: `${SERVICE.origin}/favicon.svg`, unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "0.04", network: SERVICE.network } }) },
 }, httpResourceServer));
 
 function optionalNumber(value: unknown) {
