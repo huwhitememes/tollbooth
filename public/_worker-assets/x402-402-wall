@@ -1,0 +1,1377 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<title>The 402 wall: x402 just got its demand audit | agenttoll.dev</title>
+<meta name="description" content="TRM Labs found that under 8 percent of x402 value looks agentic. Our own seller-side funnel, read directionally, rhymes: the rail settles everything, conversion is the wall, and the cheap legible tier converts first.">
+<link rel="canonical" href="https://agenttoll.dev/blog/x402-402-wall">
+<meta property="og:title" content="The 402 wall: x402 just got its demand audit">
+<meta property="og:description" content="TRM Labs found that under 8 percent of x402 value looks agentic. Our own seller-side funnel, read directionally, rhymes: the rail settles everything, conversion is the wall, and the cheap legible tier converts first.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://agenttoll.dev/blog/x402-402-wall">
+<meta property="og:image" content="https://agenttoll.dev/blog/og-x402-402-wall.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:type" content="image/png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://agenttoll.dev/blog/og-x402-402-wall.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "The 402 wall: x402 just got its demand audit",
+  "description": "TRM Labs found that under 8 percent of x402 value looks agentic. Our own seller-side funnel, read directionally, rhymes: the rail settles everything, conversion is the wall, and the cheap legible tier converts first.",
+  "author": {
+    "@type": "Person",
+    "name": "Hu White",
+    "url": "https://www.linkedin.com/in/huwhitememes/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "agenttoll.dev",
+    "url": "https://agenttoll.dev"
+  },
+  "datePublished": "2026-09-17",
+  "dateModified": "2026-09-17",
+  "image": "https://agenttoll.dev/blog/og-x402-402-wall.png",
+  "mainEntityOfPage": "https://agenttoll.dev/blog/x402-402-wall"
+}</script>
+<style>
+:root {
+  color-scheme: dark;
+  --bg: #06080c;
+  --bg-glass: rgba(10, 14, 22, 0.72);
+  --bg-card: rgba(16, 22, 34, 0.6);
+  --border: rgba(56, 78, 112, 0.25);
+  --border-hover: rgba(86, 116, 162, 0.4);
+  --text: #e8eef6;
+  --text-2: #8b9bb4;
+  --text-3: #5a6b85;
+  --accent: #2dd4bf;
+  --accent-2: #0ea5e9;
+  --accent-dim: rgba(45, 212, 191, 0.12);
+  --price: #4ade80;
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --duration-fast: 160ms;
+  --duration-ui: 220ms;
+  --focus-ring: 0 0 0 3px rgba(45, 212, 191, 0.32);
+  --rail-glow: 0 0 36px rgba(45, 212, 191, 0.16);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+/* Shader canvas */
+#shader-bg {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: 0;
+  opacity: 0.35;
+}
+/* Glass overlay to dim shader for readability */
+.glass-overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: 1;
+  background: radial-gradient(ellipse at center top, transparent 0%, rgba(6, 8, 12, 0.85) 70%);
+  pointer-events: none;
+}
+/* Nav */
+nav {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px 32px;
+}
+nav .logo {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 600;
+  font-size: 16px;
+  color: var(--text);
+  letter-spacing: -0.02em;
+  text-decoration: none;
+  padding: 4px 6px;
+  border-radius: 8px;
+  transition: color var(--duration-fast) ease, box-shadow var(--duration-fast) ease;
+}
+nav .logo span { color: var(--accent); }
+nav .links { display: flex; gap: 28px; align-items: center; }
+nav .links a {
+  color: var(--text-2);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 8px;
+  transition: color var(--duration-fast) ease, background-color var(--duration-fast) ease, box-shadow var(--duration-fast) ease;
+}
+nav .links a:hover { color: var(--text); }
+nav .logo:focus,
+nav .links a:focus,
+.btn:focus,
+.cat-card:focus,
+.tool-card:focus,
+.search-bar:focus,
+.nav-toggle:focus,
+nav .logo:focus-visible,
+nav .links a:focus-visible,
+.btn:focus-visible,
+.cat-card:focus-visible,
+.tool-card:focus-visible,
+.search-bar:focus-visible,
+.nav-toggle:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+nav .links .cta {
+  background: var(--accent-dim);
+  border: 1px solid rgba(45, 212, 191, 0.3);
+  padding: 8px 16px;
+  border-radius: 8px;
+  color: var(--accent);
+}
+/* Layout */
+main {
+  position: relative;
+  z-index: 5;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 32px;
+}
+/* Hero */
+.hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 80px 0 100px;
+  min-height: 70vh;
+  justify-content: center;
+}
+.hero .badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 100px;
+  background: var(--accent-dim);
+  border: 1px solid rgba(45, 212, 191, 0.2);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--accent);
+  margin-bottom: 28px;
+  backdrop-filter: blur(10px);
+}
+.hero .badge::before {
+  content: '';
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent);
+  animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+.hero h1 {
+  font-size: clamp(40px, 7vw, 84px);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.05em;
+  margin-bottom: 24px;
+  padding-bottom: 0.08em;
+  padding-right: 0.1em;
+  max-width: 900px;
+  color: var(--text);
+  text-shadow: 0 0 42px rgba(45, 212, 191, 0.10), 0 1px 0 rgba(255,255,255,0.12);
+}
+.hero p.sub {
+  font-size: clamp(16px, 2vw, 20px);
+  color: var(--text-2);
+  max-width: 620px;
+  margin-bottom: 36px;
+  line-height: 1.5;
+}
+.hero .actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 22px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 15px;
+  text-decoration: none;
+  transition: transform var(--duration-fast) var(--ease-out), box-shadow var(--duration-ui) var(--ease-out), border-color var(--duration-fast) ease, background-color var(--duration-fast) ease;
+  backdrop-filter: blur(10px);
+}
+.btn-primary {
+  background: var(--accent);
+  color: #06080c;
+  box-shadow: 0 0 30px rgba(45, 212, 191, 0.3);
+}
+.btn-primary:hover { box-shadow: 0 0 26px rgba(45, 212, 191, 0.12); }
+.btn:active { transform: scale(0.97); }
+.btn-ghost {
+  background: var(--bg-glass);
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+.btn-ghost:hover { border-color: var(--border-hover); }
+/* Stats bar */
+.stats {
+  display: flex;
+  gap: 0;
+  justify-content: center;
+  margin-top: 64px;
+  flex-wrap: wrap;
+  max-width: 760px;
+  border: 1px solid rgba(45, 212, 191, 0.22);
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(6, 8, 12, 0.74), rgba(16, 22, 34, 0.58));
+  box-shadow: var(--rail-glow), inset 0 1px 0 rgba(255,255,255,0.06);
+  overflow: hidden;
+  backdrop-filter: blur(14px);
+}
+.stats::before {
+  content: 'AGENT PAYMENT RAIL';
+  width: 100%;
+  padding: 9px 14px 7px;
+  border-bottom: 1px solid rgba(45, 212, 191, 0.16);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  color: var(--accent);
+  text-align: left;
+}
+.stat {
+  text-align: center;
+  min-width: 150px;
+  padding: 18px 22px 20px;
+  border-right: 1px solid rgba(56, 78, 112, 0.22);
+}
+.stat:last-child {
+  border-right: 0;
+}
+.stat .num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.04em;
+}
+.stat .label {
+  font-size: 13px;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-top: 2px;
+}
+/* Categories preview */
+.categories {
+  padding: 60px 0;
+}
+.section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 36px;
+}
+.section-head h2 {
+  font-size: clamp(24px, 4vw, 36px);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+.section-head a {
+  color: var(--accent);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+}
+.cat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+.cat-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  text-decoration: none;
+  color: inherit;
+  transition: transform var(--duration-ui) var(--ease-out), border-color var(--duration-fast) ease, box-shadow var(--duration-ui) var(--ease-out), background-color var(--duration-fast) ease;
+  backdrop-filter: blur(12px);
+}
+.cat-card:hover {
+  border-color: var(--border-hover);
+  box-shadow: 0 0 28px rgba(45, 212, 191, 0.12);
+}
+.cat-card h3 {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.cat-card .icon {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 18px;
+  opacity: 0.6;
+}
+.cat-card p {
+  font-size: 13px;
+  color: var(--text-2);
+  margin-bottom: 12px;
+}
+.cat-card .cat-count {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: var(--text-3);
+}
+/* How it works */
+.how {
+  padding: 80px 0;
+}
+.how-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+.step {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 32px;
+  backdrop-filter: blur(12px);
+}
+.step .num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  color: var(--accent);
+  margin-bottom: 12px;
+}
+.step h3 {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.step p {
+  font-size: 14px;
+  color: var(--text-2);
+  line-height: 1.6;
+}
+/* Footer */
+footer {
+  position: relative;
+  z-index: 5;
+  border-top: 1px solid var(--border);
+  padding: 32px;
+  margin-top: 80px;
+}
+footer .inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+footer .left {
+  font-size: 13px;
+  color: var(--text-3);
+}
+footer .links {
+  display: flex;
+  gap: 20px;
+}
+footer .links a {
+  color: var(--text-2);
+  text-decoration: none;
+  font-size: 13px;
+}
+footer .links a:hover { color: var(--text); }
+footer code {
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--text-3);
+}
+/* Nav toggle (hamburger) */
+.nav-toggle {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--text);
+  font-size: 24px;
+  cursor: pointer;
+  padding: 4px 8px;
+  z-index: 11;
+}
+/* Hero entrance animation */
+.hero .badge,
+.hero h1,
+.hero .sub,
+.hero .actions,
+.hero .stats {
+  animation: slideUp 0.6s ease-out both;
+}
+.hero .badge { animation-delay: 0.1s; }
+.hero h1 { animation-delay: 0.2s; }
+.hero .sub { animation-delay: 0.35s; }
+.hero .actions { animation-delay: 0.5s; }
+.hero .stats { animation-delay: 0.65s; }
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+/* Responsive */
+@media (max-width: 768px) {
+  .hero { padding: 40px 0 60px; min-height: auto; }
+  .how-grid { grid-template-columns: 1fr; }
+  .stats { gap: 24px; }
+  .stat .num { font-size: 28px; }
+  .cat-grid { grid-template-columns: 1fr !important; }
+  .tools-grid { grid-template-columns: 1fr !important; }
+  pre { font-size: 12px; }
+  .nav-toggle { display: block; }
+  nav .links {
+    display: none;
+    position: fixed;
+    top: 0; right: 0;
+    width: 240px;
+    height: 100vh;
+    background: rgba(6, 8, 12, 0.95);
+    backdrop-filter: blur(20px);
+    flex-direction: column;
+    padding: 80px 24px 24px;
+    gap: 20px;
+    z-index: 10;
+    border-left: 1px solid var(--border);
+  }
+  nav .links.open { display: flex; }
+  nav .links a {
+    font-size: 16px;
+    width: 100%;
+    padding: 8px 0;
+  }
+}
+@media (max-width: 480px) {
+  nav { padding: 16px 20px; }
+  main { padding: 0 20px !important; }
+  .hero h1 { font-size: clamp(32px, 10vw, 48px); }
+  .section-head { flex-direction: column; align-items: flex-start; gap: 8px; }
+  footer .inner { text-align: center; }
+  footer .build-public,
+  footer .footer-meta { flex-direction: column; align-items: center; }
+  footer .links { justify-content: center; }
+}
+/* ── Tool directory & detail page styles ── */
+.tools-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+  padding: 40px 0;
+}
+.tool-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  text-decoration: none;
+  color: inherit;
+  transition: transform var(--duration-ui) var(--ease-out), border-color var(--duration-fast) ease, box-shadow var(--duration-ui) var(--ease-out), background-color var(--duration-fast) ease;
+  backdrop-filter: blur(12px);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.tool-card:hover {
+  border-color: var(--border-hover);
+  box-shadow: 0 0 28px rgba(45, 212, 191, 0.12);
+}
+.tool-card .tool-name {
+  font-size: 15px;
+  font-weight: 600;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--text);
+}
+.tool-card .tool-price {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--price);
+}
+.tool-card .tool-desc {
+  font-size: 13px;
+  color: var(--text-2);
+  line-height: 1.5;
+}
+.tool-card .tool-path {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--text-3);
+}
+.detail-page {
+  padding: 60px 0;
+}
+.detail-page .back-link {
+  color: var(--accent);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 24px;
+  display: inline-block;
+}
+.detail-page .tool-header {
+  margin-bottom: 32px;
+}
+.detail-page .tool-header h1 {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: clamp(28px, 5vw, 48px);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  margin-bottom: 8px;
+  color: var(--text);
+  text-shadow: 0 0 30px rgba(45, 212, 191, 0.10);
+}
+.detail-page .tool-price-large {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 36px;
+  font-weight: 800;
+  color: var(--price);
+}
+.detail-page .tool-desc-full {
+  font-size: 18px;
+  color: var(--text-2);
+  line-height: 1.6;
+  margin: 24px 0;
+  max-width: 720px;
+}
+.detail-page .tool-section {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  margin: 16px 0;
+  backdrop-filter: blur(12px);
+}
+.detail-page .tool-section h3 {
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-3);
+  margin-bottom: 12px;
+}
+.detail-page pre {
+  background: rgba(6, 8, 12, 0.6);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  color: var(--text);
+  overflow-x: auto;
+  white-space: pre-wrap;
+}
+.search-bar {
+  width: 100%;
+  padding: 14px 20px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--text);
+  font-size: 15px;
+  font-family: 'Inter', sans-serif;
+  margin-bottom: 32px;
+  backdrop-filter: blur(12px);
+  outline: none;
+  transition: border-color var(--duration-fast) ease, box-shadow var(--duration-fast) ease;
+}
+.search-bar:focus {
+  border-color: var(--accent);
+}
+.search-bar::placeholder {
+  color: var(--text-3);
+}
+
+/* ── Category sections (tools directory) ── */
+.cat-section {
+  margin-bottom: 48px;
+  scroll-margin-top: 24px;
+}
+.cat-section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+.cat-section-head h2 {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.cat-icon {
+  font-size: 24px;
+}
+.cat-section-head .cat-count {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+
+
+/* ── Full-suite payment rail system ─────────────────────────────── */
+nav {
+  gap: 16px;
+}
+nav .logo {
+  background: rgba(8, 16, 21, 0.72);
+  border: 1px solid rgba(45, 212, 191, 0.24);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+}
+nav .logo:hover {
+  color: var(--text);
+  border-color: rgba(45, 212, 191, 0.38);
+}
+nav .links {
+  gap: 8px;
+  padding: 6px;
+  border: 1px solid rgba(45, 212, 191, 0.18);
+  border-radius: 16px;
+  background: linear-gradient(180deg, rgba(6, 8, 12, 0.72), rgba(10, 17, 24, 0.56));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+  backdrop-filter: blur(14px);
+}
+nav .links a {
+  padding: 8px 12px;
+  border: 1px solid rgba(56, 78, 112, 0.22);
+  background: rgba(8, 16, 21, 0.54);
+}
+nav .links a:hover {
+  color: var(--text);
+  border-color: rgba(45, 212, 191, 0.34);
+  background: rgba(45, 212, 191, 0.08);
+}
+nav .links .cta {
+  background: rgba(45, 212, 191, 0.12);
+  border-color: rgba(45, 212, 191, 0.38);
+  color: #8ddfd5;
+}
+.rail-card,
+.cat-card,
+.tool-card,
+.step,
+.detail-page .tool-section,
+.tldr,
+.author-card,
+.rail-search,
+footer .inner {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(45, 212, 191, 0.22);
+  background: linear-gradient(180deg, rgba(6, 8, 12, 0.76), rgba(13, 23, 29, 0.62));
+  box-shadow: var(--rail-glow), inset 0 1px 0 rgba(255,255,255,0.06);
+  backdrop-filter: blur(14px);
+}
+.cat-card,
+.tool-card,
+.step,
+.detail-page .tool-section,
+.tldr,
+.author-card {
+  padding-top: 56px;
+}
+.rail-search {
+  margin-bottom: 32px;
+  border-radius: 16px;
+  padding: 46px 14px 14px;
+}
+.rail-card {
+  border-radius: 20px;
+}
+.author-card {
+  border-radius: 18px;
+  padding: 56px 22px 22px;
+}
+.rail-card::before,
+.cat-card::before,
+.tool-card::before,
+.step::before,
+.detail-page .tool-section::before,
+.tldr::before,
+.author-card::before,
+.rail-search::before,
+footer .inner::before {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  border-bottom: 1px solid rgba(45, 212, 191, 0.16);
+  background: rgba(8, 16, 21, 0.62);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  line-height: 1;
+  letter-spacing: 0.14em;
+  color: #8ddfd5;
+}
+.cat-card::before,
+.tool-card::before {
+  content: none;
+  display: none;
+}
+.cat-card:not([data-rail-label]),
+.tool-card:not([data-rail-label]) {
+  padding-top: 24px;
+}
+.cat-card[data-rail-label],
+.tool-card[data-rail-label] {
+  padding-top: 56px;
+}
+.cat-card[data-rail-label]::before,
+.tool-card[data-rail-label]::before {
+  content: attr(data-rail-label);
+  display: flex;
+}
+.step::before { content: 'PAYMENT RAIL'; }
+.detail-page .tool-section::before { content: attr(data-rail-label); }
+.tldr::before { content: 'ARTICLE'; }
+.author-card::before { content: 'OPERATOR'; }
+.rail-search::before { content: 'SEARCH'; }
+footer .inner::before {
+  content: none;
+  display: none;
+}
+.rail-card::before { content: attr(data-rail-label); }
+.cat-card:hover,
+.tool-card:hover {
+  border-color: rgba(45, 212, 191, 0.42);
+  transform: none;
+  box-shadow: 0 0 34px rgba(45, 212, 191, 0.14), inset 0 1px 0 rgba(255,255,255,0.07);
+}
+.btn {
+  border: 1px solid rgba(45, 212, 191, 0.24);
+  background: rgba(8, 16, 21, 0.68);
+  color: var(--text);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+}
+.btn-primary {
+  background: rgba(45, 212, 191, 0.14);
+  border-color: rgba(45, 212, 191, 0.44);
+  color: #a7fff4;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.07);
+}
+.btn-primary:hover,
+.btn:hover {
+  transform: none;
+  border-color: rgba(45, 212, 191, 0.52);
+  box-shadow: 0 0 26px rgba(45, 212, 191, 0.12), inset 0 1px 0 rgba(255,255,255,0.07);
+}
+.btn:active { transform: none; }
+.search-bar {
+  margin-bottom: 0;
+  border: 0;
+  background: rgba(6, 8, 12, 0.62);
+  box-shadow: inset 0 0 0 1px rgba(56, 78, 112, 0.24);
+}
+.search-bar:focus {
+  box-shadow: inset 0 0 0 1px rgba(45, 212, 191, 0.54), var(--focus-ring);
+}
+footer {
+  border-top: 0;
+}
+footer .inner {
+  border-radius: 20px;
+  padding: 24px;
+  border-color: rgba(45, 212, 191, 0.14);
+  background: linear-gradient(180deg, rgba(6, 8, 12, 0.58), rgba(10, 17, 24, 0.42));
+  box-shadow: 0 0 22px rgba(45, 212, 191, 0.06), inset 0 1px 0 rgba(255,255,255,0.04);
+  flex-direction: column;
+  align-items: stretch;
+  gap: 18px;
+}
+footer .build-public,
+footer .footer-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+footer .build-public {
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(45, 212, 191, 0.12);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  line-height: 1.2;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+footer .build-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+footer .build-status::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent);
+}
+footer .studio-mark {
+  color: var(--text-2);
+}
+footer .footer-meta {
+  flex-wrap: wrap;
+}
+footer .links {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+footer .links a {
+  padding: 7px 10px;
+  border: 1px solid rgba(56, 78, 112, 0.22);
+  border-radius: 8px;
+  background: rgba(8, 16, 21, 0.42);
+  transition: color var(--duration-fast) ease, border-color var(--duration-fast) ease, background-color var(--duration-fast) ease;
+}
+footer .links a:hover {
+  color: var(--text);
+  border-color: rgba(45, 212, 191, 0.34);
+  background: rgba(45, 212, 191, 0.08);
+}
+.detail-page .back-link,
+.section-head a,
+article a,
+.back-link a {
+  border-radius: 8px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  #shader-bg { display: none; }
+  .hero .badge,
+  .hero h1,
+  .hero .sub,
+  .hero .actions,
+  .hero .stats,
+  .hero .badge::before {
+    animation: none;
+  }
+  .tool-card:hover { transform: none; }
+  .cat-card:hover { transform: none; }
+  .btn-primary:hover { transform: none; }
+  .btn:active { transform: none; }
+}
+
+
+
+.blog-shell {
+  padding: 48px 32px 80px;
+}
+.blog-frame {
+  max-width: 1160px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 760px) 300px;
+  gap: 36px;
+  align-items: start;
+}
+.blog-kicker {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  color: #8ddfd5;
+  margin-bottom: 14px;
+}
+.blog-title {
+  max-width: 780px;
+  font-size: clamp(34px, 5vw, 60px);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.05em;
+  color: var(--text);
+  text-shadow: 0 0 42px rgba(45, 212, 191, 0.10), 0 1px 0 rgba(255,255,255,0.12);
+  margin-bottom: 24px;
+}
+.back-link,
+.blog-kicker,
+.blog-title {
+  margin-left: 24px;
+  margin-right: 24px;
+}
+.blog-hero-card {
+  padding: 0;
+  border-radius: 0;
+  margin: 0 24px 40px;
+}
+.blog-hero-card::before { content: none; display: none; }
+.blog-hero-card img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1200 / 630;
+  border-radius: 12px;
+  border: 1px solid rgba(45, 212, 191, 0.18);
+}
+.blog-article {
+  padding: 0 24px 20px;
+}
+.blog-article::before { content: none; display: none; }
+.blog-article .tldr::before { content: 'TL;DR'; }
+.blog-article .tldr {
+  border-radius: 20px;
+  padding: 66px 30px 28px;
+  margin: 0 0 42px;
+  color: var(--text);
+  font-size: 17px;
+  line-height: 1.7;
+}
+.blog-article h2 {
+  font-size: 26px;
+  font-weight: 750;
+  letter-spacing: -0.02em;
+  margin: 56px 0 18px;
+}
+.blog-article h3 {
+  font-size: 19px;
+  font-weight: 650;
+  margin: 34px 0 14px;
+}
+.blog-article p,
+.blog-article li {
+  color: var(--text-2);
+  font-size: 17px;
+  line-height: 1.82;
+}
+.blog-article p { margin-bottom: 22px; }
+.blog-article ul { margin: 16px 0 22px 24px; }
+.blog-article hr {
+  border: 0;
+  border-top: 1px solid rgba(45, 212, 191, 0.16);
+  margin: 44px 0;
+}
+.blog-article code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .86em;
+  background: rgba(45,212,191,.10);
+  padding: 3px 7px;
+  border-radius: 6px;
+  color: #8ddfd5;
+}
+.blog-article pre {
+  background: rgba(6,8,12,.72);
+  border: 1px solid rgba(45,212,191,.20);
+  border-radius: 16px;
+  padding: 24px;
+  overflow-x: auto;
+  margin: 24px 0 30px;
+}
+.blog-article pre code {
+  background: none;
+  padding: 0;
+  color: var(--text);
+  font-size: 13.5px;
+  line-height: 1.65;
+}
+.blog-article a { color: #8ddfd5; }
+.blog-article strong { color: var(--text); }
+.blog-side {
+  position: sticky;
+  top: 20px;
+  display: grid;
+  gap: 16px;
+}
+.blog-side .rail-card,
+.blog-side .author-card {
+  border-radius: 20px;
+  padding: 60px 22px 22px;
+}
+.blog-side .rail-card p,
+.blog-side .author-card p {
+  color: var(--text-2);
+  font-size: 14px;
+  line-height: 1.65;
+}
+.meta {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  margin-bottom: 8px;
+}
+.back-link { margin-bottom: 22px; }
+.back-link a { color: #8ddfd5; text-decoration: none; font-size: 14px; }
+.cta-row {
+  margin-top: 20px;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.blog-side .cta-row .btn {
+  justify-content: center;
+  min-width: 176px;
+}
+.author-card .flex { display:flex; gap:16px; align-items:center; }
+.avatar { width:48px;height:48px;border-radius:50%;overflow:hidden;flex-shrink:0; }
+@media (max-width: 900px) {
+  .blog-frame { grid-template-columns: 1fr; gap: 28px; }
+  .blog-side { position: relative; top: auto; }
+}
+@media (max-width: 768px) {
+  .blog-shell { padding: 24px 20px 60px; }
+  .back-link,
+  .blog-kicker,
+  .blog-title {
+    margin-left: 2px;
+    margin-right: 2px;
+  }
+  .blog-hero-card { margin: 0 2px 36px; }
+  .blog-article { padding: 0 2px 24px; }
+  .blog-article .tldr { padding: 62px 22px 24px; }
+}
+
+
+.blog-frame > div {
+  min-width: 0;
+}
+.blog-title {
+  overflow-wrap: anywhere;
+}
+.blog-hero-card img {
+  max-width: 100%;
+}
+.article-visual {
+  margin: 34px 0 40px;
+}
+.article-visual img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 18px;
+  border: 1px solid rgba(45, 212, 191, 0.20);
+  background: #06080c;
+  box-shadow: 0 18px 46px rgba(0,0,0,.30);
+}
+.article-visual figcaption {
+  margin: 11px 8px 0;
+  color: var(--text-3);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  line-height: 1.55;
+}
+.blog-article table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin: 26px 0 34px;
+  overflow: hidden;
+  border: 1px solid rgba(45, 212, 191, 0.20);
+  border-radius: 16px;
+  background: rgba(6,8,12,.56);
+}
+.blog-article th,
+.blog-article td {
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(56,78,112,.28);
+  color: var(--text-2);
+  font-size: 14px;
+  text-align: left;
+}
+.blog-article th {
+  color: var(--text);
+  background: rgba(45,212,191,.08);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  letter-spacing: .03em;
+}
+.blog-article tr:last-child td { border-bottom: 0; }
+.blog-article td:not(:first-child),
+.blog-article th:not(:first-child) { text-align: right; }
+@media (max-width: 620px) {
+  .blog-article table { display: block; overflow-x: auto; white-space: nowrap; }
+  .article-visual { margin-left: -4px; margin-right: -4px; }
+  .article-visual figcaption { font-size: 11px; }
+}
+
+
+.blog-frame > div {
+  min-width: 0;
+}
+.blog-title {
+  overflow-wrap: anywhere;
+}
+.article-visual {
+  margin: 34px 0 40px;
+}
+.blog-article table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin: 26px 0 34px;
+  overflow: hidden;
+  border: 1px solid rgba(45, 212, 191, 0.20);
+  border-radius: 16px;
+  background: rgba(6,8,12,.56);
+}
+.blog-article th,
+.blog-article td {
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(56,78,112,.28);
+  color: var(--text-2);
+  font-size: 14px;
+  text-align: left;
+}
+.blog-article th {
+  color: var(--text);
+  background: rgba(45,212,191,.08);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  letter-spacing: .03em;
+}
+.blog-article tr:last-child td { border-bottom: 0; }
+.blog-article h2 {
+  margin-top: 40px;
+}
+.blog-article ul {
+  margin: 18px 0 24px;
+  padding-left: 22px;
+  color: var(--text-2);
+}
+.blog-article ul li {
+  margin: 8px 0;
+}
+.blog-article ul li a {
+  color: var(--accent);
+}
+@media (max-width: 620px) {
+  .blog-article table { display: block; overflow-x: auto; white-space: nowrap; }
+  .article-visual { margin-left: -4px; margin-right: -4px; }
+}
+
+
+.blog-frame > div {
+  min-width: 0;
+}
+.blog-title {
+  overflow-wrap: anywhere;
+}
+.article-visual {
+  margin: 34px 0 40px;
+}
+.blog-article table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin: 26px 0 34px;
+  overflow: hidden;
+  border: 1px solid rgba(45, 212, 191, 0.20);
+  border-radius: 16px;
+  background: rgba(6,8,12,.56);
+}
+.blog-article th,
+.blog-article td {
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(56,78,112,.28);
+  color: var(--text-2);
+  font-size: 14px;
+  text-align: left;
+}
+.blog-article th {
+  color: var(--text);
+  background: rgba(45,212,191,.08);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  letter-spacing: .03em;
+}
+.blog-article tr:last-child td { border-bottom: 0; }
+.blog-article h2 {
+  margin-top: 40px;
+}
+.blog-article ul {
+  margin: 18px 0 24px;
+  padding-left: 22px;
+  color: var(--text-2);
+}
+.blog-article ul li {
+  margin: 8px 0;
+}
+.blog-article ul li a {
+  color: var(--accent);
+}
+@media (max-width: 620px) {
+  .blog-article table { display: block; overflow-x: auto; white-space: nowrap; }
+  .article-visual { margin-left: -4px; margin-right: -4px; }
+}
+
+</style>
+</head><body>
+<nav>
+  <a href="/" class="logo" style="text-decoration:none;color:inherit;">agent<span>toll</span>.dev</a>
+  <button class="nav-toggle" aria-label="Menu" onclick="document.querySelector('nav .links').classList.toggle('open')">≡</button>
+  <div class="links">
+    <a href="/tools">Tools</a>
+    <a href="/docs">Docs</a>
+    <a href="/discovery">Discovery</a>
+    <a href="/blog">Blog</a>
+    <a href="/.well-known/agent.json">agent.json</a>
+    <a href="/api/system/info">API</a>
+    <a href="/mcp" class="cta">MCP Endpoint</a>
+  </div>
+</nav>
+<main class="blog-shell">
+  <div class="blog-frame">
+    <div>
+      <div class="back-link"><a href="/blog">← Back to blog</a></div>
+      <div class="blog-kicker">ANALYSIS · X402 · THE 402 WALL</div>
+      <h1 class="blog-title">The 402 wall: x402 just got its demand audit</h1>
+      <article class="blog-article">
+<div class="tldr"><strong>TL;DR:</strong> A blockchain intelligence firm screened six months of x402 settlements and found that 0.6 to 7.5 percent of the value looks like it came from AI agents. Our own paid endpoints spent the same month collecting the seller-side version of that finding. Read directionally, the two pictures rhyme: agents walk straight into the meter, the rail settles everything it is asked to, and conversion is the wall. What does get bought is cheap data the buyer could price before the call.</div>
+<h2>The report that said the quiet part</h2>
+<p>On September 9, TRM Labs published <a href="https://www.trmlabs.com/trm-tech-blog/whos-actually-paying-measuring-ai-agent-payments-onchain">an analysis</a> titled "Who's Actually Paying? Measuring AI Agent Payments Onchain." The firm took every settlement it could attribute to known x402 facilitators across Base, Solana, and Polygon since May 2025: about $52.7 million across 198.9 million transactions. Then it tried to separate commerce from noise.</p>
+<p>The screens came first. Addresses paying themselves, out. Bulk flows dominated by one or two payers, out. Sellers with fewer than 10 distinct buyers, out. That cut the headline number to $25.62 million of likely commerce. Then two models estimated how much of the remainder looked agentic: a permissive one that counted any payer with small, varying amounts, and a strict one that also wanted months of sustained activity plus proof like registration in a public agent registry or payments to multiple sellers.</p>
+<p>The range came back at 0.6 to 7.5 percent. Actual agent volume, by value, lands somewhere around $5,000 to $11,000 a month. Across the entire protocol.</p>
+<p>Two details in the report deserve more attention than they got. First, USDC was 99.6 percent of settled value, so the stablecoin part of the story is settled. Second, TRM admits its own method probably undercounts. A single-purpose agent that buys the same cheap data feed every day looks exactly like a cron job on-chain, and the strict model throws it away. The honest reading is not "agents are fake." It is that agency is invisible on-chain, so anyone quoting you a headline transaction number for x402 is quoting mostly scripts.</p>
+<figure class="article-visual"><img alt="Waterfall chart: TRM Labs screened 52.7 million dollars of x402 settlements down to 25.62 million of likely commerce, with 0.6 to 7.5 percent of that looking agentic." height="640" src="/blog/x402-wall-trm-screens.svg" width="1200"/><figcaption>TRM's screens cut the headline to about half, and the agentic band inside what remains is a sliver either way. The methodology is conservative by its own admission: a single-purpose agent buying one cheap feed every day looks like a cron job on-chain, so the true share is probably higher than the range.</figcaption></figure>
+<p>Decrypt picked the report up on September 13, PYMNTS on September 15. The reactions split the way you would expect: infrastructure people kept building, and everyone waiting for proof of demand got more skeptical. Both camps are right, which is the problem.</p>
+<h2>The seller-side shape</h2>
+<p>I run a marketplace of paid x402 endpoints at agenttoll.dev, roughly a hundred routes selling market, OSINT, and security data by the call. Every route logs its own funnel. The counting is KV-based and approximate, reads and writes can race, and I would not audit a bank with it. But it sees every request.</p>
+<p>I am keeping the exact counts internal this time. What the month produced is a shape, and the shape is the argument.</p>
+<p>Three things the shape shows. First, agents hit the paid POST endpoint several times for every single read of the free metadata about it. They skip the brochure and walk straight into the meter. Second, almost every challenge ends without a payment, lopsided enough that nobody gets to blame the plumbing. And third, the misses are not failures. Zero upstream failures in the window. When a buyer did sign, the facilitator verified, the chain settled, and the receipt went public. We walked that path in detail when <a href="/blog/agents-buy-stock-data">we settled the first paid stock-quote call</a> earlier this month. The rail is not the problem. Nobody is standing at the wall because the wall failed them. They stand there and decide the other side is not worth 3 cents yet.</p>
+<figure class="article-visual"><img alt="Directional funnel shape for one x402 seller over 30 days: payment challenges, a smaller band of free metadata reads, and a thin slice of settled paid calls." height="640" src="/blog/x402-wall-funnel.svg" width="1200"/><figcaption>One month of one seller's traffic, directional. Agents hit the meter several times for every read of the brochure, and only a thin slice of challenges ends in settled payment. Exact counts stay internal; upstream failures in the same window were zero.</figcaption></figure>
+<h2>The only things anyone bought</h2>
+<p>Every purchase this month went to the cheapest, most familiar endpoints we run.</p>
+<table>
+<thead>
+<tr>
+<th>Route</th>
+<th>Price</th>
+<th>What it sells</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>/paid/finance/token-stock-quote</td>
+<td>$0.03</td>
+<td>Live DEX quotes for tokenized stocks on Base</td>
+</tr>
+<tr>
+<td>/paid/polymarket/trending</td>
+<td>$0.02</td>
+<td>Trending prediction markets</td>
+</tr>
+<tr>
+<td>/paid/social/reddit</td>
+<td>$0.02</td>
+<td>Reddit search and sentiment</td>
+</tr>
+<tr>
+<td>/paid/finance/token-stock-quote</td>
+<td>$0.03</td>
+<td>Same stock endpoint, again</td>
+</tr>
+</tbody>
+</table>
+<p>Split the catalog by price and the pattern gets clean. The endpoints priced at 3 cents or less are where the month's conversions landed. Everything above 3 cents, the briefs and audits at a nickel through fifteen, is still waiting on its first. Price alone does not explain that. Our EDGAR filings route costs 2 cents, cheaper than two of the products in the table, and it has not converted. What the winners share is that an agent already knows what the data is. A stock quote, a trending-markets list, a subreddit search: the value is legible before the call. The endpoints that have not converted are composites, briefs and audits that need judgment to price, and those are exactly the products where the buyer has to trust the seller before the first call.</p>
+<figure class="article-visual"><img alt="Two tier cards: endpoints priced at 3 cents or less are where this month's conversions landed, endpoints above 3 cents are still waiting on their first." height="640" src="/blog/x402-wall-price.svg" width="1200"/><figcaption>Same month, split by price tier. The sub-3-cent tier is where conversions landed; the nickel-to-fifteen-cent tier is still waiting. Legibility beats price: EDGAR at two cents has not converted.</figcaption></figure>
+<p>That matches what the space has been saying since August. The scarce layer is not payment, it is deciding what deserves a payment. Agents vote with the only currency they have: they buy what they already understand, priced like a snack.</p>
+<p>There is outside evidence the lane is real. A dedicated competitor, <a href="https://x402stock.xyz/">x402stock</a>, sells market data through the same protocol with the same no-accounts pitch. Our stock-quote route took more meter hits than any other route we run this month. Two sellers spending a month getting hammered on the same endpoint is a strange kind of validation, but it is validation.</p>
+<h2>The rest of the tape</h2>
+<p>The week the TRM report landed, three other stories moved the same direction.</p>
+<p>Solana took over the protocol's volume. It passed Base in daily x402 transactions on August 25 for the first time in six months and now holds roughly 70 percent of monthly volume, about $24 million over 30 days. Cardano Foundation engineers contributed a native implementation to the official x402 codebase on September 14. Stellar published its x402 integration docs on September 8. Algorand is running a $100,000 challenge for pay-per-use APIs. The multichain future of the standard is not being debated anymore, it is being shipped.</p>
+<p>Coinbase opened <a href="https://coinmarketcap.com/academy/article/coinbase-x402-launches-ai-agent-app-store">Agentic.market</a> on September 4, a storefront where people browse x402 services and agents discover them programmatically, each agent carrying its own wallet to buy and sell. More shelves for the same store problem.</p>
+<p>And the identity layer showed up. Visa, Mastercard, and Ant International announced <a href="https://www.reuters.com/technology/payment-firms-visa-mastercard-ant-international-team-up-ai-agent-trust-framework-2026-09-10">a Know Your Agent interoperability framework</a> on September 10 through the MAS-convened BuildFin.ai platform. <a href="https://www.forbes.com/sites/digital-assets/2026/02/05/ai-agents-gain-trust-via-ethereum-erc-8004-on-mainnet">ERC-8004</a> agent registries have been live on mainnet since February, and a community tracker counts over half a million registered agents. TRM used registry registration as one of its strict signals, and rarity is the point: registration is voluntary, so the agents that register are the ones that want to be found.</p>
+<h2>The fix list is the product roadmap</h2>
+<p>TRM closes with three needs: accurate agent registration, counterparty reputation an agent can check on its own, and monitoring built for volume rather than value. Strip the compliance framing and that is a seller's roadmap.</p>
+<p>Registration exists. If you sell to agents and you are not registered under ERC-8004, you are invisible to the strictest buyers. Reputation is receipts. We serve a public verifier for every settled transaction, payment details and payload, and it costs nothing per read because verified receipts are immutable and cache forever. Monitoring for volume is what our funnel counters already are: per-route, per-day, counting requests instead of dollars, built on a KV write that costs $0.</p>
+<p>And for pricing, the month gave a clean rule of thumb. Agents pay under a nickel for data whose value they knew before the call. If your first product needs the buyer to trust you, it will sit behind the wall no matter what it costs. Sell the legible thing first. Let the receipts argue for the composites.</p>
+<h2>Where this goes</h2>
+<p>The infrastructure conviction and the paid demand are now on the record from both sides, and they do not match yet. That is not a scandal, it is a 1990s-e-commerce gap. The rails being done before the shopping was normal is how this pattern always goes.</p>
+<p>What closes it is boring. Sellers pricing first calls like a pack of gum. Registries making agents findable so good buyers stop looking like cron jobs. Storefronts curating instead of listing. The protocols did their part; the HTTP 402 status code has never worked this hard in its life. The rest is on us, the people leaving the meters on.</p>
+<h2>Sources</h2>
+<ul>
+<li><a href="https://www.trmlabs.com/trm-tech-blog/whos-actually-paying-measuring-ai-agent-payments-onchain">TRM Labs: Who's Actually Paying? Measuring AI Agent Payments Onchain</a></li>
+<li><a href="https://decrypt.co/378103/ai-agents-spending-money-research">Decrypt: AI Agents Spending Money Online? New Research Says Otherwise</a></li>
+<li><a href="https://www.pymnts.com/news/artificial-intelligence/2026/agentic-payments-are-growing-most-x402-payments-are-not-from-ai-agents">PYMNTS: Agentic Payments Are Growing, but Most x402 Payments Aren't From AI Agents</a></li>
+<li><a href="https://cryptobriefing.com/solana-x402-market-share-dominance">Crypto Briefing: Solana commands ~70% market share in x402 activity</a></li>
+<li><a href="https://cryptorank.io/news/feed/9de7d-cardano-crypto-officially-becomes-part-of-x402-codebase-what-it-means-for-ada-price">Cryptorank: Cardano officially becomes part of x402 codebase</a></li>
+<li><a href="https://developers.stellar.org/docs/build/agentic-payments/x402">Stellar Docs: x402 on Stellar</a></li>
+<li><a href="https://coinmarketcap.com/academy/article/coinbase-x402-launches-ai-agent-app-store">CoinMarketCap: Coinbase x402 Launches AI Agent App Store</a></li>
+<li><a href="https://www.reuters.com/technology/payment-firms-visa-mastercard-ant-international-team-up-ai-agent-trust-framework-2026-09-10">Reuters: Visa, Mastercard and Ant International team up on AI agent trust framework</a></li>
+<li><a href="https://www.mastercard.com/us/en/news-and-trends/press/2026/september/mastercard-gives-merchants-a-simpler-way-to-build--connect-and-s.html">Mastercard: Agent Connect launch</a></li>
+<li><a href="https://www.forbes.com/sites/digital-assets/2026/02/05/ai-agents-gain-trust-via-ethereum-erc-8004-on-mainnet">Forbes: AI Agents Gain Trust Via Ethereum, ERC-8004 on Mainnet</a></li>
+<li><a href="https://agenteconomy.to/erc-8004">Agent Economy: ERC-8004 registry tracker</a></li>
+<li><a href="https://x402stock.xyz/">x402stock: market data API for AI agents</a></li>
+<li>AgentToll route observations, rolling 30 days ending September 17, 2026. First-party funnel telemetry from our own KV store; exact counts kept internal, shape and conversion pattern only.</li>
+</ul>
+      </article>
+    </div>
+    <aside class="blog-side">
+      <div class="rail-card" data-rail-label="ARTICLE META"><div class="meta">Analysis · September 17, 2026</div><p>TRM Labs measured the agentic share of x402 from the chain side. One month on our own paid routes, read directionally: the meter hums, the rail settles everything, and the cheap legible tier converts first. What converts, what does not, and why the wall is demand, not rails.</p></div>
+      <div class="rail-card" data-rail-label="RELATED"><p><a href="/blog/agents-buy-stock-data" style="color:var(--accent);">What agents will buy first isn't stocks</a></p><p><a href="/blog/x402-judgment-problem" style="color:var(--accent);">15,100 paid APIs, 110 curated</a></p><p><a href="/tools" style="color:var(--accent);">Browse paid work products</a></p><p><a href="/receipt" style="color:var(--accent);">Receipt verifier</a></p></div>
+      <div class="author-card"><div class="flex"><div class="avatar" style="overflow:hidden;"><img src="/hu-white-pfp.jpg" alt="Hu White" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"></div><div><div style="font-size:15px;font-weight:600;">Hu White</div><div style="font-size:13px;color:var(--text-3);">Generative-AI veteran &#183; x402 builder &#183; <a href="https://github.com/huwhitememes" style="color:var(--accent);">GitHub</a> &#183; <a href="https://www.linkedin.com/in/huwhitememes/" style="color:var(--accent);">LinkedIn</a> &#183; <a href="https://x.com/memerhuwhite" style="color:var(--accent);">X</a></div></div></div><p style="font-size:13px;color:var(--text-2);margin-top:12px;line-height:1.6;">Built and operates agenttoll.dev, a marketplace of receipt-backed paid work products settling on Base USDC.</p></div>
+      <div class="cta-row"><a href="/tools" class="btn btn-primary">Inspect paid work →</a></div>
+    </aside>
+  </div>
+</main>
+<footer>
+  <div class="inner">
+    <div class="build-public">
+      <div class="build-status">v0.2, building in public</div>
+      <div class="studio-mark">© 2026 MEME KING STUDIO</div>
+    </div>
+    <div class="footer-meta">
+      <div class="left">Built by Hu White · <a href="mailto:memerhuwhite@gmail.com" style="color: var(--accent); text-decoration: none;">Contact</a> · Settles on Base USDC to <code>0x62a0…7F1</code></div>
+      <div class="links">
+        <a href="/tools">Tools</a>
+        <a href="/discovery">Discovery</a>
+        <a href="/mcp">MCP</a>
+        <a href="/.well-known/mcp.json">MCP manifest</a>
+        <a href="/openapi.json">OpenAPI</a>
+        <a href="/llms-full.txt">llms-full.txt</a>
+        <a href="/.well-known/agent.json">agent.json</a>
+        <a href="mailto:memerhuwhite@gmail.com">Contact</a>
+      </div>
+    </div>
+  </div>
+</footer>
+</body>
+</html>
