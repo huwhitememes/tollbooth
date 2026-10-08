@@ -68,9 +68,9 @@ const SERVICE = {
 const SOLANA_NETWORK = "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp"; // Solana mainnet (CAIP-2)
 const SOLANA_USDC_MAINNET = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
 const solanaPayTo = process.env.SOLANA_PAYTO ?? "";
-// Solana settlements route through the PayAI facilitator (public /supported; it
-// settles solana mainnet). CDP facilitator stays primary for EVM networks.
-const hasSolanaRail = Boolean(solanaPayTo && SERVICE.facilitator !== CDP_FACILITATOR_URL);
+// Solana settlements route through the PayAI facilitator even when CDP is
+// primary for EVM (CDP /supported does not list solana; PayAI does).
+const hasSolanaRail = Boolean(solanaPayTo);
 
 const TOOLS = [
   {
