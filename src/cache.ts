@@ -32,6 +32,7 @@ export const FEED_TTLS: Record<string, number> = {
   "openrouter-model-usage": 60 * 60,
   "openrouter-models": 60 * 60,
   "github-trending": 60 * 10,
+  "x402-railwatch": 60 * 30,
   "hn-frontpage": 60 * 10,
   "hn-frontpage-dwell": 60 * 10,
   "usgs-quake": 60 * 5,

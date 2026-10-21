@@ -7,6 +7,7 @@ import { queryGeoPulse, queryFlightIntel, queryAttentionMomentum, queryRegulator
 import { oddsFeed, volumeAnalytics, kalshiMarkets } from "./data-products.js";
 import { scanTrendingMarkets } from "./rebalance.js";
 import { fetchGithubTrending } from "./feeds/github-trending.js";
+import { buildRailWatch } from "./feeds/x402-railwatch.js";
 import { fetchHnFrontpage } from "./feeds/hn-frontpage.js";
 import { fetchUsgsQuakes } from "./feeds/usgs-quake.js";
 import { fetchOpenAq } from "./feeds/openaq-air.js";
@@ -72,6 +73,7 @@ export async function runAllFeedWarms(env: EnvLike) {
     },
     async () => { const d = await queryResearchPack({ topic: "AI agents x402 prediction markets" }); await put("research-pack", d); return "research-pack"; },
     async () => { const d = await fetchGithubTrending({ limit: 25 }); await put("github-trending", d); return "github-trending"; },
+    async () => { const d = await buildRailWatch({}); await put("x402-railwatch", d); return "x402-railwatch"; },
     async () => { const d = await fetchHnFrontpage({ limit: 30 }); await put("hn-frontpage", d); return "hn-frontpage"; },
     async () => { const d = await fetchUsgsQuakes({ limit: 30 }); await put("usgs-quake", d); return "usgs-quake"; },
     async () => { const d = await fetchOpenAq({ limit: 30 }); await put("openaq-air", d); return "openaq-air"; },

@@ -26,6 +26,7 @@ import { getCachedOrLive, kvListKeys, routeAnalyticsIncrement, routeAnalyticsSna
 import { runAllFeedWarms } from "./scheduler.js";
 import { mcpGetCachedOrLive } from "./mcp-cache.js";
 import { fetchGithubTrending } from "./feeds/github-trending.js";
+import { buildRailWatch } from "./feeds/x402-railwatch.js";
 import { fetchHnFrontpage } from "./feeds/hn-frontpage.js";
 import { fetchUsgsQuakes } from "./feeds/usgs-quake.js";
 import { fetchOpenAq } from "./feeds/openaq-air.js";
@@ -959,6 +960,14 @@ const TOOLS = [
     example: { query: "Tyson" },
     http_path: "/paid/health/food-recall",
   },
+  {
+    name: "x402_rail_watch",
+    price_usd: "0.05",
+    description: "x402 ecosystem rail watch — live GitHub pulse (top repos, 30-day new entrants, anchor watchlist) plus a curated rail ledger: every announced lane (Lightning, Cardano, Algorand, Solana batch settlement, Base USDC) with settlement status and why it matters.",
+    input: { section: "optional all | ecosystem | watchlist | brief", limit: "optional int, max top repos (5-50)" },
+    example: { section: "all" },
+    http_path: "/paid/osint/x402-railwatch",
+  },
 ] as const;
 
 const X402_CONFIG: X402Config = {
@@ -1209,6 +1218,18 @@ const trendingDiscovery = declareDiscoveryExtension({
     },
   },
   output: { example: { source: "Polymarket Gamma API", markets: [] } },
+});
+
+const railWatchDiscovery = declareDiscoveryExtension({
+  bodyType: "json",
+  input: { section: "all", limit: 25 },
+  inputSchema: {
+    properties: {
+      section: { type: "string", enum: ["all", "ecosystem", "watchlist", "brief"] },
+      limit: { type: "integer", minimum: 5, maximum: 50 },
+    },
+  },
+  output: { example: { generated_at: "2026-10-08T00:00:00.000Z", ecosystem: { top: [], new_entrants_30d: [] }, watchlist: { rows: [] }, brief: { headline: "Five new lanes announced in ten days." } } },
 });
 
 const oddsFeedDiscovery = declareDiscoveryExtension({
@@ -1992,6 +2013,16 @@ paidHttp.use(paymentMiddleware({
     unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "$0.04", network: SERVICE.network } }),
   },
   // ── 4 new public-API feeds (v0.9.1) ────────────────────────────────
+  "POST /paid/osint/x402-railwatch": {
+    accepts: routeAccepts("$0.05"),
+    resource: `${SERVICE.origin}/paid/osint/x402-railwatch`,
+    description: "x402 rail watch — live GitHub pulse on the agent payment standard plus a curated rail ledger with settlement status per lane. Who is building, what shipped, what is still a press release.",
+    mimeType: "application/json",
+    serviceName: "agenttoll.dev",
+    tags: ["osint", "x402", "payments", "rails", "ecosystem", "intel", "x402"],
+    iconUrl: `${SERVICE.origin}/favicon.svg`,
+    unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "$0.05", network: SERVICE.network } }),
+  },
   "POST /paid/osint/github-trending": {
     accepts: routeAccepts("$0.02"),
     resource: `${SERVICE.origin}/paid/osint/github-trending`,
@@ -2445,6 +2476,17 @@ paidHttp.post("/paid/osint/openrouter-models", async (c) => {
 });
 
 // ── Extra public feeds (v1.0) ────────────────────────────────────────
+paidHttp.post("/paid/osint/x402-railwatch", async (c) => {
+  const body = await c.req.json<Record<string, unknown>>().catch(() => ({} as Record<string, unknown>));
+  try {
+    const wrapped = await getCachedOrLive(c.env as any, "x402-railwatch", () => buildRailWatch({
+      section: body.section ? String(body.section) : undefined,
+      limit: typeof body.limit === "number" ? body.limit : undefined,
+    }), { params: body });
+    return c.json(wrapped.data, 200, { "X-Cache": wrapped.cached ? "HIT" : "MISS", "X-Cache-Age": String(wrapped.age_ms ?? 0) } as any);
+  } catch (e) { return c.json({ error: "x402_railwatch_failed", message: e instanceof Error ? e.message : String(e) }, 502); }
+});
+
 paidHttp.post("/paid/osint/github-trending", async (c) => {
   const body = await c.req.json<Record<string, unknown>>().catch(() => ({} as Record<string, unknown>));
   try {
@@ -3483,6 +3525,21 @@ export class TollboothMCP extends McpAgent<Env> {
     );
 
     this.server.paidTool(
+      "x402_rail_watch",
+      "x402 ecosystem rail watch — live GitHub pulse on the agent payment standard (top repos, 30-day new entrants, anchor watchlist) plus a curated rail ledger with settlement status per lane (Lightning, Cardano, Algorand, Solana, Base). Judgment layer included.",
+      0.05,
+      {
+        section: z.enum(["all", "ecosystem", "watchlist", "brief"]).optional().describe("Scope: all (default), ecosystem (GitHub pulse), watchlist (anchor repos), brief (curated rail ledger)"),
+        limit: z.number().int().min(5).max(50).optional().describe("Max top repos, default 25"),
+      },
+      {},
+      async (args) => {
+        const data = await mcpGetCachedOrLive(this.env, "x402-railwatch", () => buildRailWatch(args), args);
+        return { content: [{ type: "text", text: JSON.stringify(data) }] };
+      }
+    );
+
+    this.server.paidTool(
       "github_trending",
       "GitHub trending repos — stars >20 + recent push, sorted by stars desc. Public GitHub Search API no-key. Momentum proxy for dev tooling / open source virality.",
       0.02,
@@ -4172,6 +4229,8 @@ function x402WellKnownJson() {
         price_usd: tool.price_usd,
         network: SERVICE.network,
         payTo: SERVICE.seller,
+        serviceName: SERVICE.name,
+        iconUrl: `${SERVICE.origin}/favicon.svg`,
         tags: [isHttp ? "http" : "mcp", "x402", "agents", tool.name],
         outputSchema: {
           input: {
@@ -5784,7 +5843,7 @@ const TOOL_CATEGORIES = [
   { name: "Prediction Markets", icon: "\u{1F4CA}", tools: ["polymarket_event_scan","polymarket_market_scan","cross_platform_arb_scan","rebalance_arb_scan","trending_markets","odds_feed","volume_analytics","resolution_history","kalshi_markets","combinatorial_arb","orderbook_imbalance","smart_money"] },
   { name: "x402 Market Intel", icon: "\u{1F6E3}\u{FE0F}", tools: ["x402_market_radar","x402_rank_audit","x402_seller_readiness_audit"] },
   { name: "MCP Trust", icon: "\u{1F6E1}\u{FE0F}", tools: ["mcp_safety_brief","mcp_approval_pack"] },
-  { name: "OSINT & Intelligence", icon: "\u{1F30D}", tools: ["geo_intervention_pulse","flight_intel","osint_research_pack","scenario_verdict","weather_bias_score","supply_chain_stress","regulatory_pulse","regulatory_impact_brief","attention_momentum","sec_8k_velocity","fred_surprises","treasury_dts","openrouter_models","github_trending","github_repo_intel","hn_frontpage","reddit_search"] },
+  { name: "OSINT & Intelligence", icon: "\u{1F30D}", tools: ["geo_intervention_pulse","flight_intel","osint_research_pack","scenario_verdict","weather_bias_score","supply_chain_stress","regulatory_pulse","regulatory_impact_brief","attention_momentum","sec_8k_velocity","fred_surprises","treasury_dts","openrouter_models","github_trending","github_repo_intel","hn_frontpage","reddit_search","x402_rail_watch"] },
   { name: "Web Intel", icon: "\u{1F50D}", tools: ["scrape","detect_stack","extract_contacts","score_lead","enrich_lead","check_agent_policy","find_agent_resource","validate_agent_manifest"] },
   { name: "Legal & Regulatory", icon: "\u{2696}\u{FE0F}", tools: ["court_opinions","court_docket","federal_register","patents_search","regulations_search","judges_search","trademarks_search"] },
   { name: "Academic & Science", icon: "\u{1F52C}", tools: ["search_papers","search_arxiv","search_pubmed","clinical_trials","search_openalex","paper_details","citation_graph"] },
@@ -6508,6 +6567,14 @@ function openApiSpec() {
           description: "Returns HTTP 402 until paid $0.04. TGA $B d/d delta.",
           requestBody: { content: { "application/json": { schema: { type: "object", properties: { days: { type: "integer", minimum: 2, maximum: 30 }, min_score: { type: "number", minimum: 0, maximum: 1 } } } } } },
           responses: { "200": { description: "Treasury DTS.", "content": { "application/json": { "schema": { "type": "object", "properties": { "success": { "type": "boolean" }, "data": { "oneOf": [ { "type": "array" }, { "type": "object" } ] }, "cached": { "type": "boolean" }, "meta": { "type": "object", "properties": { "count": { "type": "integer" }, "source": { "type": "string" }, "generated_at": { "type": "string", "format": "date-time" } } } } } } } }, "402": { description: "payment required" } },
+        },
+      },
+      "/paid/osint/x402-railwatch": {
+        post: {
+          summary: "Paid x402 ecosystem rail watch — GitHub pulse + curated rail ledger",
+          description: "Returns HTTP 402 until paid $0.05. GitHub Search/REST API + curated judgment layer.",
+          requestBody: { content: { "application/json": { schema: { type: "object", properties: { section: { type: "string", enum: ["all", "ecosystem", "watchlist", "brief"] }, limit: { type: "integer", minimum: 5, maximum: 50 } } } } } },
+          responses: { "200": { description: "Rail watch.", "content": { "application/json": { "schema": { "type": "object", "properties": { "generated_at": { "type": "string", "format": "date-time" }, "ecosystem": { "type": "object" }, "watchlist": { "type": "object" }, "brief": { "type": "object" } } } } } }, "402": { description: "payment required" } },
         },
       },
       "/paid/osint/github-trending": {
