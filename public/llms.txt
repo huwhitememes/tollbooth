@@ -3,7 +3,7 @@
 Operator: Hu White (@huwhitememes)
 Contact: memerhuwhite@gmail.com
 
-Lead: Receipt-backed paid work products for AI agents. 109 tools across 10 categories. Agents inspect the task, price, seller wallet, spend cap, and expected result before paying $0.01-$0.10 via x402 in USDC on Base. No API keys, no accounts, no subscriptions.
+Lead: Receipt-backed paid work products for AI agents. 110 tools across 10 categories. Agents inspect the task, price, seller wallet, spend cap, and expected result before paying $0.01-$0.10 via x402 in USDC on Base. No API keys, no accounts, no subscriptions.
 
 Buyer-agent summary: agenttoll.dev gives agents one entry point for callable work products across OSINT, market intelligence, web intel, legal, academic, health, environmental, government, finance, and utility tasks. Every tool is paid via x402: an agent inspects buyer metadata, requests the work, gets HTTP 402 with a payment challenge, pays cents of USDC on Base, retries with proof, and gets structured JSON with an agenttoll receipt. No keys, no OAuth, no billing dashboard.
 
@@ -77,7 +77,7 @@ Prediction market scanning for Polymarket and Kalshi — arbitrage detection, or
 - POST /paid/polymarket/orderbook-imbalance — CLOB orderbook imbalance as directional signal. $0.05
 - POST /paid/polymarket/smart-money — Leaderboard top traders, current positions, ROI. $0.10
 
-## OSINT (14 tools)
+## OSINT (15 tools)
 
 Open-source intelligence feeds — GDELT, ADS-B, SEC, Treasury, HN, GitHub, USGS, OpenAQ, OpenRouter. Cron-pre-warmed via Cloudflare KV for sub-50ms cache hits.
 - POST /paid/osint/attention-momentum — HN frontpage + Reddit velocity + pypistats/npm/crates momentum score. $0.02
@@ -93,6 +93,7 @@ Open-source intelligence feeds — GDELT, ADS-B, SEC, Treasury, HN, GitHub, USGS
 - POST /paid/osint/sec-8k-velocity — SEC EDGAR 8-K filing spike detection. $0.03
 - POST /paid/osint/supply-stress — Port/chokepoint stress: CBP + GDELT + AIS + BTS. $0.03
 - POST /paid/osint/treasury-dts — Treasury TGA operating cash balance. $0.04
+- POST /paid/osint/x402-railwatch — x402 ecosystem rail watch: live GitHub pulse (top repos, 30-day new entrants, anchor watchlist) + curated rail ledger with settlement status per lane (Lightning, Cardano, Algorand, Solana, Base). $0.05
 - POST /paid/osint/usgs-quake — USGS earthquakes M2.5+ last 24h. $0.02
 - POST /paid/osint/weather-bias — Open-Meteo archive vs forecast bias for Kalshi weather markets. $0.03
 
