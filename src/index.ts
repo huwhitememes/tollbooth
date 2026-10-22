@@ -6895,7 +6895,8 @@ export default {
           const to = Math.min(frm + CHUNK - 1, latestHex);
           chunkIdx++;
           let got = false;
-          for (const rpc of BASE_RPC_ENDPOINTS) {
+          const scanRpcs = BASE_RPC_ENDPOINTS.filter((r) => !r.includes("blastapi"));
+          for (const rpc of scanRpcs) {
             try {
               const r = await fetch(rpc, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "eth_getLogs", params: [{ address: USDC, fromBlock: "0x" + frm.toString(16), toBlock: "0x" + to.toString(16), topics: [TOPIC0, null, TOPIC2] }] }) });
               if (r.ok) {
