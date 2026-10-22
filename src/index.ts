@@ -5528,14 +5528,14 @@ function landingPage() {
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://agenttoll.dev/">
 <meta property="og:site_name" content="agenttoll.dev">
-<meta property="og:image" content="https://agenttoll.dev/og-card-v2.png">
+<meta property="og:image" content="https://agenttoll.dev/og-card-v3.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:type" content="image/png">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="agenttoll.dev — Paid work products for AI agents">
 <meta name="twitter:description" content="Receipt-backed x402 work products. Clear prices, spend caps, and Base USDC settlement.">
-<meta name="twitter:image" content="https://agenttoll.dev/og-card-v2.png">
+<meta name="twitter:image" content="https://agenttoll.dev/og-card-v3.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -5779,12 +5779,12 @@ ${titleTag}
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://agenttoll.dev">
 <meta property="og:site_name" content="agenttoll.dev">
-<meta property="og:image" content="https://agenttoll.dev/og-card-v2.png">
+<meta property="og:image" content="https://agenttoll.dev/og-card-v3.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:type" content="image/png">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://agenttoll.dev/og-card-v2.png">
+<meta name="twitter:image" content="https://agenttoll.dev/og-card-v3.png">
 ${headExtra}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
