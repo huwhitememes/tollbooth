@@ -6863,6 +6863,81 @@ export default {
     }
 
 
+    if (url.pathname === "/admin/settlements") {
+      const warmKey = (env as any)?.WARM_KEY as string | undefined;
+      const providedKey = url.searchParams.get("key") ?? request.headers.get("x-warm-key");
+      const isDev = (env as any)?.NODE_ENV === "development" || !(env as any)?.WARM_KEY && process.env.NODE_ENV !== "production";
+      if (warmKey) {
+        if (providedKey !== warmKey) return jsonResponse({ error: "forbidden" }, 403);
+      } else if (!isDev) {
+        return jsonResponse({ error: "forbidden", message: "WARM_KEY not set and not in dev" }, 403);
+      }
+      try {
+        const rangeBlocks = Math.min(Number(url.searchParams.get("blocks") ?? "1800000") || 1800000, 4000000);
+        const latestHex = await (async () => {
+          for (const rpc of BASE_RPC_ENDPOINTS) {
+            try {
+              const r = await fetch(rpc, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "eth_blockNumber", params: [] }) });
+              if (r.ok) { const j = await r.json() as any; if (j?.result) return parseInt(j.result, 16); }
+            } catch { /* rotate */ }
+          }
+          throw new Error("no rpc for blockNumber");
+        })();
+        const TOPIC0 = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef";
+        const TOPIC2 = "0x000000000000000000000000" + SERVICE.seller.slice(2).toLowerCase();
+        const USDC = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
+        const all: any[] = [];
+        const CHUNK = 9500;
+        const debug: any[] = [];
+        const debugMax = url.searchParams.get("debug") === "1" ? 3 : 0;
+        let chunkIdx = 0;
+        for (let frm = Math.max(0, latestHex - rangeBlocks); frm <= latestHex; frm += CHUNK) {
+          const to = Math.min(frm + CHUNK - 1, latestHex);
+          chunkIdx++;
+          let got = false;
+          for (const rpc of BASE_RPC_ENDPOINTS) {
+            try {
+              const r = await fetch(rpc, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "eth_getLogs", params: [{ address: USDC, fromBlock: "0x" + frm.toString(16), toBlock: "0x" + to.toString(16), topics: [TOPIC0, null, TOPIC2] }] }) });
+              if (r.ok) {
+                const j = await r.json() as any;
+                if (Array.isArray(j?.result)) {
+                  all.push(...j.result);
+                  if (chunkIdx <= debugMax) debug.push({ chunk: chunkIdx, rpc: rpc.slice(8, 28), status: r.status, got: j.result.length });
+                  got = true;
+                  break;
+                }
+                if (j?.error) throw new Error(String(j.error?.message ?? "rpc error").slice(0, 90));
+              }
+              throw new Error(`rpc ${r.status}`);
+            } catch (e) {
+              if (chunkIdx <= debugMax) debug.push({ chunk: chunkIdx, rpc: rpc.slice(8, 28), err: String((e as Error).message ?? e).slice(0, 90) });
+            }
+          }
+          if (!got && chunkIdx <= debugMax) debug.push({ chunk: chunkIdx, note: "all rpcs failed for this chunk" });
+        }
+        const DEBUG = debug;
+        type Row = { block: number; amount_usdc: number; from: string; tx: string };
+        const rows: Row[] = all.map((lg: any) => ({ block: parseInt(lg.blockNumber, 16), amount_usdc: Number(BigInt(lg.data)) / 1e6, from: "0x" + (lg.topics?.[1]?.slice(26) ?? ""), tx: lg.transactionHash }));
+        rows.sort((a, b) => a.block - b.block);
+        const total = rows.reduce((s, r) => s + r.amount_usdc, 0);
+        const byBuyer: Record<string, number> = {};
+        for (const r of rows) byBuyer[r.from] = (byBuyer[r.from] ?? 0) + r.amount_usdc;
+        return jsonResponse({
+          ok: true,
+          range_blocks: rangeBlocks,
+          transfers: rows.length,
+          total_usdc: Math.round(total * 1e6) / 1e6,
+          unique_buyers: Object.keys(byBuyer).length,
+          by_buyer: Object.fromEntries(Object.entries(byBuyer).map(([k, v]) => [k, Math.round(v * 1e6) / 1e6])),
+          rows: rows.slice(-200),
+          debug_chunks: DEBUG,
+          timestamp: new Date().toISOString(),
+        });
+      } catch (error) {
+        return jsonResponse({ error: "settlement_ledger_failed", message: error instanceof Error ? error.message : String(error) }, 500);
+      }
+    }
+
     if (url.pathname === "/admin/route-analytics") {
       const warmKey = (env as any)?.WARM_KEY as string | undefined;
       const providedKey = url.searchParams.get("key") ?? request.headers.get("x-warm-key");
