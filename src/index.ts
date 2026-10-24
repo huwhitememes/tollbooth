@@ -27,6 +27,7 @@ import { runAllFeedWarms } from "./scheduler.js";
 import { mcpGetCachedOrLive } from "./mcp-cache.js";
 import { fetchGithubTrending } from "./feeds/github-trending.js";
 import { buildRailWatch } from "./feeds/x402-railwatch.js";
+import { vatValidate, tradeFlows, fxEcbLatest, worldBankIndicator, wikiTopPageviews } from "./feeds/batch15.js";
 import { fetchHnFrontpage } from "./feeds/hn-frontpage.js";
 import { fetchUsgsQuakes } from "./feeds/usgs-quake.js";
 import { fetchOpenAq } from "./feeds/openaq-air.js";
@@ -961,6 +962,46 @@ const TOOLS = [
     http_path: "/paid/health/food-recall",
   },
   {
+    name: "vat_validate",
+    price_usd: "0.02",
+    description: "EU VAT number validation via the official VIES service. Returns validity, registered legal name and address for any EU business VAT ID. The B2B compliance check every European onboarding flow needs.",
+    input: { country_code: "2-letter EU member code e.g. IE, DE, FR", vat_number: "VAT number without country prefix" },
+    example: { country_code: "IE", vat_number: "6388047V" },
+    http_path: "/paid/business/vat-validate",
+  },
+  {
+    name: "trade_flows",
+    price_usd: "0.04",
+    description: "UN Comtrade international trade flows: import/export values and partner breakdowns by reporter country, HS commodity code and year. Official trade statistics for market research and supply-chain analysis.",
+    input: { reporter_code: "UN country code e.g. 842=USA", partner_code: "optional partner country code", flow_code: "M=import X=export M,X=both", cmd_code: "HS commodity code e.g. 8471", period: "year e.g. 2024" },
+    example: { reporter_code: "842", cmd_code: "8471", period: 2024, flow_code: "M" },
+    http_path: "/paid/business/trade-flows",
+  },
+  {
+    name: "fx_ecb",
+    price_usd: "0.01",
+    description: "European Central Bank reference exchange rates via Frankfurter. Latest or historical, any base currency, 30+ symbols. The official-source FX check.",
+    input: { base: "3-letter base currency e.g. USD", symbols: "comma-separated targets e.g. EUR,GBP", date: "optional YYYY-MM-DD for historical" },
+    example: { base: "USD", symbols: "EUR,GBP" },
+    http_path: "/paid/business/fx-ecb",
+  },
+  {
+    name: "worldbank_indicator",
+    price_usd: "0.02",
+    description: "World Bank macro indicators by country: GDP, population, inflation, and 1400+ more series. Official source, full history.",
+    input: { country: "ISO2/ISO3 name e.g. US, USA", indicator: "World Bank series code e.g. NY.GDP.MKTP.CD", date: "optional year or range e.g. 2020:2024", per_page: "optional int rows 1-50" },
+    example: { country: "US", indicator: "NY.GDP.MKTP.CD", date: "2023" },
+    http_path: "/paid/business/worldbank-indicator",
+  },
+  {
+    name: "wiki_pageviews",
+    price_usd: "0.01",
+    description: "Wikipedia pageview analytics via the Wikimedia REST API: per-article attention trends or top-100 articles by project/day. Attention flow as a signal.",
+    input: { project: "e.g. en.wikipedia", article: "optional article title for per-article series", granularity: "daily or monthly", start: "YYYYMMDD", end: "YYYYMMDD" },
+    example: { project: "en.wikipedia", article: "Bitcoin", granularity: "daily", start: "20261016", end: "20261023" },
+    http_path: "/paid/business/wiki-pageviews",
+  },
+  {
     name: "x402_rail_watch",
     price_usd: "0.05",
     description: "x402 ecosystem rail watch — live GitHub pulse (top repos, 30-day new entrants, anchor watchlist) plus a curated rail ledger: every announced lane (Lightning, Cardano, Algorand, Solana batch settlement, Base USDC) with settlement status and why it matters.",
@@ -1218,6 +1259,41 @@ const trendingDiscovery = declareDiscoveryExtension({
     },
   },
   output: { example: { source: "Polymarket Gamma API", markets: [] } },
+});
+
+const vatValidateDiscovery = declareDiscoveryExtension({
+  bodyType: "json",
+  input: { country_code: "IE", vat_number: "6388047V" },
+  inputSchema: { properties: { country_code: { type: "string", minLength: 2, maxLength: 2 }, vat_number: { type: "string", maxLength: 20 } }, required: ["country_code", "vat_number"] },
+  output: { example: { valid: true, name: "GOOGLE IRELAND LIMITED", address: "3RD FLOOR, GORDON HOUSE, DUBLIN 4", country: "IE" } },
+});
+
+const tradeFlowsDiscovery = declareDiscoveryExtension({
+  bodyType: "json",
+  input: { reporter_code: "842", flow_code: "M", cmd_code: "8471", period: 2024 },
+  inputSchema: { properties: { reporter_code: { type: "string" }, partner_code: { type: "string" }, flow_code: { type: "string", enum: ["M", "X", "M,X"] }, cmd_code: { type: "string" }, period: { type: "integer" } }, required: ["reporter_code", "cmd_code", "period"] },
+  output: { example: { count: 159, rows: [{ reporter: "United States", partner: "World", trade_value_usd: 12345678 }] } },
+});
+
+const fxEcbDiscovery = declareDiscoveryExtension({
+  bodyType: "json",
+  input: { base: "USD", symbols: "EUR" },
+  inputSchema: { properties: { base: { type: "string", minLength: 3, maxLength: 3 }, symbols: { type: "string" }, date: { type: "string" } } },
+  output: { example: { base: "USD", date: "2026-10-23", rates: { EUR: 0.89342 } } },
+});
+
+const worldBankDiscovery = declareDiscoveryExtension({
+  bodyType: "json",
+  input: { country: "US", indicator: "NY.GDP.MKTP.CD", date: "2023" },
+  inputSchema: { properties: { country: { type: "string" }, indicator: { type: "string" }, date: { type: "string" }, per_page: { type: "integer", minimum: 1, maximum: 50 } } },
+  output: { example: { indicator: "GDP (current US$)", country: "United States", rows: [{ date: "2023", value: 27811000000000 }] } },
+});
+
+const wikiPageviewsDiscovery = declareDiscoveryExtension({
+  bodyType: "json",
+  input: { project: "en.wikipedia", article: "Bitcoin", granularity: "daily", start: "20261016", end: "20261023" },
+  inputSchema: { properties: { project: { type: "string" }, article: { type: "string" }, granularity: { type: "string", enum: ["daily", "monthly"] }, start: { type: "string" }, end: { type: "string" } } },
+  output: { example: { project: "en.wikipedia", article: "Bitcoin", total_views: 486930, items: [] } },
 });
 
 const railWatchDiscovery = declareDiscoveryExtension({
@@ -2013,6 +2089,56 @@ paidHttp.use(paymentMiddleware({
     unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "$0.04", network: SERVICE.network } }),
   },
   // ── 4 new public-API feeds (v0.9.1) ────────────────────────────────
+  "POST /paid/business/vat-validate": {
+    accepts: routeAccepts("$0.02"),
+    resource: `${SERVICE.origin}/paid/business/vat-validate`,
+    description: "EU VAT validation via official VIES: validity, legal name, registered address for any EU business VAT ID. B2B onboarding compliance.",
+    mimeType: "application/json",
+    serviceName: "agenttoll.dev",
+    tags: ["business", "vat", "vies", "validation", "compliance", "x402"],
+    iconUrl: `${SERVICE.origin}/favicon.svg`,
+    unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "$0.02", network: SERVICE.network } }),
+  },
+  "POST /paid/business/trade-flows": {
+    accepts: routeAccepts("$0.04"),
+    resource: `${SERVICE.origin}/paid/business/trade-flows`,
+    description: "UN Comtrade trade flows: import/export values and partners by reporter country, HS code and year. Official trade statistics.",
+    mimeType: "application/json",
+    serviceName: "agenttoll.dev",
+    tags: ["business", "trade", "comtrade", "imports", "exports", "x402"],
+    iconUrl: `${SERVICE.origin}/favicon.svg`,
+    unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "$0.04", network: SERVICE.network } }),
+  },
+  "POST /paid/business/fx-ecb": {
+    accepts: routeAccepts("$0.01"),
+    resource: `${SERVICE.origin}/paid/business/fx-ecb`,
+    description: "ECB reference FX rates via Frankfurter: latest or historical, any base, 30+ currencies. Official-source exchange rates.",
+    mimeType: "application/json",
+    serviceName: "agenttoll.dev",
+    tags: ["business", "fx", "forex", "ecb", "rates", "x402"],
+    iconUrl: `${SERVICE.origin}/favicon.svg`,
+    unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "$0.01", network: SERVICE.network } }),
+  },
+  "POST /paid/business/worldbank-indicator": {
+    accepts: routeAccepts("$0.02"),
+    resource: `${SERVICE.origin}/paid/business/worldbank-indicator`,
+    description: "World Bank macro indicators by country: GDP, population, inflation, 1400+ series. Official development data.",
+    mimeType: "application/json",
+    serviceName: "agenttoll.dev",
+    tags: ["business", "macro", "worldbank", "gdp", "economics", "x402"],
+    iconUrl: `${SERVICE.origin}/favicon.svg`,
+    unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "$0.02", network: SERVICE.network } }),
+  },
+  "POST /paid/business/wiki-pageviews": {
+    accepts: routeAccepts("$0.01"),
+    resource: `${SERVICE.origin}/paid/business/wiki-pageviews`,
+    description: "Wikipedia pageview analytics: per-article attention trends or project top-100. Official Wikimedia REST data.",
+    mimeType: "application/json",
+    serviceName: "agenttoll.dev",
+    tags: ["business", "wikipedia", "pageviews", "attention", "trending", "x402"],
+    iconUrl: `${SERVICE.origin}/favicon.svg`,
+    unpaidResponseBody: () => ({ contentType: "application/json", body: { error: "payment_required", price_usd: "$0.01", network: SERVICE.network } }),
+  },
   "POST /paid/osint/x402-railwatch": {
     accepts: routeAccepts("$0.05"),
     resource: `${SERVICE.origin}/paid/osint/x402-railwatch`,
@@ -2476,6 +2602,58 @@ paidHttp.post("/paid/osint/openrouter-models", async (c) => {
 });
 
 // ── Extra public feeds (v1.0) ────────────────────────────────────────
+paidHttp.post("/paid/business/vat-validate", async (c) => {
+  const body = await c.req.json<Record<string, unknown>>().catch(() => ({} as Record<string, unknown>));
+  try {
+    const data = await vatValidate(String(body.country_code ?? ""), String(body.vat_number ?? ""));
+    return c.json(data, 200);
+  } catch (e) { return c.json({ error: "vat_validate_failed", message: e instanceof Error ? e.message : String(e) }, 502); }
+});
+
+paidHttp.post("/paid/business/trade-flows", async (c) => {
+  const body = await c.req.json<Record<string, unknown>>().catch(() => ({} as Record<string, unknown>));
+  try {
+    const data = await tradeFlows({
+      reporter_code: String(body.reporter_code ?? ""), partner_code: body.partner_code ? String(body.partner_code) : undefined,
+      flow_code: String(body.flow_code ?? "M"), cmd_code: String(body.cmd_code ?? ""),
+      period: typeof body.period === "number" ? body.period : undefined,
+    });
+    return c.json(data, 200);
+  } catch (e) { return c.json({ error: "trade_flows_failed", message: e instanceof Error ? e.message : String(e) }, 502); }
+});
+
+paidHttp.post("/paid/business/fx-ecb", async (c) => {
+  const body = await c.req.json<Record<string, unknown>>().catch(() => ({} as Record<string, unknown>));
+  try {
+    const data = await fxEcbLatest({
+      base: String(body.base ?? "USD"), symbols: body.symbols ? String(body.symbols) : undefined, date: body.date ? String(body.date) : undefined,
+    });
+    return c.json(data, 200);
+  } catch (e) { return c.json({ error: "fx_ecb_failed", message: e instanceof Error ? e.message : String(e) }, 502); }
+});
+
+paidHttp.post("/paid/business/worldbank-indicator", async (c) => {
+  const body = await c.req.json<Record<string, unknown>>().catch(() => ({} as Record<string, unknown>));
+  try {
+    const data = await worldBankIndicator({
+      country: String(body.country ?? "US"), indicator: String(body.indicator ?? "NY.GDP.MKTP.CD"),
+      date: body.date ? String(body.date) : undefined, per_page: typeof body.per_page === "number" ? body.per_page : undefined,
+    });
+    return c.json(data, 200);
+  } catch (e) { return c.json({ error: "worldbank_failed", message: e instanceof Error ? e.message : String(e) }, 502); }
+});
+
+paidHttp.post("/paid/business/wiki-pageviews", async (c) => {
+  const body = await c.req.json<Record<string, unknown>>().catch(() => ({} as Record<string, unknown>));
+  try {
+    const data = await wikiTopPageviews({
+      project: String(body.project ?? "en.wikipedia"), article: body.article ? String(body.article) : undefined,
+      granularity: String(body.granularity ?? "daily"), start: String(body.start ?? ""), end: String(body.end ?? ""),
+    });
+    return c.json(data, 200);
+  } catch (e) { return c.json({ error: "wiki_pageviews_failed", message: e instanceof Error ? e.message : String(e) }, 502); }
+});
+
 paidHttp.post("/paid/osint/x402-railwatch", async (c) => {
   const body = await c.req.json<Record<string, unknown>>().catch(() => ({} as Record<string, unknown>));
   try {
@@ -3522,6 +3700,72 @@ export class TollboothMCP extends McpAgent<Env> {
         }, args);
         return { content: [{ type: "text", text: JSON.stringify(data) }] };
       },
+    );
+
+    this.server.paidTool(
+      "vat_validate",
+      "EU VAT number validation via official VIES. Validity, legal name, registered address for any EU business VAT ID.",
+      0.02,
+      { country_code: z.string().length(2).describe("2-letter EU member code e.g. IE, DE, FR"), vat_number: z.string().max(20).describe("VAT number without country prefix") },
+      {},
+      async (args: any) => ({ content: [{ type: "text" as const, text: JSON.stringify(await vatValidate(args.country_code, args.vat_number)) }] })
+    );
+
+    this.server.paidTool(
+      "trade_flows",
+      "UN Comtrade trade flows: import/export values and partner breakdowns by reporter country, HS code and year.",
+      0.04,
+      {
+        reporter_code: z.string().describe("UN country code e.g. 842=USA"),
+        cmd_code: z.string().describe("HS commodity code e.g. 8471"),
+        period: z.number().int().describe("Year e.g. 2024"),
+        partner_code: z.string().optional().describe("Partner country code"),
+        flow_code: z.enum(["M", "X", "M,X"]).optional().describe("M=import X=export M,X=both. Default M"),
+      },
+      {},
+      async (args: any) => ({ content: [{ type: "text" as const, text: JSON.stringify(await tradeFlows(args)) }] })
+    );
+
+    this.server.paidTool(
+      "fx_ecb",
+      "European Central Bank reference exchange rates via Frankfurter. Latest or historical.",
+      0.01,
+      {
+        base: z.string().length(3).optional().describe("Base currency, default USD"),
+        symbols: z.string().optional().describe("Comma-separated target currencies"),
+        date: z.string().optional().describe("Historical date YYYY-MM-DD"),
+      },
+      {},
+      async (args: any) => ({ content: [{ type: "text" as const, text: JSON.stringify(await fxEcbLatest(args)) }] })
+    );
+
+    this.server.paidTool(
+      "worldbank_indicator",
+      "World Bank macro indicators by country: GDP, population, inflation and 1400+ series.",
+      0.02,
+      {
+        country: z.string().describe("ISO2/ISO3 or country name"),
+        indicator: z.string().describe("World Bank series code e.g. NY.GDP.MKTP.CD"),
+        date: z.string().optional().describe("Year or range e.g. 2020:2024"),
+        per_page: z.number().int().min(1).max(50).optional().describe("Rows, default 10"),
+      },
+      {},
+      async (args: any) => ({ content: [{ type: "text" as const, text: JSON.stringify(await worldBankIndicator(args)) }] })
+    );
+
+    this.server.paidTool(
+      "wiki_pageviews",
+      "Wikipedia pageview analytics: per-article attention trends or project top-100 by day.",
+      0.01,
+      {
+        project: z.string().optional().describe("Default en.wikipedia"),
+        article: z.string().optional().describe("Article title for per-article series"),
+        granularity: z.enum(["daily", "monthly"]).optional(),
+        start: z.string().describe("YYYYMMDD"),
+        end: z.string().describe("YYYYMMDD"),
+      },
+      {},
+      async (args: any) => ({ content: [{ type: "text" as const, text: JSON.stringify(await wikiTopPageviews(args)) }] })
     );
 
     this.server.paidTool(
@@ -6567,6 +6811,46 @@ function openApiSpec() {
           description: "Returns HTTP 402 until paid $0.04. TGA $B d/d delta.",
           requestBody: { content: { "application/json": { schema: { type: "object", properties: { days: { type: "integer", minimum: 2, maximum: 30 }, min_score: { type: "number", minimum: 0, maximum: 1 } } } } } },
           responses: { "200": { description: "Treasury DTS.", "content": { "application/json": { "schema": { "type": "object", "properties": { "success": { "type": "boolean" }, "data": { "oneOf": [ { "type": "array" }, { "type": "object" } ] }, "cached": { "type": "boolean" }, "meta": { "type": "object", "properties": { "count": { "type": "integer" }, "source": { "type": "string" }, "generated_at": { "type": "string", "format": "date-time" } } } } } } } }, "402": { description: "payment required" } },
+        },
+      },
+      "/paid/business/vat-validate": {
+        post: {
+          summary: "EU VAT validation via official VIES",
+          description: "Returns HTTP 402 until paid $0.02. Official EU VIES service.",
+          requestBody: { content: { "application/json": { schema: { type: "object", properties: { country_code: { type: "string" }, vat_number: { type: "string" } }, required: ["country_code", "vat_number"] } } } },
+          responses: { "200": { description: "VAT validation result." }, "402": { description: "payment required" } },
+        },
+      },
+      "/paid/business/trade-flows": {
+        post: {
+          summary: "UN Comtrade trade flows by reporter/HS/year",
+          description: "Returns HTTP 402 until paid $0.04. Official UN trade statistics.",
+          requestBody: { content: { "application/json": { schema: { type: "object", properties: { reporter_code: { type: "string" }, partner_code: { type: "string" }, flow_code: { type: "string" }, cmd_code: { type: "string" }, period: { type: "integer" } } } } } },
+          responses: { "200": { description: "Trade flow rows." }, "402": { description: "payment required" } },
+        },
+      },
+      "/paid/business/fx-ecb": {
+        post: {
+          summary: "ECB reference FX rates via Frankfurter",
+          description: "Returns HTTP 402 until paid $0.01. Official ECB rates.",
+          requestBody: { content: { "application/json": { schema: { type: "object", properties: { base: { type: "string" }, symbols: { type: "string" }, date: { type: "string" } } } } } },
+          responses: { "200": { description: "FX rates." }, "402": { description: "payment required" } },
+        },
+      },
+      "/paid/business/worldbank-indicator": {
+        post: {
+          summary: "World Bank macro indicator by country",
+          description: "Returns HTTP 402 until paid $0.02. Official World Bank data.",
+          requestBody: { content: { "application/json": { schema: { type: "object", properties: { country: { type: "string" }, indicator: { type: "string" }, date: { type: "string" }, per_page: { type: "integer" } } } } } },
+          responses: { "200": { description: "Indicator rows." }, "402": { description: "payment required" } },
+        },
+      },
+      "/paid/business/wiki-pageviews": {
+        post: {
+          summary: "Wikipedia pageview analytics",
+          description: "Returns HTTP 402 until paid $0.01. Official Wikimedia REST data.",
+          requestBody: { content: { "application/json": { schema: { type: "object", properties: { project: { type: "string" }, article: { type: "string" }, granularity: { type: "string" }, start: { type: "string" }, end: { type: "string" } } } } } },
+          responses: { "200": { description: "Pageview data." }, "402": { description: "payment required" } },
         },
       },
       "/paid/osint/x402-railwatch": {

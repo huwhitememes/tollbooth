@@ -3,7 +3,7 @@
 Operator: Hu White (@huwhitememes)
 Contact: memerhuwhite@gmail.com
 
-Lead: Receipt-backed paid work products for AI agents. 110 tools across 10 categories. Agents inspect the task, price, seller wallet, spend cap, and expected result before paying $0.01-$0.10 via x402 in USDC on Base. No API keys, no accounts, no subscriptions.
+Lead: Receipt-backed paid work products for AI agents. 115 tools across 10 categories. Agents inspect the task, price, seller wallet, spend cap, and expected result before paying $0.01-$0.10 via x402 in USDC on Base. No API keys, no accounts, no subscriptions.
 
 Buyer-agent summary: agenttoll.dev gives agents one entry point for callable work products across OSINT, market intelligence, web intel, legal, academic, health, environmental, government, finance, and utility tasks. Every tool is paid via x402: an agent inspects buyer metadata, requests the work, gets HTTP 402 with a payment challenge, pays cents of USDC on Base, retries with proof, and gets structured JSON with an agenttoll receipt. No keys, no OAuth, no billing dashboard.
 
@@ -78,6 +78,15 @@ Prediction market scanning for Polymarket and Kalshi — arbitrage detection, or
 - POST /paid/polymarket/smart-money — Leaderboard top traders, current positions, ROI. $0.10
 
 ## OSINT (15 tools)
+
+## Business (5 tools)
+
+Business verification and official-source data — VAT compliance, trade flows, FX, macro indicators, attention analytics. All keyless upstreams, verified live 2026-10-24.
+- POST /paid/business/vat-validate — EU VAT validation via official VIES: validity, legal name, address. $0.02
+- POST /paid/business/trade-flows — UN Comtrade trade flows by reporter country, HS code, year. $0.04
+- POST /paid/business/fx-ecb — ECB reference FX rates via Frankfurter, latest or historical. $0.01
+- POST /paid/business/worldbank-indicator — World Bank macro indicators by country. $0.02
+- POST /paid/business/wiki-pageviews — Wikipedia pageview analytics via Wikimedia REST. $0.01
 
 Open-source intelligence feeds — GDELT, ADS-B, SEC, Treasury, HN, GitHub, USGS, OpenAQ, OpenRouter. Cron-pre-warmed via Cloudflare KV for sub-50ms cache hits.
 - POST /paid/osint/attention-momentum — HN frontpage + Reddit velocity + pypistats/npm/crates momentum score. $0.02
